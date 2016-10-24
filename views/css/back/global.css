@@ -1,0 +1,7 @@
+#maintab-AdminBradModule > a > i {
+    background: url('../../img/brad.png') no-repeat scroll center center / contain transparent;
+}
+
+#maintab-AdminBradModule > a > i:before {
+    content: '\00a0';
+}

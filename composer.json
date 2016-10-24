@@ -1,0 +1,26 @@
+{
+    "name": "invertus/brad",
+    "description": "Elasticsearch® module for PrestaShop that makes search and filter significantly faster",
+    "type": "prestashop-module",
+    "homepage": "http://bradsearch.io",
+    "authors": [
+        {
+            "name": "Invertus",
+            "email": "info@invertus.eu"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Invertus\\Brad\\": "src/"
+        },
+        "classmap": [
+            "src/Entity",
+            "controllers/"
+        ]
+    },
+    "require": {
+        "php": ">=5.5.0",
+        "pimple/pimple": "~3.0",
+        "elasticsearch/elasticsearch": "^2.2"
+    }
+}

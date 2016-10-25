@@ -44,7 +44,6 @@ class ElasticsearchManager
      * Get index name
      *
      * @return string
-     * @throws MissingIndexNameException
      */
     public function getIndexPrefix()
     {

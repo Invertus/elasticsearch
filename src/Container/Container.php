@@ -4,8 +4,6 @@ namespace Invertus\Brad\Container;
 
 use Adapter_ServiceLocator as ServiceLocator;
 use Brad;
-use Core_Business_ConfigurationInterface as ConfigurationInterface;
-use Core_Foundation_Database_EntityManager as EntityManager;
 use Elasticsearch\ClientBuilder;
 use Invertus\Brad\Config\Setting;
 use Invertus\Brad\Install\Installer;
@@ -19,12 +17,12 @@ use Pimple\Container as Pimple;
 /**
  * Class Container Simple container for module dependencies
  *
- * @package Invertus\Brad\DI
+ * @package Invertus\Brad\Container
  */
 class Container
 {
     /**
-     * @var DIContainer
+     * @var Pimple
      */
     private $container;
 
@@ -87,18 +85,22 @@ class Container
     private function initDependencies()
     {
         $this->container['em'] = function () {
-            return ServiceLocator::get(EntityManager::class);
+            return ServiceLocator::get('Core_Foundation_Database_EntityManager');
         };
 
         $this->container['configuration'] = function () {
-            return ServiceLocator::get(ConfigurationInterface::class);
+            return ServiceLocator::get('Core_Business_ConfigurationInterface');
+        };
+
+        $this->container['context.link'] = function () {
+            return $this->module->getContext()->link;
         };
 
         $this->container['installer'] = function () {
             return new Installer($this->module);
         };
 
-        $this->container['es.manager'] = function ($c) {
+        $this->container['elasticsearch.manager'] = function ($c) {
 
             $elasticsearchHost1 = $c['configuration']->get(Setting::ELASTICSEARCH_HOST_1);
             $elasticsearchIndexPrefix = $c['configuration']->get(Setting::INDEX_PREFIX);
@@ -114,24 +116,24 @@ class Container
             return new ElasticsearchManager($client, $elasticsearchIndexPrefix);
         };
 
-        $this->container['es.indexer'] = function ($c) {
+        $this->container['elasticsearch.indexer'] = function ($c) {
             return new ElasticsearchIndexer(
-                $c['es.manager'],
-                $c['es.builder.document_builder'],
-                $c['es.builder.index_builder']
+                $c['elasticsearch.manager'],
+                $c['elasticsearch.builder.document_builder'],
+                $c['elasticsearch.builder.index_builder']
             );
         };
 
-        $this->container['es.builder.document_builder'] = function () {
-            return new DocumentBuilder();
+        $this->container['elasticsearch.builder.document_builder'] = function ($c) {
+            return new DocumentBuilder($c['context.link']);
         };
 
-        $this->container['es.builder.index_builder'] = function () {
+        $this->container['elasticsearch.builder.index_builder'] = function () {
             return new IndexBuilder();
         };
 
         $this->container['indexer'] = function ($c) {
-            return new Indexer($c['es.indexer'], $c['em']);
+            return new Indexer($c['elasticsearch.indexer'], $c['em'], $c['configuration']);
         };
     }
 

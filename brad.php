@@ -59,6 +59,16 @@ class Brad extends Module
     }
 
     /**
+     * Get context
+     *
+     * @return Context
+     */
+    public function getContext()
+    {
+        return $this->context;
+    }
+
+    /**
      * Module installation
      *
      * @return bool
@@ -97,6 +107,7 @@ class Brad extends Module
      */
     public function hookModuleRoutes()
     {
+        $this->requireAutoloader();
     }
 
     /**
@@ -177,7 +188,7 @@ class Brad extends Module
     public function isElasticsearchConnectionAvailable()
     {
         /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchManager $manager */
-        $manager = $this->container->get('es.manager');
+        $manager = $this->container->get('elasticsearch.manager');
         if (!$manager->isConnectionAvailable()) {
             return false;
         }

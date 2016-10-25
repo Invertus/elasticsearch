@@ -1,7 +1,5 @@
 <?php
 
-use Invertus\Brad\Repository\ProductRepository;
-
 /**
  * Class BradProduct
  */
@@ -14,6 +12,6 @@ class BradProduct extends Product
      */
     public static function getRepositoryClassName()
     {
-        return ProductRepository::class;
+        return '\Invertus\Brad\Repository\ProductRepository';
     }
 }

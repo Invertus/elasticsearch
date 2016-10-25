@@ -39,11 +39,11 @@ abstract class AbstractAdminBradModuleController extends ModuleAdminController
      */
     protected function getRepository($entityClassName)
     {
-        if (!is_subclass_of($entityClassName, Core_Foundation_Database_EntityInterface::class)) {
+        if (!is_subclass_of($entityClassName, 'Core_Foundation_Database_EntityInterface')) {
             $message = sprintf(
                 'Entity %s must implement %s interface',
                 $entityClassName,
-                Core_Foundation_Database_EntityInterface::class
+                'Core_Foundation_Database_EntityInterface'
             );
             throw new InvalidEntityException($message);
         }
@@ -51,17 +51,17 @@ abstract class AbstractAdminBradModuleController extends ModuleAdminController
         $repositoryClass = call_user_func([$entityClassName, 'getRepositoryClassName']);
 
         if (!$repositoryClass ||
-            !is_subclass_of($repositoryClass, Core_Foundation_Database_EntityRepository::class)
+            !is_subclass_of($repositoryClass, 'Core_Foundation_Database_EntityRepository')
         ) {
             $message = sprintf(
                 'Repository %s must extend %s class',
                 $repositoryClass,
-                Core_Foundation_Database_EntityRepository::class
+                'Core_Foundation_Database_EntityRepository'
             );
             throw new InvalidRepositoryException($message);
         }
 
-        $repository = $this->module->getEntityManager()
+        $repository = $this->get('em')
             ->getRepository($entityClassName);
 
         return $repository;

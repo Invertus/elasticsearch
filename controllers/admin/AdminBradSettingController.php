@@ -118,7 +118,7 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
     }
 
     /**
-     * Index products
+     * Index products & categories
      *
      * @param bool $indexOnlyMissingProducts
      */

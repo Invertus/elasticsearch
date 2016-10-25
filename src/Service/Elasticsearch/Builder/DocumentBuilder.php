@@ -6,11 +6,26 @@ use Attribute;
 use Category;
 use Feature;
 use FeatureValue;
+use Link;
 use Manufacturer;
 use Product;
 
 class DocumentBuilder
 {
+    /**
+     * @var Link
+     */
+    private $link;
+
+    /**
+     * DocumentBuilder constructor.
+     *
+     * @param Link $link
+     */
+    public function __construct(Link $link)
+    {
+        $this->link = $link;
+    }
 
     /**
      * Build product fields for indexing
@@ -38,21 +53,14 @@ class DocumentBuilder
         $body['condition'] = $product->condition;
         $body['id_image'] = Product::getCover($product->id)['id_image'];
         $body['id_combination_default'] = $product->getDefaultIdProductAttribute();
+        $body['categories'] = $product->getCategories();
 
         foreach ($product->name as $idLang => $name) {
-            $body['lang_'.$idLang.'_name'] = $name;
-        }
-
-        foreach ($product->description as $idLang => $description) {
-            $body['lang_'.$idLang.'_description'] = $description;
-        }
-
-        foreach ($product->description_short as $idLang => $shortDescription) {
-            $body['lang_'.$idLang.'_short_description'] = $shortDescription;
-        }
-
-        foreach ($product->link_rewrite as $idLang => $linkRewrite) {
-            $body['lang_'.$idLang.'_link_rewrite'] = $linkRewrite;
+            $body['name_lang_'.$idLang] = $name;
+            $body['description_lang_'.$idLang] = $product->description[$idLang];
+            $body['short_description_lang_'.$idLang] = $product->description_short[$idLang];
+            $body['link_rewrite_lang_'.$idLang] = $product->link_rewrite[$idLang];
+            $body['link_lang_'.$idLang] = $this->link->getProductLink($product, $product->link_rewrite[$idLang]);
         }
 
         $features = $product->getFeatures();
@@ -64,8 +72,8 @@ class DocumentBuilder
                 $featureValueObj = new FeatureValue($feature['id_feature_value']);
 
                 foreach ($featureObj->name as $idLang => $name) {
-                    $body['lang_'.$idLang.'_feature_'.$featureObj->id] = $name;
-                    $body['lang_'.$idLang.'_feature_value_'.$featureValueObj->id] = $featureValueObj->value[$idLang];
+                    $body['feature_'.$featureObj->id.'_lang_'.$idLang] = $name;
+                    $body['feature_value_'.$featureValueObj->id.'_lang_'.$idLang] = $featureValueObj->value[$idLang];
                 }
 
                 $body['feature_'.$featureObj->id] = $featureValueObj->id;
@@ -77,18 +85,38 @@ class DocumentBuilder
                 $attributeObj = new Attribute($attribute['id_attribute']);
 
                 foreach ($attributeObj->name as $idLang => $name) {
-                    $body['lang_'.$idLang.'_attribute_'.$attributeObj->id] = $name;
+                    $body['attribute_'.$attributeObj->id.'_lang_'.$idLang] = $name;
                 }
 
                 $body['attribute_group_'.$attribute['id_attribute_group']][] = $attributeObj->id;
             }
         }
 
+        //@todo: get specific price
+
         return $body;
     }
 
-    public function buildCategory(Category $category)
+    /**
+     * Build category body
+     *
+     * @param Category $category
+     *
+     * @return array
+     */
+    public function buildCategoryBody(Category $category)
     {
+        $body = [];
 
+        $body['id_parent'] = $category->id_parent;
+        $body['level_depth'] = $category->level_depth;
+        $body['nleft'] = $category->nleft;
+        $body['nrigt'] = $category->nright;
+
+        foreach ($category->name as $idLang => $name) {
+            $body['name_lang_'.$idLang] = $name;
+        }
+
+        return $body;
     }
 }

@@ -2,10 +2,12 @@
 
 namespace Invertus\Brad\Service;
 
-use BradProduct;
+use Category;
+use Core_Business_ConfigurationInterface as ConfigurationInterface;
 use Core_Foundation_Database_EntityManager as EntityManager;
 use Invertus\Brad\Repository\ProductRepository;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer;
+use PrestaShopCollection;
 use Product;
 
 /**
@@ -31,15 +33,22 @@ class Indexer
     private $indexedProductsCount = 0;
 
     /**
+     * @var ConfigurationInterface
+     */
+    private $configuration;
+
+    /**
      * Indexer constructor.
      *
      * @param ElasticsearchIndexer $elasticserachIndexer
      * @param EntityManager $em
+     * @param ConfigurationInterface $configuration
      */
-    public function __construct(ElasticsearchIndexer $elasticserachIndexer, EntityManager $em)
+    public function __construct(ElasticsearchIndexer $elasticserachIndexer, EntityManager $em, ConfigurationInterface $configuration)
     {
         $this->elasticsearchIndexer = $elasticserachIndexer;
         $this->em = $em;
+        $this->configuration = $configuration;
     }
 
     /**
@@ -96,35 +105,52 @@ class Indexer
         $this->indexedProductsCount = 0;
 
         /** @var ProductRepository $productRepository */
-        $productRepository = $this->em->getRepository(BradProduct::class);
+        $productRepository = $this->em->getRepository('BradProduct');
         $productsIds = $productRepository->findAllIdsByShopId($idShop);
 
         if (empty($productsIds)) {
             return true;
         }
 
-        foreach ($productsIds as $idProduct) {
+        $lastProductsIdsKey = array_pop(array_keys($productsIds));
+        $bulkProductIds = [];
 
-            $product = new Product($idProduct, true, null, $idShop);
+        foreach ($productsIds as $key => $idProduct) {
 
-            if ($indexOnlyMissingProducts) {
-                $isProductIndexed = $this->elasticsearchIndexer->isIndexedProduct($product, $idShop);
+            $bulkProductIds[] = $idProduct;
 
-                if ($isProductIndexed) {
-                    continue;
-                }
-            }
-
-            if (!$this->isValidProduct($product)) {
-                $this->deleteProduct($product, $idShop);
+            //@todo: change it with config value
+            if (2000 > count($bulkProductIds) && $key !== $lastProductsIdsKey) {
                 continue;
             }
 
-            $indexed = $this->elasticsearchIndexer->indexProduct($product, $idShop);
+            $products = new PrestaShopCollection('Product');
+            $products->where('id_product', 'in', $bulkProductIds);
 
-            if ($indexed) {
-                $this->indexedProductsCount++;
+            /** @var Product $product */
+            foreach ($products as $product) {
+
+                if ($indexOnlyMissingProducts) {
+                    $isProductIndexed = $this->elasticsearchIndexer->isIndexedProduct($product, $idShop);
+
+                    if ($isProductIndexed) {
+                        continue;
+                    }
+                }
+
+                if (!$this->isValidProduct($product)) {
+                    $this->elasticsearchIndexer->deleteProduct($product, $idShop);
+                    continue;
+                }
+
+                $indexed = $this->elasticsearchIndexer->indexProduct($product, $idShop);
+
+                if ($indexed) {
+                    $this->indexedProductsCount++;
+                }
             }
+
+            unset($bulkProductIds);
         }
 
         return true;
@@ -139,7 +165,29 @@ class Indexer
      */
     private function indexCategories($idShop)
     {
-        //@todo: implement
+        if (!$this->createIndexIfNotExists($idShop)) {
+            return false;
+        }
+
+        $idRootCategory = $this->configuration->get('PS_ROOT_CATEGORY');
+
+        /** @var \Invertus\Brad\Repository\CategoryRepository $categoryRepository */
+        $categoryRepository = $this->em->getRepository('BradCategory');
+        $categoriesIds = $categoryRepository->findAllIdsByShopId($idShop);
+
+        if (empty($categoriesIds)) {
+            return true;
+        }
+
+        foreach ($categoriesIds as $idCategory) {
+
+            if ($idRootCategory == $idCategory) {
+                continue;
+            }
+
+            $category = new Category($idCategory, null, $idShop);
+            $this->elasticsearchIndexer->indexCategory($category, $idShop);
+        }
 
         return true;
     }

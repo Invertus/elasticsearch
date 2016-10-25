@@ -2,14 +2,10 @@
 
 namespace Invertus\Brad\Service\Elasticsearch;
 
-use Attribute;
+use Category;
 use Exception;
-use Feature;
-use FeatureValue;
 use Invertus\Brad\Service\Elasticsearch\Builder\DocumentBuilder;
 use Invertus\Brad\Service\Elasticsearch\Builder\IndexBuilder;
-use Invertus\Brad\Service\IndexerServiceInterface;
-use Manufacturer;
 use Product;
 
 /**
@@ -184,7 +180,7 @@ class ElasticsearchIndexer
      * @param Product $product
      * @param int $idShop
      *
-     * @return array
+     * @return bool
      */
     public function deleteProduct(Product $product, $idShop)
     {
@@ -202,5 +198,34 @@ class ElasticsearchIndexer
         }
 
         return $response['found'];
+    }
+
+    /**
+     * Index given category
+     *
+     * @param Category $category
+     * @param int $idShop
+     *
+     * @return bool
+     */
+    public function indexCategory(Category $category, $idShop)
+    {
+        $body = $this->documentBuilder->buildCategoryBody($category);
+
+        $params = [];
+        $params['index'] = $this->manager->getIndexPrefix().$idShop;
+        $params['type'] = 'categories';
+        $params['id'] = $category->id;
+        $params['body'] = $body;
+
+        $client = $this->manager->getClient();
+
+        try {
+            $response = $client->index($params);
+        } catch (Exception $e) {
+            return false;
+        }
+
+        return $response['created'];
     }
 }

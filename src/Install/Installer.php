@@ -115,6 +115,8 @@ class Installer extends AbstractInstaller
         $hooks = [
             'moduleRoutes',
             'displayBackOfficeHeader',
+            'displayTop',
+            'displayHeader',
             'actionObjectProductAddAfter',
             'actionObjectProductUpdateAfter',
             'actionObjectProductDeleteAfter',

@@ -33,6 +33,7 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
      */
     protected function initOptions()
     {
+        //@todo: add elasticsearch information panel
         $this->fields_options = [
             'elasticsearch_settings' => [
                 'title' => $this->l('Elasticsearch settings'),

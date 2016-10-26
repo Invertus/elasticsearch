@@ -2,12 +2,15 @@
 
 use Invertus\Brad\Exception\InvalidEntityException;
 use Invertus\Brad\Exception\InvalidRepositoryException;
+use Invertus\Brad\Traits\GetServiceTrait;
 
 /**
  * Class AdminBradModuleController
  */
 abstract class AbstractAdminBradModuleController extends ModuleAdminController
 {
+    use GetServiceTrait;
+
     /**
      * @var bool
      */
@@ -65,18 +68,6 @@ abstract class AbstractAdminBradModuleController extends ModuleAdminController
             ->getRepository($entityClassName);
 
         return $repository;
-    }
-
-    /**
-     * Get service from container
-     *
-     * @param string $serviceName
-     *
-     * @return object
-     */
-    protected function get($serviceName)
-    {
-        return $this->module->getContainer()->get($serviceName);
     }
 
     /**

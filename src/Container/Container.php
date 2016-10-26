@@ -9,6 +9,7 @@ use Invertus\Brad\Config\Setting;
 use Invertus\Brad\Install\Installer;
 use Invertus\Brad\Service\Elasticsearch\Builder\DocumentBuilder;
 use Invertus\Brad\Service\Elasticsearch\Builder\IndexBuilder;
+use Invertus\Brad\Service\Elasticsearch\Builder\SearchQueryBuilder;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchManager;
 use Invertus\Brad\Service\Indexer;
@@ -97,6 +98,10 @@ class Container
             return $this->module->getContext()->link;
         };
 
+        $this->container['context.language'] = function () {
+            return $this->module->getContext()->language;
+        };
+
         $this->container['installer'] = function () {
             return new Installer($this->module);
         };
@@ -143,6 +148,10 @@ class Container
                 $c['util.validator']
             );
         };
+
+        $this->container['elasticsearch.builder.search_query_builder'] = function ($c) {
+            return new SearchQueryBuilder($c['configuration'], $c['context.language']);
+        };
     }
 
     /**
@@ -160,6 +169,14 @@ class Container
 
         $this->container['brad_css_uri'] = function ($c) {
             return $c['brad_uri'].'views/css/';
+        };
+
+        $this->container['brad_js_uri'] = function ($c) {
+            return $c['brad_uri'].'views/js/';
+        };
+
+        $this->container['brad_templates_dir'] = function ($c) {
+            return $c['brad_dir'].'views/templates/';
         };
     }
 }

@@ -16,6 +16,11 @@ class Brad extends Module
     const ADMIN_BRAD_SETTING_CONTROLLER = 'AdminBradSetting';
     const ADMIN_BRAD_ADVANCED_SETTING_CONTROLLER = 'AdminBradAdvancedSetting';
 
+    /**
+     * Front controllers
+     */
+    const FRONT_BRAD_SEARCH_CONTROLLER = 'search';
+
     /** @var \Invertus\Brad\Container\Container */
     private $container;
 
@@ -31,6 +36,7 @@ class Brad extends Module
         $this->version = '2.0.0-dev';
         $this->author = 'Invertus';
         $this->need_instance = 0;
+        $this->controllers = [self::FRONT_BRAD_SEARCH_CONTROLLER];
 
         parent::__construct();
 
@@ -112,13 +118,63 @@ class Brad extends Module
     }
 
     /**
-     * Add JS & CSS to BackOffice header
+     * Add assets to BackOffice header
      */
     public function hookDisplayBackOfficeHeader()
     {
         $cssUri = $this->container->get('brad_css_uri');
 
         $this->context->controller->addCSS($cssUri.'back/global.css');
+    }
+
+    /**
+     * Add assets to FrontOffice header
+     */
+    public function hookDisplayHeader()
+    {
+        /** @var Core_Business_ConfigurationInterface $configuration */
+        $configuration = $this->container->get('configuration');
+
+        $bradMinWordLength = (int) $configuration->get(\Invertus\Brad\Config\Setting::MINIMAL_SEARCH_WORD_LENGTH);
+        $bradSearchUrl = $this->context->link->getModuleLink($this->name, self::FRONT_BRAD_SEARCH_CONTROLLER);
+
+        Media::addJsDef([
+            '$globalBradMinWordLength' => $bradMinWordLength,
+            '$globalBradSearchUrl' => $bradSearchUrl,
+        ]);
+
+        $this->context->controller->addCSS([
+            $this->container->get('brad_css_uri').'front/global.css',
+        ]);
+
+        $this->context->controller->addJS([
+            $this->container->get('brad_js_uri').'front/search.js',
+        ]);
+    }
+
+    /**
+     * Display search box if enabled
+     *
+     * @return string
+     */
+    public function hookDisplayTop()
+    {
+        /** @var Core_Business_ConfigurationInterface $configuration */
+        $configuration = $this->container->get('configuration');
+
+        $isDisplaySearchInputEnabled = (bool) $configuration->get(\Invertus\Brad\Config\Setting::DISPLAY_SEARCH_INPUT);
+
+        if (!$isDisplaySearchInputEnabled) {
+            return '';
+        }
+
+        $bradSearchUrl = $this->context->link->getModuleLink($this->name, self::FRONT_BRAD_SEARCH_CONTROLLER);
+
+        $this->context->smarty->assign([
+            'bradSearchUrl' => $bradSearchUrl,
+        ]);
+
+        return $this->context->smarty->fetch($this->container->get('brad_templates_dir').'hook/displayTop.tpl');
     }
 
     /**

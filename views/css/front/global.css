@@ -1,0 +1,50 @@
+#bradSearchBlockTop {
+    padding-top: 50px;
+}
+
+#bradSearchBlockTop #bradSearchBox {
+    float: left;
+    width: 100%;
+}
+
+form#bradSearchBox {
+    position: relative;
+}
+
+#bradSearchBlockTop #bradSearchQuery {
+    display: inline;
+    padding: 13px 60px 13px 13px;
+    height: 45px;
+    background: #fbfbfb;
+    margin-right: 1px;
+}
+
+#bradSearchBlockTop .btn.button-search {
+    background: #333;
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    border: none;
+    color: #fff;
+    width: 50px;
+    text-align: center;
+    padding: 10px 0 11px 0;
+}
+
+#bradSearchBlockTop .btn.button-search:before {
+    content: "\f002";
+    display: block;
+    font-family: "FontAwesome";
+    font-size: 17px;
+    width: 100%;
+    text-align: center;
+}
+
+#bradSearchBlockTop .btn.button-search:hover {
+    color: #6f6f6f;
+}
+
+#bradSearchBlockTop .button-search span {
+    display: none;
+}

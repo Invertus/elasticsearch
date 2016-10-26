@@ -54,7 +54,7 @@ class ElasticsearchIndexer
     public function createIndex($idShop)
     {
         $params = [];
-        $params['index'] = $this->manager->getIndexPrefix().'_'.$idShop;
+        $params['index'] = $this->manager->getIndexPrefix().$idShop;
         $params['body'] = $this->indexBuilder->buildIndex();
 
         $client = $this->manager->getClient();
@@ -105,7 +105,7 @@ class ElasticsearchIndexer
     public function isCreatedIndex($idShop)
     {
         $params = [];
-        $params['index'] = $this->manager->getIndexPrefix().'_'.$idShop;
+        $params['index'] = $this->manager->getIndexPrefix().$idShop;
 
         $client = $this->manager->getClient();
 
@@ -172,6 +172,26 @@ class ElasticsearchIndexer
         }
 
         return $response['found'];
+    }
+
+    /**
+     * Index products with bulk action
+     *
+     * @param array
+     *
+     * @return bool
+     */
+    public function indexBulk(array $params)
+    {
+        $client = $this->manager->getClient();
+
+        try {
+            $response = $client->bulk($params);
+        } catch (Exception $e) {
+            return false;
+        }
+
+        return !$response['errors'];
     }
 
     /**

@@ -5,8 +5,11 @@ namespace Invertus\Brad\Service;
 use Category;
 use Core_Business_ConfigurationInterface as ConfigurationInterface;
 use Core_Foundation_Database_EntityManager as EntityManager;
+use Invertus\Brad\Config\Setting;
 use Invertus\Brad\Repository\ProductRepository;
+use Invertus\Brad\Service\Elasticsearch\Builder\DocumentBuilder;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer;
+use Invertus\Brad\Util\Arrays;
 use PrestaShopCollection;
 use Product;
 
@@ -38,17 +41,24 @@ class Indexer
     private $configuration;
 
     /**
+     * @var DocumentBuilder
+     */
+    private $documentBuilder;
+
+    /**
      * Indexer constructor.
      *
      * @param ElasticsearchIndexer $elasticserachIndexer
      * @param EntityManager $em
      * @param ConfigurationInterface $configuration
+     * @param DocumentBuilder $documentBuilder
      */
-    public function __construct(ElasticsearchIndexer $elasticserachIndexer, EntityManager $em, ConfigurationInterface $configuration)
+    public function __construct(ElasticsearchIndexer $elasticserachIndexer, EntityManager $em, ConfigurationInterface $configuration, DocumentBuilder $documentBuilder)
     {
         $this->elasticsearchIndexer = $elasticserachIndexer;
         $this->em = $em;
         $this->configuration = $configuration;
+        $this->documentBuilder = $documentBuilder;
     }
 
     /**
@@ -112,20 +122,24 @@ class Indexer
             return true;
         }
 
-        $lastProductsIdsKey = array_pop(array_keys($productsIds));
+        $indexPrefix = $this->configuration->get(Setting::INDEX_PREFIX);
+        $bulkRequestSize = (int) $this->configuration->get(Setting::BULK_REQUEST_SIZE_ADVANCED);
+
+        $lastProductsIdsKey = Arrays::getLastKey($productsIds);
         $bulkProductIds = [];
 
-        foreach ($productsIds as $key => $idProduct) {
+        foreach ($productsIds as $productIdKey => $idProduct) {
 
             $bulkProductIds[] = $idProduct;
 
-            //@todo: change it with config value
-            if (2000 > count($bulkProductIds) && $key !== $lastProductsIdsKey) {
+            if (count($bulkProductIds) != $bulkRequestSize && $productIdKey != $lastProductsIdsKey) {
                 continue;
             }
 
             $products = new PrestaShopCollection('Product');
             $products->where('id_product', 'in', $bulkProductIds);
+
+            $bulkParams = ['body' => []];
 
             /** @var Product $product */
             foreach ($products as $product) {
@@ -143,14 +157,28 @@ class Indexer
                     continue;
                 }
 
-                $indexed = $this->elasticsearchIndexer->indexProduct($product, $idShop);
+                $bulkParams['body'][] = [
+                    'index' => [
+                        '_index' => $indexPrefix.$idShop,
+                        '_type' => 'products',
+                        '_id' => $product->id,
+                    ]
+                ];
 
-                if ($indexed) {
-                    $this->indexedProductsCount++;
+                $bulkParams['body'][] = $this->documentBuilder->buildProductBody($product);
+            }
+
+            $numberOfProductToIndex = (int) (count($bulkParams['body']) / 2);
+
+            if (0 < $numberOfProductToIndex) {
+                $success = $this->elasticsearchIndexer->indexBulk($bulkParams);
+
+                if ($success) {
+                    $this->indexedProductsCount += $numberOfProductToIndex;
                 }
             }
 
-            unset($bulkProductIds);
+            unset($bulkProductIds, $bulkParams);
         }
 
         return true;
@@ -169,8 +197,6 @@ class Indexer
             return false;
         }
 
-        $idRootCategory = $this->configuration->get('PS_ROOT_CATEGORY');
-
         /** @var \Invertus\Brad\Repository\CategoryRepository $categoryRepository */
         $categoryRepository = $this->em->getRepository('BradCategory');
         $categoriesIds = $categoryRepository->findAllIdsByShopId($idShop);
@@ -179,14 +205,50 @@ class Indexer
             return true;
         }
 
-        foreach ($categoriesIds as $idCategory) {
+        $idRootCategory = $this->configuration->get('PS_ROOT_CATEGORY');
+        $indexPrefix = $this->configuration->get(Setting::INDEX_PREFIX);
+        $bulkRequestSize = (int) $this->configuration->get(Setting::BULK_REQUEST_SIZE_ADVANCED);
 
-            if ($idRootCategory == $idCategory) {
+        $lastCategoriesIdsKey = Arrays::getLastKey($categoriesIds);
+        $bulkCategoryIds = [];
+
+        Arrays::removeValue($categoriesIds, $idRootCategory);
+
+        foreach ($categoriesIds as $categoryIdKey => $idCategory) {
+
+            $bulkCategoryIds[] = $idCategory;
+
+            if (count($bulkCategoryIds) != $bulkRequestSize && $categoryIdKey != $lastCategoriesIdsKey) {
                 continue;
             }
 
-            $category = new Category($idCategory, null, $idShop);
-            $this->elasticsearchIndexer->indexCategory($category, $idShop);
+            $categories = new PrestaShopCollection('Category');
+            $categories->where('id_category', 'in', $bulkCategoryIds);
+
+            $bulkParams = ['body' => []];
+
+            /** @var Category $category */
+            foreach ($categories as $category) {
+
+                $bulkParams['body'][] = [
+                    'index' => [
+                        '_index' => $indexPrefix.$idShop,
+                        '_type' => 'products',
+                        '_id' => $category->id,
+                    ]
+                ];
+
+                $bulkParams['body'][] = $this->documentBuilder->buildCategoryBody($category);
+            }
+
+            if (!empty($bulkParams['body'])) {
+                $success = $this->elasticsearchIndexer->indexBulk($bulkParams);
+                if (!$success) {
+                    return false;
+                }
+            }
+
+            unset($bulkParams);
         }
 
         return true;

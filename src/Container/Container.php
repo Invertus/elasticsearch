@@ -128,12 +128,16 @@ class Container
             return new DocumentBuilder($c['context.link']);
         };
 
-        $this->container['elasticsearch.builder.index_builder'] = function () {
-            return new IndexBuilder();
+        $this->container['elasticsearch.builder.index_builder'] = function ($c) {
+            return new IndexBuilder($c['configuration']);
         };
 
         $this->container['indexer'] = function ($c) {
-            return new Indexer($c['elasticsearch.indexer'], $c['em'], $c['configuration']);
+            return new Indexer(
+                $c['elasticsearch.indexer'],
+                $c['em'],
+                $c['configuration'],
+                $c['elasticsearch.builder.document_builder']);
         };
     }
 

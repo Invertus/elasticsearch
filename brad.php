@@ -14,6 +14,7 @@ class Brad extends Module
      */
     const ADMIN_BRAD_MODULE_CONTROLLER = 'AdminBradModule';
     const ADMIN_BRAD_SETTING_CONTROLLER = 'AdminBradSetting';
+    const ADMIN_BRAD_ADVANCED_SETTING_CONTROLLER = 'AdminBradAdvancedSetting';
 
     /** @var \Invertus\Brad\Container\Container */
     private $container;

@@ -10,6 +10,7 @@ use Invertus\Brad\Repository\ProductRepository;
 use Invertus\Brad\Service\Elasticsearch\Builder\DocumentBuilder;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer;
 use Invertus\Brad\Util\Arrays;
+use Invertus\Brad\Util\Validator;
 use PrestaShopCollection;
 use Product;
 
@@ -46,19 +47,26 @@ class Indexer
     private $documentBuilder;
 
     /**
+     * @var Validator
+     */
+    private $validator;
+
+    /**
      * Indexer constructor.
      *
      * @param ElasticsearchIndexer $elasticserachIndexer
      * @param EntityManager $em
      * @param ConfigurationInterface $configuration
      * @param DocumentBuilder $documentBuilder
+     * @param Validator $validator
      */
-    public function __construct(ElasticsearchIndexer $elasticserachIndexer, EntityManager $em, ConfigurationInterface $configuration, DocumentBuilder $documentBuilder)
+    public function __construct(ElasticsearchIndexer $elasticserachIndexer, EntityManager $em, ConfigurationInterface $configuration, DocumentBuilder $documentBuilder, Validator $validator)
     {
         $this->elasticsearchIndexer = $elasticserachIndexer;
         $this->em = $em;
         $this->configuration = $configuration;
         $this->documentBuilder = $documentBuilder;
+        $this->validator = $validator;
     }
 
     /**
@@ -87,6 +95,10 @@ class Indexer
             }
         }
 
+        if (!$this->elasticsearchIndexer->createIndex($idShop)) {
+            return false;
+        }
+
         if (!$this->indexProducts($idShop, $indexOnlyMissingProducts)) {
             return false;
         }
@@ -108,10 +120,6 @@ class Indexer
      */
     private function indexProducts($idShop, $indexOnlyMissingProducts = false)
     {
-        if (!$this->createIndexIfNotExists($idShop)) {
-            return false;
-        }
-
         $this->indexedProductsCount = 0;
 
         /** @var ProductRepository $productRepository */
@@ -152,7 +160,7 @@ class Indexer
                     }
                 }
 
-                if (!$this->isValidProduct($product)) {
+                if (!$this->validator->isProductValidForIndexing($product)) {
                     $this->elasticsearchIndexer->deleteProduct($product, $idShop);
                     continue;
                 }
@@ -193,10 +201,6 @@ class Indexer
      */
     private function indexCategories($idShop)
     {
-        if (!$this->createIndexIfNotExists($idShop)) {
-            return false;
-        }
-
         /** @var \Invertus\Brad\Repository\CategoryRepository $categoryRepository */
         $categoryRepository = $this->em->getRepository('BradCategory');
         $categoriesIds = $categoryRepository->findAllIdsByShopId($idShop);
@@ -249,39 +253,6 @@ class Indexer
             }
 
             unset($bulkParams);
-        }
-
-        return true;
-    }
-
-    /**
-     * Create index for given shop if not exists
-     *
-     * @param int $idShop
-     * @return bool TRUE if index exists or has been created or FALSE otherwise
-     */
-    private function createIndexIfNotExists($idShop)
-    {
-        if (!$this->elasticsearchIndexer->isCreatedIndex($idShop)) {
-            if (!$this->elasticsearchIndexer->createIndex($idShop)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Check if product is valid for indexing
-     *
-     * @param Product $product
-     *
-     * @return bool
-     */
-    private function isValidProduct(Product $product)
-    {
-        if (!$product->active || !in_array($product->visibility, ['both', 'search'])) {
-            return false;
         }
 
         return true;

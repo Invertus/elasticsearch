@@ -138,7 +138,20 @@ class Brad extends Module
             return;
         }
 
-        //@todo: index product
+        /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer $elasticsearchIndexer */
+        $elasticsearchIndexer = $this->container->get('elasticsearch.indexer');
+        /** @var \Invertus\Brad\Util\Validator $validator */
+        $validator = $this->container->get('util.validator');
+
+        if (!$validator->isProductValidForIndexing($product)) {
+            return;
+        }
+
+        if (!$elasticsearchIndexer->createIndex($this->context->shop->id)) {
+            return;
+        }
+
+        $elasticsearchIndexer->indexProduct($product, $this->context->shop->id);
     }
 
     /**
@@ -158,7 +171,21 @@ class Brad extends Module
             return;
         }
 
-        //@todo: index product
+        /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer $elasticsearchIndexer */
+        $elasticsearchIndexer = $this->container->get('elasticsearch.indexer');
+        /** @var \Invertus\Brad\Util\Validator $validator */
+        $validator = $this->container->get('util.validator');
+
+        if (!$elasticsearchIndexer->createIndex($this->context->shop->id)) {
+            return;
+        }
+
+        if (!$validator->isProductValidForIndexing($product)) {
+            $elasticsearchIndexer->deleteProduct($product, $this->context->shop->id);
+            return;
+        }
+
+        $elasticsearchIndexer->indexProduct($product, $this->context->shop->id);
     }
 
     /**
@@ -178,7 +205,14 @@ class Brad extends Module
             return;
         }
 
-        //@todo: index product
+        /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer $elasticsearchIndexer */
+        $elasticsearchIndexer = $this->container->get('elasticsearch.indexer');
+
+        if (!$elasticsearchIndexer->createIndex($this->context->shop->id)) {
+            return;
+        }
+
+        $elasticsearchIndexer->deleteProduct($product, $this->context->shop->id);
     }
 
     /**

@@ -45,7 +45,7 @@ class ElasticsearchIndexer
     }
 
     /**
-     * Create Elasticsearch index for given shop
+     * Create Elasticsearch index if it does not exist for given shop
      *
      * @param int $idShop
      *
@@ -53,6 +53,10 @@ class ElasticsearchIndexer
      */
     public function createIndex($idShop)
     {
+        if ($this->isCreatedIndex($idShop)) {
+            return true;
+        }
+
         $params = [];
         $params['index'] = $this->manager->getIndexPrefix().$idShop;
         $params['body'] = $this->indexBuilder->buildIndex();

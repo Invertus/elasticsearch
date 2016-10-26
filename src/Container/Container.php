@@ -12,6 +12,7 @@ use Invertus\Brad\Service\Elasticsearch\Builder\IndexBuilder;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchManager;
 use Invertus\Brad\Service\Indexer;
+use Invertus\Brad\Util\Validator;
 use Pimple\Container as Pimple;
 
 /**
@@ -101,19 +102,20 @@ class Container
         };
 
         $this->container['elasticsearch.manager'] = function ($c) {
-
             $elasticsearchHost1 = $c['configuration']->get(Setting::ELASTICSEARCH_HOST_1);
             $elasticsearchIndexPrefix = $c['configuration']->get(Setting::INDEX_PREFIX);
 
-            $hosts = [
-                $elasticsearchHost1,
-            ];
+            $hosts = [$elasticsearchHost1];
 
             $clientBuilder = ClientBuilder::create();
             $clientBuilder->setHosts($hosts);
             $client = $clientBuilder->build();
 
             return new ElasticsearchManager($client, $elasticsearchIndexPrefix);
+        };
+
+        $this->container['util.validator'] = function () {
+            return new Validator();
         };
 
         $this->container['elasticsearch.indexer'] = function ($c) {
@@ -137,7 +139,9 @@ class Container
                 $c['elasticsearch.indexer'],
                 $c['em'],
                 $c['configuration'],
-                $c['elasticsearch.builder.document_builder']);
+                $c['elasticsearch.builder.document_builder'],
+                $c['util.validator']
+            );
         };
     }
 

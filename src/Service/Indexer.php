@@ -237,7 +237,7 @@ class Indexer
                 $bulkParams['body'][] = [
                     'index' => [
                         '_index' => $indexPrefix.$idShop,
-                        '_type' => 'products',
+                        '_type' => 'categories',
                         '_id' => $category->id,
                     ]
                 ];

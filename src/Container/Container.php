@@ -12,6 +12,7 @@ use Invertus\Brad\Service\Elasticsearch\Builder\IndexBuilder;
 use Invertus\Brad\Service\Elasticsearch\Builder\SearchQueryBuilder;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchManager;
+use Invertus\Brad\Service\Elasticsearch\ElasticsearchSearch;
 use Invertus\Brad\Service\Indexer;
 use Invertus\Brad\Util\Validator;
 use Pimple\Container as Pimple;
@@ -94,12 +95,8 @@ class Container
             return ServiceLocator::get('Core_Business_ConfigurationInterface');
         };
 
-        $this->container['context.link'] = function () {
-            return $this->module->getContext()->link;
-        };
-
-        $this->container['context.language'] = function () {
-            return $this->module->getContext()->language;
+        $this->container['context'] = function () {
+            return $this->module->getContext();
         };
 
         $this->container['installer'] = function () {
@@ -132,7 +129,7 @@ class Container
         };
 
         $this->container['elasticsearch.builder.document_builder'] = function ($c) {
-            return new DocumentBuilder($c['context.link']);
+            return new DocumentBuilder($c['context']->link);
         };
 
         $this->container['elasticsearch.builder.index_builder'] = function ($c) {
@@ -150,7 +147,11 @@ class Container
         };
 
         $this->container['elasticsearch.builder.search_query_builder'] = function ($c) {
-            return new SearchQueryBuilder($c['configuration'], $c['context.language']);
+            return new SearchQueryBuilder($c['configuration'], $c['context']);
+        };
+
+        $this->container['elasticsearch.search'] = function ($c) {
+            return new ElasticsearchSearch($c['elasticsearch.manager']);
         };
     }
 

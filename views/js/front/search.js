@@ -40,8 +40,7 @@ $(document).ready(function() {
             },
             'dataType': 'html',
             'success': function ($response) {
-
-
+                
                 $sendingRequest = false;
             }
         });

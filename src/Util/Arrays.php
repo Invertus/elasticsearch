@@ -13,7 +13,9 @@ class Arrays
      */
     public static function getLastKey(array $data)
     {
-        return array_pop(array_keys($data));
+        $keys = array_keys($data);
+
+        return array_pop($keys);
     }
 
     /**
@@ -28,7 +30,7 @@ class Arrays
             return;
         }
 
-        $key = array_search($data, $value);
+        $key = array_search($value, $data);
 
         if (false !== $key) {
             unset($data[$key]);

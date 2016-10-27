@@ -2,10 +2,10 @@
 
 namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
+use Context;
 use Core_Business_ConfigurationInterface as ConfigurationInterface;
-use Language;
 
-class SearchQueryBuilder
+class SearchQueryBuilder extends AbstractQueryBuilder
 {
     /**
      * @var ConfigurationInterface
@@ -13,38 +13,40 @@ class SearchQueryBuilder
     private $configuration;
 
     /**
-     * @var Language
+     * SearchQueryBuilder constructor.
+     *
+     * @param ConfigurationInterface $configuration
+     * @param Context $context
      */
-    private $language;
-
-    public function __construct(ConfigurationInterface $configuration, Language $language)
+    public function __construct(ConfigurationInterface $configuration, Context $context)
     {
+        parent::__construct($context);
+
         $this->configuration = $configuration;
-        $this->language = $language;
     }
 
     /**
      * Build search query
      *
      * @param string $query
-     * @param int $page
-     * @param string $sortBy
-     * @param string $sortWay
+     * @param int|null $from
+     * @param int|null $size
+     * @param string|null $sortBy
+     * @param string|null $sortWay
      *
      * @return array
      */
-    public function buildQuery($query, $page, $sortBy, $sortWay)
+    public function buildProductsQuery($query, $from = null, $size = null, $sortBy = null, $sortWay = null)
     {
-        $perPage = (int) $this->configuration->get('PS_PRODUCTS_PER_PAGE');
-        $from = $perPage * ($page - 1);
+        $idLang = (int) $this->context->language->id;
 
-        return [
-            'q' => [
+        $query = [
+            'query' => [
                 'bool' => [
                     'should' => [
                         [
                             'match' => [
-                                'name_lang_'.$this->language->id => [
+                                'name_lang_'.$idLang => [
                                     'query' => $query,
                                     'boost' => 2,
                                 ],
@@ -52,7 +54,7 @@ class SearchQueryBuilder
                         ],
                         [
                             'match' => [
-                                'description_lang_'.$this->language->id => [
+                                'description_lang_'.$idLang => [
                                     'query' => $query,
                                     'boost' => 1.5,
                                 ],
@@ -60,7 +62,7 @@ class SearchQueryBuilder
                         ],
                         [
                             'match' => [
-                                'short_description_lang_'.$this->language->id => [
+                                'short_description_lang_'.$idLang => [
                                     'query' => $query,
                                     'boost' => 1.5,
                                 ],
@@ -69,11 +71,20 @@ class SearchQueryBuilder
                     ],
                 ],
             ],
-//            'sort' => [
-//
-//            ],
-//            'from' => $from,
-//            'size' => $perPage,
         ];
+
+        if (null !== $from) {
+            $query['from'] = (int) $from;
+        }
+
+        if (null !== $size) {
+            $query['size'] = (int) $size;
+        }
+
+        if (null !== $sortBy && null != $sortWay) {
+            $query['sort'] = $this->buildSort($sortBy, $sortWay);
+        }
+
+        return $query;
     }
 }

@@ -37,6 +37,7 @@ class DocumentBuilder
     public function buildProductBody(Product $product)
     {
         $body = [];
+        $body['id_product'] = $product->id;
         $body['id_supplier'] = $product->id_supplier;
         $body['id_manufacturer'] = $product->id_manufacturer;
         $body['manufacturer_name'] = Manufacturer::getNameById($product->id_manufacturer);

@@ -52,6 +52,10 @@ class DocumentBuilder
         $body['minimal_quantity'] = $product->minimal_quantity;
         $body['available_for_order'] = $product->available_for_order;
         $body['condition'] = $product->condition;
+        $body['weight'] = $product->weight;
+        $body['out_of_stock'] = $product->out_of_stock;
+        $body['is_virtual'] = $product->is_virtual;
+        $body['on_sale'] = $product->on_sale;
         $body['id_image'] = Product::getCover($product->id)['id_image'];
         $body['id_combination_default'] = $product->getDefaultIdProductAttribute();
         $body['categories'] = $product->getCategories();

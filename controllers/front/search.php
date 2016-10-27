@@ -22,15 +22,13 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
     public function postProcess()
     {
         $searchQuery = Tools::getValue('brad_search_query', '');
-        $sortBy = Tools::getValue('brad_sort_by', Sort::BY_NAME);
+        $sortBy = Tools::getValue('brad_sort_by', Sort::BY_RELEVANCE);
         $sortWay = Tools::getValue('brad_sort_way', Sort::WAY_DESC);
         $page = (int) Tools::getValue('brad_search_page', 1);
 
         if (0 >= $page) {
             $page = 1;
         }
-
-        //@todo: BRAD check if search query exists
 
         $size = (int) $this->configuration->get('PS_PRODUCTS_PER_PAGE');
         $from = (int) ($size * ($page - 1));

@@ -45,15 +45,15 @@ class SearchQueryBuilder extends AbstractQueryBuilder
                 'bool' => [
                     'should' => [
                         [
-                            'match' => [
+                            'match_phrase_prefix' => [
                                 'name_lang_'.$idLang => [
                                     'query' => $query,
-                                    'boost' => 2,
+                                    'boost' => 3,
                                 ],
                             ],
                         ],
                         [
-                            'match' => [
+                            'match_phrase_prefix' => [
                                 'description_lang_'.$idLang => [
                                     'query' => $query,
                                     'boost' => 1.5,
@@ -61,10 +61,24 @@ class SearchQueryBuilder extends AbstractQueryBuilder
                             ],
                         ],
                         [
-                            'match' => [
+                            'match_phrase_prefix' => [
                                 'short_description_lang_'.$idLang => [
                                     'query' => $query,
                                     'boost' => 1.5,
+                                ],
+                            ],
+                        ],
+                        [
+                            'match_phrase_prefix' => [
+                                'manufacturer_name' => [
+                                    'query' => $query,
+                                ],
+                            ],
+                        ],
+                        [
+                            'match_phrase_prefix' => [
+                                'reference' => [
+                                    'query' => $query,
                                 ],
                             ],
                         ],

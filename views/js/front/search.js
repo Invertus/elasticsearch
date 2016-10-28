@@ -12,7 +12,7 @@ $(document).ready(function() {
      * Clear instant search results when search input loses focus
      */
     $bradSearchBox.on('focusout', '#bradSearchQuery', function () {
-        setTimeout(clearInstantSearchResults, 100);
+        setTimeout(clearInstantSearchResults, 200);
     });
 
     /**
@@ -24,6 +24,7 @@ $(document).ready(function() {
         var $searchQuery = $bradSearchInput.val();
 
         if ($searchQuery.length < $globalBradMinWordLength) {
+            clearInstantSearchResults();
             $sendingRequest = false;
             return;
         }
@@ -36,14 +37,32 @@ $(document).ready(function() {
 
         $.ajax($globalBradSearchUrl, {
             'data': {
-                'query': $searchQuery
+                'query': $searchQuery,
+                'token': static_token
             },
             'dataType': 'html',
-            'success': function ($response) {
-                
-                $sendingRequest = false;
-            }
+            'success': handleSearchResponse
         });
+    }
+
+    /**
+     * Handle search response
+     *
+     * @param $response JSON string
+     */
+    function handleSearchResponse($response)
+    {
+        var $decodedResponse = JSON.parse($response);
+
+        if (false !== $decodedResponse.instant_results) {
+
+            clearInstantSearchResults();
+
+            var $instantSearchResultsDiv = $('#bradInstantSearchResults');
+            $instantSearchResultsDiv.html($decodedResponse.instant_results);
+        }
+
+        $sendingRequest = false;
     }
 
     /**
@@ -51,6 +70,7 @@ $(document).ready(function() {
      */
     function clearInstantSearchResults()
     {
-        $('#bradInstantSearchResults').html('');
+        var $instantSearchResultsDiv = $('#bradInstantSearchResults');
+        $instantSearchResultsDiv.html('');
     }
 });

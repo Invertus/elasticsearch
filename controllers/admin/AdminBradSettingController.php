@@ -76,12 +76,6 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
                         'validation' => 'isBool',
                         'type' => 'bool',
                     ],
-                    Setting::INSTANT_SEARCH => [
-                        'title' => $this->l('Instant search'),
-                        'hint' => $this->l('Instant search block under search input'),
-                        'validation' => 'isBool',
-                        'type' => 'bool',
-                    ],
                     Setting::FUZZY_SEARCH => [
                         'title' => $this->l('Fuzzy search'),
                         'hint' => $this->l('Fuzzy search improves search results with misspelled words'),
@@ -91,6 +85,12 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
                     Setting::DISPLAY_DYNAMIC_SEARCH_RESULTS => [
                         'title' => $this->l('Display dynamic search results'),
                         'hint' => $this->l('Search results will appear in the page immediately as the user types in search input'),
+                        'validation' => 'isBool',
+                        'type' => 'bool',
+                    ],
+                    Setting::INSTANT_SEARCH => [
+                        'title' => $this->l('Dsiplay instant search results'),
+                        'hint' => $this->l('Instant search block under search input'),
                         'validation' => 'isBool',
                         'type' => 'bool',
                     ],

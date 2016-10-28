@@ -2,6 +2,7 @@
 
 use Invertus\Brad\Config\Consts\Sort;
 use Invertus\Brad\Config\Setting;
+use Invertus\Brad\Util\Arrays;
 
 class BradSearchModuleFrontController extends AbstractModuleFrontController
 {
@@ -66,20 +67,51 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
         $formattedProducts = $this->formatProducts($products);
 
         if ($this->isXmlHttpRequest()) {
-
-            $response = [];
-            $response['instant_results'] = false;
-            $response['dynamic_results'] = false;
-
-            $isInstantSearchResultsEnabled = (bool) $this->configuration->get(Setting::INSTANT_SEARCH);
-            $isDynamicSearchResultsEnabled = (bool) $this->configuration->get(Setting::DISPLAY_DYNAMIC_SEARCH_RESULTS);
-
-            //@todo: Render response
-
-            die(json_encode($response));
+            die($this->renderAjaxResponse($formattedProducts, $productsCount));
         }
 
         //@todo: BRAD handle products list display
+    }
+
+    /**
+     * @param array $products
+     * @param int $productsCount
+     *
+     * @return string JSON response
+     */
+    private function renderAjaxResponse(array $products, $productsCount)
+    {
+        $response = [];
+        $response['instant_results'] = false;
+        $response['dynamic_results'] = false;
+
+        $token = Tools::getValue('token');
+        if ($token != Tools::getToken(false)) {
+            return json_encode($response);
+        }
+
+        $templatesDir = $this->get('brad_templates_dir');
+
+        $isInstantSearchResultsEnabled = (bool) $this->configuration->get(Setting::INSTANT_SEARCH);
+        $isDynamicSearchResultsEnabled = (bool) $this->configuration->get(Setting::DISPLAY_DYNAMIC_SEARCH_RESULTS);
+
+        if ($isInstantSearchResultsEnabled) {
+
+            $numberOfInstantSearchResults = (int) $this->configuration->get(Setting::INSTANT_SEARCH_RESULTS_COUNT);
+            $instantSearchResults = Arrays::getFirstElements($products, $numberOfInstantSearchResults);
+
+            $imageType = ImageType::getFormatedName('small');
+
+            $this->context->smarty->assign([
+                'instant_search_results' => $instantSearchResults,
+                'image_type' => $imageType,
+            ]);
+
+            $response['instant_results'] =
+                $this->context->smarty->fetch($templatesDir.'front/search-input-autocomplete.tpl');
+        }
+
+        return json_encode($response);
     }
 
     /**
@@ -92,13 +124,38 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
     private function formatProducts(array $products)
     {
         $formatedProducts = [];
+        $idLang = $this->context->language->id;
+        $psOrderOutOfStock = (bool) Configuration::get('PS_ORDER_OUT_OF_STOCK');
 
         foreach ($products as $product) {
 
+            $allowOosp =
+                ($product['_source']['out_of_stock'] == BradProduct::ALLOW_ORDERS_WHEN_OOS ||
+                $product['_source']['out_of_stock'] == BradProduct::USE_GLOBAL_WHEN_OOS) &&
+                $psOrderOutOfStock;
+
             $row = [];
             $row['id_product'] = $product['_source']['id_product'];
+            $row['id_image'] = $product['_source']['id_image'];
+            $row['out_of_stock'] = $product['_source']['out_of_stock'];
+            $row['id_category_default'] = $product['_source']['id_category_default'];
+            $row['ean13'] = $product['_source']['ean13'];
+            $row['link_rewrite'] = $product['_source']['link_rewrite_lang_'.$idLang];
+            $row['allow_oosp'] = $allowOosp;
 
-            //@todo: BRAD collect product details & index more fields
+            $productProperties = Product::getProductProperties($this->context->language->id, $row);
+
+            foreach ($product['_source'] as $key => $value) {
+                if (!array_key_exists($key, $productProperties)) {
+                    $product_properties[$key] = $value;
+                }
+            }
+
+            $productProperties['name'] = $product['_source']['name_lang_'.$idLang];
+            $productProperties['description_short'] = $product['_source']['short_description_lang_'.$idLang];
+            $productProperties['category_name'] = $product['_source']['default_category_name_lang_'.$idLang];
+
+            $formatedProducts[] = $productProperties;
         }
 
         return $formatedProducts;

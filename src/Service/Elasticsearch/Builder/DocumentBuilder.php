@@ -60,12 +60,15 @@ class DocumentBuilder
         $body['id_combination_default'] = $product->getDefaultIdProductAttribute();
         $body['categories'] = $product->getCategories();
 
+        $defaultCategory = new Category($product->id_category_default);
+
         foreach ($product->name as $idLang => $name) {
             $body['name_lang_'.$idLang] = $name;
             $body['description_lang_'.$idLang] = $product->description[$idLang];
             $body['short_description_lang_'.$idLang] = $product->description_short[$idLang];
             $body['link_rewrite_lang_'.$idLang] = $product->link_rewrite[$idLang];
             $body['link_lang_'.$idLang] = $this->link->getProductLink($product, $product->link_rewrite[$idLang]);
+            $body['default_category_name_lang_'.$idLang] = $defaultCategory->name[$idLang];
         }
 
         $features = $product->getFeatures();

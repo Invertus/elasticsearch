@@ -1,3 +1,8 @@
+/**
+ * ----------------------------------------------------------------------
+ * BRAD search input
+ * ----------------------------------------------------------------------
+ */
 #bradSearchBlockTop {
     padding-top: 50px;
 }
@@ -47,4 +52,87 @@ form#bradSearchBox {
 
 #bradSearchBlockTop .button-search span {
     display: none;
+}
+
+#bradInstantSearchResults {
+    position: absolute;
+    width: 100%;
+}
+
+/**
+ * ----------------------------------------------------------------------
+ * BRAD autocomplete styles
+ * ----------------------------------------------------------------------
+ */
+#bradInstantSearchResults .brad-autocomplete-block {
+    z-index: 1000 !important;
+    border: 1px solid #a0a0a0;
+    background-color: #ffffff;
+    border-radius: 3px;
+    box-shadow: 3px 3px 10px rgba(100, 100, 100, 0.9);
+    width: auto !important;
+    min-width: 300px;
+}
+
+#bradInstantSearchResults .brad-autocomplete-block li+li:before {
+    content: ' ';
+    display: block;
+    width:75%;
+    height: 1px;
+    margin-left: 50px;
+    margin-right: auto;
+    margin-top: 1px;
+    border-top: 1px solid #dddddd;
+}
+
+#bradInstantSearchResults .brad-autocomplete-item {
+    position: relative;
+    background-color: #ffffff;
+}
+
+#bradInstantSearchResults a {
+    padding: 2px;
+}
+
+#bradInstantSearchResults a:hover {
+    background: #333333 none repeat scroll 0 0;
+    border-radius: 2px;
+    color: white;
+    cursor: pointer;
+}
+
+#bradSearchBlockTop .brad-autocomplete-info-block {
+    position: relative;
+    display: inline-block;
+    overflow: visible;
+    padding: 0 3px 0 3px;
+}
+
+#bradSearchBlockTop .brad-autocomplete-info-block span{
+    padding-top: 2px;
+    font-size: 1.0em;
+}
+
+#bradInstantSearchResults .brad-autocomplete-item-image {
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    margin: 0;
+    max-width: 45px;
+    max-height: 45px;
+}
+
+#bradInstantSearchResults span.brad-autocomplete-item-name {
+    display: inline-block;
+}
+
+#bradInstantSearchResults span.brad-autocomplete-item-category. {
+    color: #a0a0a0;
+    position: relative;
+    display: block;
+}
+
+#bradInstantSearchResults a.brad-autocomplete-item-border {
+    border: 1px solid transparent;
+    display: block;
 }

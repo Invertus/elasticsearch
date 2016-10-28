@@ -36,4 +36,17 @@ class Arrays
             unset($data[$key]);
         }
     }
+
+    /**
+     * Get first n elements of given array
+     *
+     * @param array $data
+     * @param int $numberOfElements
+     *
+     * @return array
+     */
+    public static function getFirstElements(array $data, $numberOfElements)
+    {
+        return array_slice($data, 0, $numberOfElements);
+    }
 }

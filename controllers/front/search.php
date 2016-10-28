@@ -19,12 +19,30 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
         $this->configuration = $this->get('configuration');
     }
 
+    public function init()
+    {
+        /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchManager $elasticsearchManager */
+        $elasticsearchManager = $this->get('elasticsearch.manager');
+
+        if (!$elasticsearchManager->isConnectionAvailable()) {
+
+            if ($this->isXmlHttpRequest()) {
+                die;
+            }
+
+            $this->setRedirectAfter(404);
+            $this->redirect();
+        }
+
+        parent::init();
+    }
+
     public function postProcess()
     {
-        $searchQuery = Tools::getValue('brad_search_query', '');
-        $sortBy = Tools::getValue('brad_sort_by', Sort::BY_RELEVANCE);
-        $sortWay = Tools::getValue('brad_sort_way', Sort::WAY_DESC);
-        $page = (int) Tools::getValue('brad_search_page', 1);
+        $searchQuery = Tools::getValue('query', '');
+        $sortBy = Tools::getValue('sort_by', Sort::BY_RELEVANCE);
+        $sortWay = Tools::getValue('sort_way', Sort::WAY_DESC);
+        $page = (int) Tools::getValue('page', 1);
 
         if (0 >= $page) {
             $page = 1;

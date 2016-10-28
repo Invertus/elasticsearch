@@ -36,7 +36,7 @@ $(document).ready(function() {
 
         $.ajax($globalBradSearchUrl, {
             'data': {
-                'brad_search_query': $searchQuery
+                'query': $searchQuery
             },
             'dataType': 'html',
             'success': function ($response) {

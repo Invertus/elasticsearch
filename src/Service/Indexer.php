@@ -3,8 +3,8 @@
 namespace Invertus\Brad\Service;
 
 use Category;
-use Core_Business_ConfigurationInterface as ConfigurationInterface;
-use Core_Foundation_Database_EntityManager as EntityManager;
+use Core_Business_ConfigurationInterface;
+use Core_Foundation_Database_EntityManager;
 use Invertus\Brad\Config\Setting;
 use Invertus\Brad\Repository\ProductRepository;
 use Invertus\Brad\Service\Elasticsearch\Builder\DocumentBuilder;
@@ -27,7 +27,7 @@ class Indexer
     private $elasticsearchIndexer;
 
     /**
-     * @var EntityManager $em
+     * @var Core_Foundation_Database_EntityManager $em
      */
     private $em;
 
@@ -37,7 +37,7 @@ class Indexer
     private $indexedProductsCount = 0;
 
     /**
-     * @var ConfigurationInterface
+     * @var Core_Business_ConfigurationInterface
      */
     private $configuration;
 
@@ -55,12 +55,12 @@ class Indexer
      * Indexer constructor.
      *
      * @param ElasticsearchIndexer $elasticserachIndexer
-     * @param EntityManager $em
-     * @param ConfigurationInterface $configuration
+     * @param Core_Foundation_Database_EntityManager $em
+     * @param Core_Business_ConfigurationInterface $configuration
      * @param DocumentBuilder $documentBuilder
      * @param Validator $validator
      */
-    public function __construct(ElasticsearchIndexer $elasticserachIndexer, EntityManager $em, ConfigurationInterface $configuration, DocumentBuilder $documentBuilder, Validator $validator)
+    public function __construct(ElasticsearchIndexer $elasticserachIndexer, Core_Foundation_Database_EntityManager $em, Core_Business_ConfigurationInterface $configuration, DocumentBuilder $documentBuilder, Validator $validator)
     {
         $this->elasticsearchIndexer = $elasticserachIndexer;
         $this->em = $em;

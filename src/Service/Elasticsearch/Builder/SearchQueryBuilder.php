@@ -3,7 +3,7 @@
 namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
 use Context;
-use Core_Business_ConfigurationInterface as ConfigurationInterface;
+use Core_Business_ConfigurationInterface;
 use Invertus\Brad\Config\Setting;
 
 class SearchQueryBuilder extends AbstractQueryBuilder
@@ -16,10 +16,10 @@ class SearchQueryBuilder extends AbstractQueryBuilder
     /**
      * SearchQueryBuilder constructor.
      *
-     * @param ConfigurationInterface $configuration
+     * @param Core_Business_ConfigurationInterface $configuration
      * @param Context $context
      */
-    public function __construct(ConfigurationInterface $configuration, Context $context)
+    public function __construct(Core_Business_ConfigurationInterface $configuration, Context $context)
     {
         parent::__construct($context);
 
@@ -102,7 +102,7 @@ class SearchQueryBuilder extends AbstractQueryBuilder
                     'fields' => ['name_lang_'.$idLang, 'category_name'],
                     'query' => $query,
                     'fuzziness' => 'AUTO',
-                    'prefix_length' => 3,
+                    'prefix_length' => 2,
                     'max_expansions' => 15,
                 ],
             ];

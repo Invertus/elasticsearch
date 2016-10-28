@@ -2,7 +2,7 @@
 
 namespace Invertus\Brad\Container;
 
-use Adapter_ServiceLocator as ServiceLocator;
+use Adapter_ServiceLocator;
 use Brad;
 use Elasticsearch\ClientBuilder;
 use Invertus\Brad\Config\Setting;
@@ -88,11 +88,11 @@ class Container
     private function initDependencies()
     {
         $this->container['em'] = function () {
-            return ServiceLocator::get('Core_Foundation_Database_EntityManager');
+            return Adapter_ServiceLocator::get('Core_Foundation_Database_EntityManager');
         };
 
         $this->container['configuration'] = function () {
-            return ServiceLocator::get('Core_Business_ConfigurationInterface');
+            return Adapter_ServiceLocator::get('Core_Business_ConfigurationInterface');
         };
 
         $this->container['context'] = function () {

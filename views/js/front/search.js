@@ -12,7 +12,7 @@ $(document).ready(function() {
      * Clear instant search results when search input loses focus
      */
     $bradSearchBox.on('focusout', '#bradSearchQuery', function () {
-        setTimeout(clearInstantSearchResults, 200);
+        setTimeout(clearInstantSearchResults, 100);
     });
 
     /**
@@ -57,9 +57,7 @@ $(document).ready(function() {
         var $decodedResponse = JSON.parse($response);
 
         // Handle instant search results
-        if (typeof $decodedResponse.instant_results !== 'undefined' ||
-            false !==  $decodedResponse.instant_results
-        ) {
+        if (false !==  $decodedResponse.instant_results) {
             clearInstantSearchResults();
 
             var $instantSearchResultsDiv = $('#bradInstantSearchResults');
@@ -67,9 +65,7 @@ $(document).ready(function() {
         }
 
         // Handle dynamic search results
-        if (typeof $decodedResponse.dynamic_results !== 'undefined' ||
-            false !==  $decodedResponse.dynamic_results
-        ) {
+        if (false !==  $decodedResponse.dynamic_results) {
             clearDynamicSearchResults(false);
 
             var $centerColumnDiv = $('#center_column');

@@ -2,7 +2,7 @@
 
 namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
-use Core_Business_ConfigurationInterface as ConfigurationInterface;
+use Core_Business_ConfigurationInterface;
 use Invertus\Brad\Config\Setting;
 
 /**
@@ -13,16 +13,16 @@ use Invertus\Brad\Config\Setting;
 class IndexBuilder
 {
     /**
-     * @var ConfigurationInterface
+     * @var Core_Business_ConfigurationInterface
      */
     private $configuration;
 
     /**
      * IndexBuilder constructor.
      *
-     * @param ConfigurationInterface $configuration
+     * @param Core_Business_ConfigurationInterface $configuration
      */
-    public function __construct(ConfigurationInterface $configuration)
+    public function __construct(Core_Business_ConfigurationInterface $configuration)
     {
         $this->configuration = $configuration;
     }

@@ -33,7 +33,7 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
             !$elasticsearchManager->isIndexCreated($this->context->shop->id)
         ) {
             if ($this->isXmlHttpRequest()) {
-                die(json_encode([]));
+                die(json_encode(['instant_results' => false, 'dynamic_results' => false]));
             }
 
             $this->setRedirectAfter(404);

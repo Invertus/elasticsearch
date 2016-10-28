@@ -9,6 +9,7 @@ use FeatureValue;
 use Link;
 use Manufacturer;
 use Product;
+use StockAvailable;
 
 class DocumentBuilder
 {
@@ -49,6 +50,7 @@ class DocumentBuilder
         $body['price'] = $product->price;
         $body['show_price'] = $product->show_price;
         $body['quantity'] = $product->quantity;
+        $body['customizable'] = $product->customizable;
         $body['minimal_quantity'] = $product->minimal_quantity;
         $body['available_for_order'] = $product->available_for_order;
         $body['condition'] = $product->condition;
@@ -59,6 +61,7 @@ class DocumentBuilder
         $body['id_image'] = Product::getCover($product->id)['id_image'];
         $body['id_combination_default'] = $product->getDefaultIdProductAttribute();
         $body['categories'] = $product->getCategories();
+        $body['total_quantity'] = StockAvailable::getQuantityAvailableByProduct($product->id);
 
         $defaultCategory = new Category($product->id_category_default);
 

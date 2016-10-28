@@ -53,7 +53,7 @@ class ElasticsearchIndexer
      */
     public function createIndex($idShop)
     {
-        if ($this->isCreatedIndex($idShop)) {
+        if ($this->manager->isIndexCreated($idShop)) {
             return true;
         }
 
@@ -81,7 +81,7 @@ class ElasticsearchIndexer
      */
     public function deleteIndex($idShop)
     {
-        if (!$this->isCreatedIndex($idShop)) {
+        if (!$this->manager->isIndexCreated($idShop)) {
             return true;
         }
 
@@ -97,29 +97,6 @@ class ElasticsearchIndexer
         }
 
         return $response['acknowledged'];
-    }
-
-    /**
-     * Check if index is created for given shop
-     *
-     * @param int $idShop
-     *
-     * @return bool
-     */
-    public function isCreatedIndex($idShop)
-    {
-        $params = [];
-        $params['index'] = $this->manager->getIndexPrefix().$idShop;
-
-        $client = $this->manager->getClient();
-
-        try {
-            $response = $client->indices()->exists($params);
-        } catch (Exception $e) {
-            return false;
-        }
-
-        return $response;
     }
 
     /**

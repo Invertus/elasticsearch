@@ -82,4 +82,25 @@ class ElasticsearchManager
 
         return $status;
     }
+
+    /**
+     * Check if index is created for a given shop
+     *
+     * @param int $idShop
+     *
+     * @return bool
+     */
+    public function isIndexCreated($idShop)
+    {
+        $params = [];
+        $params['index'] = $this->indexPrefix.$idShop;
+
+        try {
+            $response = $this->client->indices()->exists($params);
+        } catch (Exception $e) {
+            return false;
+        }
+
+        return $response;
+    }
 }

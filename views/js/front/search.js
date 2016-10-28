@@ -25,6 +25,8 @@ $(document).ready(function() {
 
         if ($searchQuery.length < $globalBradMinWordLength) {
             clearInstantSearchResults();
+            clearDynamicSearchResults();
+
             $sendingRequest = false;
             return;
         }
@@ -54,12 +56,30 @@ $(document).ready(function() {
     {
         var $decodedResponse = JSON.parse($response);
 
-        if (false !== $decodedResponse.instant_results) {
-
+        // Handle instant search results
+        if (typeof $decodedResponse.instant_results !== 'undefined' ||
+            false !==  $decodedResponse.instant_results
+        ) {
             clearInstantSearchResults();
 
             var $instantSearchResultsDiv = $('#bradInstantSearchResults');
             $instantSearchResultsDiv.html($decodedResponse.instant_results);
+        }
+
+        // Handle dynamic search results
+        if (typeof $decodedResponse.dynamic_results !== 'undefined' ||
+            false !==  $decodedResponse.dynamic_results
+        ) {
+            clearDynamicSearchResults(false);
+
+            var $centerColumnDiv = $('#center_column');
+            $centerColumnDiv.hide();
+
+            var $bradDynamicSearchResults =
+                $('<div id="bradDynamicSearchResults" class="center_column col-xs-12 col-sm-9"></div>');
+            $bradDynamicSearchResults.html($decodedResponse.dynamic_results);
+
+            $centerColumnDiv.after($bradDynamicSearchResults);
         }
 
         $sendingRequest = false;
@@ -72,5 +92,25 @@ $(document).ready(function() {
     {
         var $instantSearchResultsDiv = $('#bradInstantSearchResults');
         $instantSearchResultsDiv.html('');
+    }
+
+    /**
+     * Clear dynamic serach results
+     *
+     * @params $displayDefaultProducts
+     */
+    function clearDynamicSearchResults($displayDefaultProducts)
+    {
+        var $bradDynamicSearchResults = $('#bradDynamicSearchResults');
+        $bradDynamicSearchResults.remove();
+
+        if (typeof $displayDefaultProducts === 'undefined') {
+            $displayDefaultProducts = true;
+        }
+
+        if ($displayDefaultProducts) {
+            var $centerColumnDiv = $('#center_column');
+            $centerColumnDiv.show();
+        }
     }
 });

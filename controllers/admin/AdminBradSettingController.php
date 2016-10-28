@@ -71,8 +71,8 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
                 'icon' => 'icon-search',
                 'fields' => [
                     Setting::DISPLAY_SEARCH_INPUT => [
-                        'title' => $this->l('Display search input'),
-                        'hint' => $this->l('Search block in page top'),
+                        'title' => $this->l('Enable search'),
+                        'hint' => $this->l('Display search input page top'),
                         'validation' => 'isBool',
                         'type' => 'bool',
                     ],

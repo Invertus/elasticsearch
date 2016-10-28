@@ -6,7 +6,7 @@ $(document).ready(function() {
     /**
      * Add event listener to search input and bind callback
      */
-    $bradSearchBox.on('input propertychange paste', '#bradSearchQuery', performSearch);
+    $bradSearchBox.on('input propertychange paste focusin', '#bradSearchQuery', performSearch);
 
     /**
      * Clear instant search results when search input loses focus

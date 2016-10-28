@@ -4,6 +4,7 @@ namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
 use Context;
 use Core_Business_ConfigurationInterface as ConfigurationInterface;
+use Invertus\Brad\Config\Setting;
 
 class SearchQueryBuilder extends AbstractQueryBuilder
 {
@@ -39,8 +40,9 @@ class SearchQueryBuilder extends AbstractQueryBuilder
     public function buildProductsQuery($query, $from = null, $size = null, $sortBy = null, $sortWay = null)
     {
         $idLang = (int) $this->context->language->id;
+        $isFuzzySeearchEnabled = (bool) $this->configuration->get(Setting::FUZZY_SEARCH);
 
-        $query = [
+        $elasticsearchQuery = [
             'query' => [
                 'bool' => [
                     'should' => [
@@ -82,23 +84,42 @@ class SearchQueryBuilder extends AbstractQueryBuilder
                                 ],
                             ],
                         ],
+                        [
+                            'match_phrase_prefix' => [
+                                'category_name' => [
+                                    'query' => $query,
+                                ],
+                            ],
+                        ],
                     ],
                 ],
             ],
         ];
 
+        if ($isFuzzySeearchEnabled) {
+            $elasticsearchQuery['query']['bool']['should'][] = [
+                'multi_match' => [
+                    'fields' => ['name_lang_'.$idLang, 'category_name'],
+                    'query' => $query,
+                    'fuzziness' => 'AUTO',
+                    'prefix_length' => 3,
+                    'max_expansions' => 15,
+                ],
+            ];
+        }
+
         if (null !== $from) {
-            $query['from'] = (int) $from;
+            $elasticsearchQuery['from'] = (int) $from;
         }
 
         if (null !== $size) {
-            $query['size'] = (int) $size;
+            $elasticsearchQuery['size'] = (int) $size;
         }
 
         if (null !== $sortBy && null != $sortWay) {
-            $query['sort'] = $this->buildSort($sortBy, $sortWay);
+            $elasticsearchQuery['sort'] = $this->buildSort($sortBy, $sortWay);
         }
 
-        return $query;
+        return $elasticsearchQuery;
     }
 }

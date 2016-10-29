@@ -103,9 +103,14 @@ class Container
             return new Installer($this->module);
         };
 
-        $this->container['elasticsearch.manager'] = function ($c) {
+        $this->container['elasticsearch.client'] = function ($c) {
             $elasticsearchHost1 = $c['configuration']->get(Setting::ELASTICSEARCH_HOST_1);
-            $elasticsearchIndexPrefix = $c['configuration']->get(Setting::INDEX_PREFIX);
+
+            if (false === strpos($elasticsearchHost1, 'http://') &&
+                false === strpos($elasticsearchHost1, 'https://')
+            ) {
+                $elasticsearchHost1 = 'http://'.$elasticsearchHost1;
+            }
 
             $hosts = [$elasticsearchHost1];
 
@@ -113,7 +118,13 @@ class Container
             $clientBuilder->setHosts($hosts);
             $client = $clientBuilder->build();
 
-            return new ElasticsearchManager($client, $elasticsearchIndexPrefix);
+            return $client;
+        };
+
+        $this->container['elasticsearch.manager'] = function ($c) {
+            $elasticsearchIndexPrefix = $c['configuration']->get(Setting::INDEX_PREFIX);
+
+            return new ElasticsearchManager($c['elasticsearch.client'], $elasticsearchIndexPrefix);
         };
 
         $this->container['util.validator'] = function () {

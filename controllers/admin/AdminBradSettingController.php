@@ -7,6 +7,36 @@ use Invertus\Brad\Config\Setting;
  */
 class AdminBradSettingController extends AbstractAdminBradModuleController
 {
+    public function renderOptions()
+    {
+        if ($this->module->isElasticsearchConnectionAvailable()) {
+
+            /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchManager $manager */
+            $manager = $this->get('elasticsearch.manager');
+            $indexedProductsCount = (int) $manager->getProductsCount($this->context->shop->id);
+
+            /** @var \Invertus\Brad\Repository\ProductRepository $productRepository */
+            $productRepository = $this->getRepository('BradProduct');
+            $productsIds = $productRepository->findAllIdsByShopId($this->context->shop->id);
+
+            $this->context->smarty->assign([
+                'elasticsearch_connection_ok' => true,
+                'elasticsearch_version' => $manager->getVersion(),
+                'products_count' => count($productsIds),
+                'indexed_products_count' => $indexedProductsCount,
+            ]);
+        }
+
+        $this->context->smarty->assign([
+            'current_url' => $this->context->link->getAdminLink(Brad::ADMIN_BRAD_SETTING_CONTROLLER),
+        ]);
+
+        $templatesDir = $this->get('brad_templates_dir');
+        $elasticsearchActions = $this->context->smarty->fetch($templatesDir.'admin/elasticsearch-actions.tpl');
+
+        return $elasticsearchActions.parent::renderOptions();
+    }
+
     /**
      * Index products if submited or execute default postProcess()
      *
@@ -33,7 +63,6 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
      */
     protected function initOptions()
     {
-        //@todo: add elasticsearch information panel
         $this->fields_options = [
             'elasticsearch_settings' => [
                 'title' => $this->l('Elasticsearch settings'),
@@ -51,26 +80,12 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
                 'submit' => [
                     'title' => $this->l('Save'),
                 ],
-                'buttons' => [
-                    [
-                        'title' => $this->l('Reindex all products'),
-                        'name' => 'brad_reindex_all_products',
-                        'icon' => 'process-icon-reset',
-                        'type' => 'submit',
-                    ],
-                    [
-                        'title' => $this->l('Reindex missing products'),
-                        'name' => 'brad_reindex_missing_products',
-                        'icon' => 'process-icon-refresh',
-                        'type' => 'submit',
-                    ],
-                ],
             ],
             'search_settings' => [
                 'title' => $this->l('Search settings'),
                 'icon' => 'icon-search',
                 'fields' => [
-                    Setting::DISPLAY_SEARCH_INPUT => [
+                    Setting::ENABLE_SEARCH => [
                         'title' => $this->l('Enable search'),
                         'hint' => $this->l('Display search input page top'),
                         'validation' => 'isBool',
@@ -78,7 +93,7 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
                     ],
                     Setting::FUZZY_SEARCH => [
                         'title' => $this->l('Fuzzy search'),
-                        'hint' => $this->l('Fuzzy search improves search results with misspelled words'),
+                        'hint' => $this->l('Fuzzy search improves search results with typos in serach query'),
                         'validation' => 'isBool',
                         'type' => 'bool',
                     ],
@@ -89,7 +104,7 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
                         'type' => 'bool',
                     ],
                     Setting::INSTANT_SEARCH => [
-                        'title' => $this->l('Dsiplay instant search results'),
+                        'title' => $this->l('Display instant search results'),
                         'hint' => $this->l('Instant search block under search input'),
                         'validation' => 'isBool',
                         'type' => 'bool',

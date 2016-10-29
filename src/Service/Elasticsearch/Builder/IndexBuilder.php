@@ -36,13 +36,13 @@ class IndexBuilder
     {
         $numberOfShards = (int) $this->configuration->get(Setting::NUMBER_OF_SHARDS_ADVANCED);
         $numberOfReplicas = (int) $this->configuration->get(Setting::NUMBER_OF_REPLICAS_ADVANCED);
-        $refreshInterval = $this->configuration->get(Setting::REFRESH_INTERVAL_ADVANCED);
+        $refreshInterval = (int) $this->configuration->get(Setting::REFRESH_INTERVAL_ADVANCED);
 
         return [
             'settings' => [
                 'number_of_shards' => $numberOfShards,
                 'number_of_replicas' => $numberOfReplicas,
-                'refresh_interval' => $refreshInterval,
+                'refresh_interval' => $refreshInterval.'s',
             ],
             'mappings' => [
                 'products' => [

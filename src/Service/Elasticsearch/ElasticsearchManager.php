@@ -66,6 +66,27 @@ class ElasticsearchManager
         return $info['version']['number'];
     }
 
+    /**
+     * Get number of indexed products
+     *
+     * @param int $idShop
+     *
+     * @return int
+     */
+    public function getProductsCount($idShop)
+    {
+        $params = [];
+        $params['index'] = $this->indexPrefix.$idShop;
+        $params['type'] = 'products';
+
+        try {
+            $response = $this->client->count($params);
+        } catch (Exception $e) {
+            return 0;
+        }
+
+        return (int) $response['count'];
+    }
 
     /**
      * Check if there are any alive nodes in cluster

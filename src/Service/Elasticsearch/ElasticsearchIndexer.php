@@ -99,6 +99,27 @@ class ElasticsearchIndexer
         return $response['acknowledged'];
     }
 
+    public function updateIndex($idShop, array $settings)
+    {
+        if (!$this->manager->isIndexCreated($idShop)) {
+            return false;
+        }
+
+        $params = [];
+        $params['index'] = $this->manager->getIndexPrefix().$idShop;
+        $params['body'] = $settings;
+
+        $client = $this->manager->getClient();
+
+        try {
+            $response = $client->indices()->putSettings($params);
+        } catch (Exception $e) {
+            return false;
+        }
+
+        return (bool) $response['acknowledged'];
+    }
+
     /**
      * Index given product
      *

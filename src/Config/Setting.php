@@ -21,7 +21,7 @@ class Setting
     /**
      * Search settings block
      */
-    const DISPLAY_SEARCH_INPUT = 'BRAD_DISPLAY_SEARCH_INPUT';
+    const ENABLE_SEARCH = 'BRAD_ENABLE_SEARCH';
     const INSTANT_SEARCH = 'BRAD_INSTANT_SEARCH';
     const DISPLAY_DYNAMIC_SEARCH_RESULTS = 'BRAD_DISPLAY_DYNAMIC_SEARCH_RESULTS';
     const INSTANT_SEARCH_RESULTS_COUNT = 'BRAD_INSTANT_SEARCH_RESULTS_COUNT';
@@ -44,9 +44,9 @@ class Setting
             self::ELASTICSEARCH_HOST_1 => '127.0.0.1:9200',
             self::NUMBER_OF_SHARDS_ADVANCED => 3,
             self::NUMBER_OF_REPLICAS_ADVANCED => 1,
-            self::REFRESH_INTERVAL_ADVANCED => '30s',
+            self::REFRESH_INTERVAL_ADVANCED => 30,
 
-            self::DISPLAY_SEARCH_INPUT => 1,
+            self::ENABLE_SEARCH => 1,
             self::INSTANT_SEARCH => 1,
             self::DISPLAY_DYNAMIC_SEARCH_RESULTS => 1,
             self::INSTANT_SEARCH_RESULTS_COUNT => 10,

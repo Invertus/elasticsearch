@@ -162,7 +162,7 @@ class Brad extends Module
         /** @var Core_Business_ConfigurationInterface $configuration */
         $configuration = $this->container->get('configuration');
 
-        $isDisplaySearchInputEnabled = (bool) $configuration->get(\Invertus\Brad\Config\Setting::DISPLAY_SEARCH_INPUT);
+        $isDisplaySearchInputEnabled = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_SEARCH);
 
         if (!$isDisplaySearchInputEnabled) {
             return '';

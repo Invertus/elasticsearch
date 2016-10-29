@@ -43,21 +43,43 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
         parent::init();
     }
 
+    public function initContent()
+    {
+        parent::initContent();
+
+        $this->template = _PS_THEME_DIR_.'search.tpl';
+    }
+
+    public function setMedia()
+    {
+        parent::setMedia();
+
+        if (!$this->isXmlHttpRequest()) {
+            $this->addCSS(_THEME_CSS_DIR_.'product_list.css');
+        }
+    }
+
     /**
      * Perform search
      */
     public function postProcess()
     {
-        $searchQuery = Tools::getValue('query', '');
+        $originalSearchQuery = Tools::getValue('query', '');
+        $searchQuery = Tools::replaceAccentedChars(urldecode($originalSearchQuery));
+
         $sortBy = Tools::getValue('sort_by', Sort::BY_RELEVANCE);
         $sortWay = Tools::getValue('sort_way', Sort::WAY_DESC);
-        $page = (int) Tools::getValue('page', 1);
+        $page = (int) Tools::getValue('p');
+        $size = (int) Tools::getValue('n');
 
         if (0 >= $page) {
             $page = 1;
         }
 
-        $size = (int) $this->configuration->get('PS_PRODUCTS_PER_PAGE');
+        if (0 >= $size) {
+            $size = (int) $this->configuration->get('PS_PRODUCTS_PER_PAGE');
+        }
+
         $from = (int) ($size * ($page - 1));
 
         /** @var \Invertus\Brad\Service\Elasticsearch\Builder\SearchQueryBuilder $searchQueryBuilder */
@@ -66,30 +88,46 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
 
         /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchSearch $elasticsearchSearch */
         $elasticsearchSearch = $this->get('elasticsearch.search');
-
         $products = $elasticsearchSearch->searchProducts($productsQuery, $this->context->shop->id);
-
 
         $formattedProducts = $this->formatProducts($products);
 
         if ($this->isXmlHttpRequest()) {
-            die($this->renderAjaxResponse($formattedProducts));
+            die($this->renderAjaxResponse($formattedProducts, $originalSearchQuery));
         }
 
         $productsCountQuery = $searchQueryBuilder->buildProductsQuery($searchQuery);
         $productsCount = $elasticsearchSearch->countProducts($productsCountQuery, $this->context->shop->id);
 
-        //@todo: BRAD handle products list display
+        $this->p = $page;
+        $this->n = $size;
+
+        $this->pagination($productsCount);
+        $this->productSort();
+        $this->addColorsToProductList($formattedProducts);
+
+        $currentUrl = $this->context->link->getModuleLink($this->module->name, 'search', ['query' => $originalSearchQuery]);
+
+        $this->context->smarty->assign([
+            'search_products' => $formattedProducts,
+            'nbProducts' => $productsCount,
+            'search_query' => $originalSearchQuery,
+            'homeSize' => Image::getSize(ImageType::getFormatedName('home')),
+            'add_prod_display' => $this->configuration->get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
+            'comparator_max_item' => $this->configuration->get('PS_COMPARATOR_MAX_ITEM'),
+            'current_url' => $currentUrl,
+        ]);
     }
 
     /**
      * Render response for ajax search
      *
      * @param array $products
+     * @param string $originalSearchQuery
      *
      * @return string JSON response
      */
-    private function renderAjaxResponse(array $products)
+    private function renderAjaxResponse(array $products, $originalSearchQuery)
     {
         $response = [];
         $response['instant_results'] = false;
@@ -109,10 +147,16 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
             $instantSearchResults = Arrays::getFirstElements($products, $numberOfInstantSearchResults);
 
             $imageType = ImageType::getFormatedName('small');
+            $showMoreSearchResultsUrl = $this->context->link->getModuleLink(
+                $this->module->name,
+                'search',
+                ['query' => $originalSearchQuery]
+            );
 
             $this->context->smarty->assign([
                 'instant_search_results' => $instantSearchResults,
                 'image_type' => $imageType,
+                'more_search_results_url' => $showMoreSearchResultsUrl,
             ]);
 
             $response['instant_results'] =

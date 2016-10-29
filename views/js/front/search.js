@@ -11,7 +11,7 @@ $(document).ready(function() {
     /**
      * Clear instant search results when search input loses focus
      */
-    $bradSearchBox.on('focusout', '#bradSearchQuery', function () {
+    $bradSearchBox.on('focusout', '#bradSearchQuery', function() {
         setTimeout(clearInstantSearchResults, 100);
     });
 
@@ -54,6 +54,8 @@ $(document).ready(function() {
      */
     function handleSearchResponse($response)
     {
+        $sendingRequest = false;
+
         var $decodedResponse = JSON.parse($response);
 
         // Handle instant search results
@@ -66,19 +68,22 @@ $(document).ready(function() {
 
         // Handle dynamic search results
         if (false !==  $decodedResponse.dynamic_results) {
+
             clearDynamicSearchResults(false);
 
             var $centerColumnDiv = $('#center_column');
             $centerColumnDiv.hide();
 
-            var $bradDynamicSearchResults =
-                $('<div id="bradDynamicSearchResults" class="center_column col-xs-12 col-sm-9"></div>');
+            // Copy center column classes
+            var $centerColumnClasses = $centerColumnDiv.attr('class');
+
+            var $bradDynamicSearchResults = $('<div></div>');
+            $bradDynamicSearchResults.attr('id', 'bradDynamicSearchResults');
+            $bradDynamicSearchResults.addClass($centerColumnClasses);
             $bradDynamicSearchResults.html($decodedResponse.dynamic_results);
 
             $centerColumnDiv.after($bradDynamicSearchResults);
         }
-
-        $sendingRequest = false;
     }
 
     /**
@@ -95,16 +100,16 @@ $(document).ready(function() {
      *
      * @params $displayDefaultProducts
      */
-    function clearDynamicSearchResults($displayDefaultProducts)
+    function clearDynamicSearchResults($displayCenterBlock)
     {
         var $bradDynamicSearchResults = $('#bradDynamicSearchResults');
         $bradDynamicSearchResults.remove();
 
-        if (typeof $displayDefaultProducts === 'undefined') {
-            $displayDefaultProducts = true;
+        if (typeof $displayCenterBlock === 'undefined') {
+            $displayCenterBlock = true;
         }
 
-        if ($displayDefaultProducts) {
+        if ($displayCenterBlock) {
             var $centerColumnDiv = $('#center_column');
             $centerColumnDiv.show();
         }

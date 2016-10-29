@@ -23,5 +23,10 @@
             </li>
         {/foreach}
 
+        <li class="brad-autocomplete-item" role="presentation">
+            <a class="brad-autocomplete-item-border" href="{$more_search_results_url|escape:'htmlall':'UTF-8'}">
+                See more results
+            </a>
+        </li>
     </ul>
 {/if}

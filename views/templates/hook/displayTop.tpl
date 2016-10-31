@@ -3,9 +3,9 @@
         <input class="search_query form-control ac_input"
                type="text"
                id="bradSearchQuery"
-               name="query"
+               name="search_query"
                placeholder="{l s='Search' mod='brad'}"
-               value=""
+               value="{$search_query|escape:'htmlall':'UTF-8'}"
                autocomplete="off"
         >
         {if not $is_friendly_url_enabled}

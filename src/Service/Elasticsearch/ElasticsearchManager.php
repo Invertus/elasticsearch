@@ -12,10 +12,14 @@ use Exception;
  */
 class ElasticsearchManager
 {
-    /** @var Client */
+    /**
+     * @var Client
+     */
     private $client;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     private $indexPrefix;
 
     /**

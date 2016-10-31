@@ -135,11 +135,18 @@ class Brad extends Module
         /** @var Core_Business_ConfigurationInterface $configuration */
         $configuration = $this->container->get('configuration');
 
+        $isSearchEnalbed = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_SEARCH);
+        if (!$isSearchEnalbed) {
+            return;
+        }
+
         $bradMinWordLength = (int) $configuration->get(\Invertus\Brad\Config\Setting::MINIMAL_SEARCH_WORD_LENGTH);
+        $bradInstantSearchResultsCount = (int) $configuration->get(\Invertus\Brad\Config\Setting::INSTANT_SEARCH_RESULTS_COUNT);
         $bradSearchUrl = $this->context->link->getModuleLink($this->name, self::FRONT_BRAD_SEARCH_CONTROLLER);
 
         Media::addJsDef([
             '$globalBradMinWordLength' => $bradMinWordLength,
+            '$globalBradInstantSearchResultsCount' => $bradInstantSearchResultsCount,
             '$globalBradSearchUrl' => $bradSearchUrl,
         ]);
 
@@ -162,18 +169,18 @@ class Brad extends Module
         /** @var Core_Business_ConfigurationInterface $configuration */
         $configuration = $this->container->get('configuration');
 
-        $isFriendlyUrlEnabled = (bool) $configuration->get('PS_REWRITING_SETTINGS');
         $isSearchEnabled = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_SEARCH);
-
         if (!$isSearchEnabled) {
             return '';
         }
 
+        $isFriendlyUrlEnabled = (bool) $configuration->get('PS_REWRITING_SETTINGS');
         $bradSearchUrl = $this->context->link->getModuleLink($this->name, self::FRONT_BRAD_SEARCH_CONTROLLER);
 
         $this->context->smarty->assign([
             'brad_search_url' => $bradSearchUrl,
             'is_friendly_url_enabled' => $isFriendlyUrlEnabled,
+            'search_query' => Tools::getValue('search_query', ''),
         ]);
 
         return $this->context->smarty->fetch($this->container->get('brad_templates_dir').'hook/displayTop.tpl');

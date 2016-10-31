@@ -32,12 +32,12 @@ class SearchQueryBuilder extends AbstractQueryBuilder
      * @param string $query
      * @param int|null $from
      * @param int|null $size
-     * @param string|null $sortBy
-     * @param string|null $sortWay
+     * @param string|null $orderBy
+     * @param string|null $orderWay
      *
      * @return array
      */
-    public function buildProductsQuery($query, $from = null, $size = null, $sortBy = null, $sortWay = null)
+    public function buildProductsQuery($query, $from = null, $size = null, $orderBy = null, $orderWay = null)
     {
         $idLang = (int) $this->context->language->id;
         $isFuzzySeearchEnabled = (bool) $this->configuration->get(Setting::FUZZY_SEARCH);
@@ -116,8 +116,8 @@ class SearchQueryBuilder extends AbstractQueryBuilder
             $elasticsearchQuery['size'] = (int) $size;
         }
 
-        if (null !== $sortBy && null != $sortWay) {
-            $elasticsearchQuery['sort'] = $this->buildSort($sortBy, $sortWay);
+        if (null !== $orderBy && null != $orderWay) {
+            $elasticsearchQuery['sort'] = $this->buildOrderQuery($orderBy, $orderWay);
         }
 
         return $elasticsearchQuery;

@@ -1,6 +1,5 @@
 $(document).ready(function() {
 
-    var $sendingRequest = false;
     var $bradSearchBox = $('#bradSearchBox');
 
     /**
@@ -16,6 +15,11 @@ $(document).ready(function() {
     });
 
     /**
+     * Scroll to center column after search page load
+     */
+    scrollToCenterColumn();
+
+    /**
      * Perform search & handle response
      */
     function performSearch()
@@ -26,20 +30,13 @@ $(document).ready(function() {
         if ($searchQuery.length < $globalBradMinWordLength) {
             clearInstantSearchResults();
             clearDynamicSearchResults();
-
-            $sendingRequest = false;
             return;
         }
-
-        if ($sendingRequest) {
-            return;
-        }
-
-        $sendingRequest = true;
 
         $.ajax($globalBradSearchUrl, {
             'data': {
-                'query': $searchQuery,
+                'search_query': $searchQuery,
+                'n': $globalBradInstantSearchResultsCount,
                 'token': static_token
             },
             'dataType': 'html',
@@ -54,8 +51,6 @@ $(document).ready(function() {
      */
     function handleSearchResponse($response)
     {
-        $sendingRequest = false;
-
         var $decodedResponse = JSON.parse($response);
 
         // Handle instant search results
@@ -69,6 +64,7 @@ $(document).ready(function() {
         // Handle dynamic search results
         if (false !==  $decodedResponse.dynamic_results) {
 
+            // Clear dynamic search results but dont show original center column
             clearDynamicSearchResults(false);
 
             var $centerColumnDiv = $('#center_column');
@@ -77,11 +73,13 @@ $(document).ready(function() {
             // Copy center column classes
             var $centerColumnClasses = $centerColumnDiv.attr('class');
 
+            // Create container for dynamic search results
             var $bradDynamicSearchResults = $('<div></div>');
             $bradDynamicSearchResults.attr('id', 'bradDynamicSearchResults');
             $bradDynamicSearchResults.addClass($centerColumnClasses);
             $bradDynamicSearchResults.html($decodedResponse.dynamic_results);
 
+            // Add dynamic search results after hidden center column
             $centerColumnDiv.after($bradDynamicSearchResults);
         }
     }
@@ -113,5 +111,19 @@ $(document).ready(function() {
             var $centerColumnDiv = $('#center_column');
             $centerColumnDiv.show();
         }
+    }
+
+    /**
+     * Scroll to center column
+     */
+    function scrollToCenterColumn()
+    {
+        if (typeof $globalBradScrollCenterColumn == 'undefined') {
+            return;
+        }
+
+        $('body').animate({
+            scrollTop: $("#center_column").offset().top
+        }, 0);
     }
 });

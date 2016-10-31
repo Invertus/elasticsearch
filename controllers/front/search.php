@@ -26,6 +26,15 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
      */
     public function init()
     {
+        $isSearchEnabled = (bool) $this->configuration->get(Setting::ENABLE_SEARCH);
+        if (!$isSearchEnabled) {
+            if ($this->isXmlHttpRequest()) {
+                die(json_encode(['instant_results' => false, 'dynamic_results' => false]));
+            }
+
+            $this->redirectToNotFoundPage();
+        }
+
         /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchManager $elasticsearchManager */
         $elasticsearchManager = $this->get('elasticsearch.manager');
 
@@ -36,13 +45,15 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
                 die(json_encode(['instant_results' => false, 'dynamic_results' => false]));
             }
 
-            $this->setRedirectAfter(404);
-            $this->redirect();
+            $this->redirectToNotFoundPage();
         }
 
         parent::init();
     }
 
+    /**
+     * Set template for controller's content
+     */
     public function initContent()
     {
         parent::initContent();
@@ -50,12 +61,18 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
         $this->template = _PS_THEME_DIR_.'search.tpl';
     }
 
+    /**
+     * Add assets to controller
+     */
     public function setMedia()
     {
         parent::setMedia();
 
         if (!$this->isXmlHttpRequest()) {
             $this->addCSS(_THEME_CSS_DIR_.'product_list.css');
+            Media::addJsDef([
+                '$globalBradScrollCenterColumn' => true,
+            ]);
         }
     }
 
@@ -64,11 +81,11 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
      */
     public function postProcess()
     {
-        $originalSearchQuery = Tools::getValue('query', '');
+        $originalSearchQuery = Tools::getValue('search_query', '');
         $searchQuery = Tools::replaceAccentedChars(urldecode($originalSearchQuery));
 
-        $sortBy = Tools::getValue('sort_by', Sort::BY_RELEVANCE);
-        $sortWay = Tools::getValue('sort_way', Sort::WAY_DESC);
+        $orderBy = Tools::getValue('orderby', Sort::BY_RELEVANCE);
+        $orderWay = Tools::getValue('orderway', Sort::WAY_DESC);
         $page = (int) Tools::getValue('p');
         $size = (int) Tools::getValue('n');
 
@@ -77,14 +94,16 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
         }
 
         if (0 >= $size) {
-            $size = (int) $this->configuration->get('PS_PRODUCTS_PER_PAGE');
+            $size = isset($this->context->cookie->nb_item_per_page) ?
+                (int) $this->context->cookie->nb_item_per_page :
+                (int) $this->configuration->get('PS_PRODUCTS_PER_PAGE');
         }
 
         $from = (int) ($size * ($page - 1));
 
         /** @var \Invertus\Brad\Service\Elasticsearch\Builder\SearchQueryBuilder $searchQueryBuilder */
         $searchQueryBuilder = $this->get('elasticsearch.builder.search_query_builder');
-        $productsQuery = $searchQueryBuilder->buildProductsQuery($searchQuery, $from, $size, $sortBy, $sortWay);
+        $productsQuery = $searchQueryBuilder->buildProductsQuery($searchQuery, $from, $size, $orderBy, $orderWay);
 
         /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchSearch $elasticsearchSearch */
         $elasticsearchSearch = $this->get('elasticsearch.search');
@@ -97,7 +116,7 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
         }
 
         $productsCountQuery = $searchQueryBuilder->buildProductsQuery($searchQuery);
-        $productsCount = $elasticsearchSearch->countProducts($productsCountQuery, $this->context->shop->id);
+        $productsCount = (int) $elasticsearchSearch->countProducts($productsCountQuery, $this->context->shop->id);
 
         $this->p = $page;
         $this->n = $size;
@@ -106,16 +125,19 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
         $this->productSort();
         $this->addColorsToProductList($formattedProducts);
 
-        $currentUrl = $this->context->link->getModuleLink($this->module->name, 'search', ['query' => $originalSearchQuery]);
+        $currentUrl = $this->context->link->getModuleLink(
+            $this->module->name,
+            Brad::FRONT_BRAD_SEARCH_CONTROLLER,
+            ['search_query' => $originalSearchQuery]
+        );
 
         $this->context->smarty->assign([
             'search_products' => $formattedProducts,
             'nbProducts' => $productsCount,
             'search_query' => $originalSearchQuery,
             'homeSize' => Image::getSize(ImageType::getFormatedName('home')),
-            'add_prod_display' => $this->configuration->get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
-            'comparator_max_item' => $this->configuration->get('PS_COMPARATOR_MAX_ITEM'),
             'current_url' => $currentUrl,
+            'request' => $currentUrl,
         ]);
     }
 
@@ -138,53 +160,78 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
             return json_encode($response);
         }
 
-        $bradTemplatesDir = $this->get('brad_templates_dir');
-        $isInstantSearchResultsEnabled = (bool) $this->configuration->get(Setting::INSTANT_SEARCH);
-        $isDynamicSearchResultsEnabled = (bool) $this->configuration->get(Setting::DISPLAY_DYNAMIC_SEARCH_RESULTS);
-
-        if ($isInstantSearchResultsEnabled) {
-
-            $numberOfInstantSearchResults = (int) $this->configuration->get(Setting::INSTANT_SEARCH_RESULTS_COUNT);
-            $instantSearchResults = Arrays::getFirstElements($products, $numberOfInstantSearchResults);
-
-            $imageType = ImageType::getFormatedName('small');
-            $showMoreSearchResultsUrl = $this->context->link->getModuleLink(
-                $this->module->name,
-                'search',
-                ['query' => $originalSearchQuery]
-            );
-
-            $this->context->smarty->assign([
-                'instant_search_results' => $instantSearchResults,
-                'image_type' => $imageType,
-                'more_search_results_url' => $showMoreSearchResultsUrl,
-            ]);
-
-            $response['instant_results'] =
-                $this->context->smarty->fetch($bradTemplatesDir.'front/search-input-autocomplete.tpl');
-        }
-
-        if ($isDynamicSearchResultsEnabled) {
-            switch (empty($products)) {
-                case true:
-                    $this->context->smarty->assign('search_query', $originalSearchQuery);
-
-                    $response['dynamic_results'] =
-                        $this->context->smarty->fetch($bradTemplatesDir.'front/results-not-found-alert.tpl');
-                    break;
-                case false:
-                    $this->addColorsToProductList($products);
-
-                    $this->context->smarty->assign([
-                        'products' => $products,
-                    ]);
-
-                    $response['dynamic_results'] = $this->context->smarty->fetch(_PS_THEME_DIR_.'product-list.tpl');
-                    break;
-            }
-        }
+        $response['instant_results'] = $this->renderInstantSearchResults($products, $originalSearchQuery);
+        $response['dynamic_results'] = $this->renderDynamicSearchResults($products, $originalSearchQuery);
 
         return json_encode($response);
+    }
+
+    /**
+     * Render instant search results html
+     *
+     * @param array $products
+     * @param string $originalSearchQuery
+     *
+     * @return string|false Rendered html or FALSE if instant search is not enabled
+     */
+    private function renderInstantSearchResults(array $products, $originalSearchQuery)
+    {
+        $isInstantSearchResultsEnabled = (bool) $this->configuration->get(Setting::INSTANT_SEARCH);
+
+        if (!$isInstantSearchResultsEnabled) {
+            return false;
+        }
+
+        $bradTemplatesDir = $this->get('brad_templates_dir');
+
+        $numberOfInstantSearchResults = (int) $this->configuration->get(Setting::INSTANT_SEARCH_RESULTS_COUNT);
+        $instantSearchResults = Arrays::getFirstElements($products, $numberOfInstantSearchResults);
+
+        $imageType = ImageType::getFormatedName('small');
+        $showMoreSearchResultsUrl = $this->context->link->getModuleLink(
+            $this->module->name,
+            'search',
+            ['search_query' => $originalSearchQuery]
+        );
+
+        $this->context->smarty->assign([
+            'instant_search_results' => $instantSearchResults,
+            'image_type' => $imageType,
+            'more_search_results_url' => $showMoreSearchResultsUrl,
+        ]);
+
+        return $this->context->smarty->fetch($bradTemplatesDir.'front/search-input-autocomplete.tpl');
+    }
+
+    /**
+     * Render dynamic results html
+     *
+     * @param array $products
+     * @param string $originalSearchQuery
+     *
+     * @return string|false Rendered html or FALSE if instant search is not enabled
+     */
+    private function renderDynamicSearchResults(array $products, $originalSearchQuery)
+    {
+        $isDynamicSearchResultsEnabled = (bool) $this->configuration->get(Setting::DISPLAY_DYNAMIC_SEARCH_RESULTS);
+
+        if (!$isDynamicSearchResultsEnabled) {
+            return false;
+        }
+
+        if (empty($products)) {
+            $this->context->smarty->assign('search_query', $originalSearchQuery);
+
+            return $this->context->smarty->fetch($this->get('brad_templates_dir').'front/results-not-found-alert.tpl');
+        }
+
+        $this->addColorsToProductList($products);
+
+        $this->context->smarty->assign([
+            'products' => $products,
+        ]);
+
+        return $this->context->smarty->fetch(_PS_THEME_DIR_.'product-list.tpl');
     }
 
     /**

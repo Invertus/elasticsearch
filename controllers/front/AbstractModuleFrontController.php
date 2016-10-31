@@ -13,4 +13,13 @@ abstract class AbstractModuleFrontController extends ModuleFrontController
      * @var Brad
      */
     public $module;
+
+    /**
+     * Redirect user to not found page
+     */
+    protected function redirectToNotFoundPage()
+    {
+        $this->setRedirectAfter(404);
+        $this->redirect();
+    }
 }

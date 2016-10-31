@@ -138,6 +138,7 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
             return json_encode($response);
         }
 
+        $bradTemplatesDir = $this->get('brad_templates_dir');
         $isInstantSearchResultsEnabled = (bool) $this->configuration->get(Setting::INSTANT_SEARCH);
         $isDynamicSearchResultsEnabled = (bool) $this->configuration->get(Setting::DISPLAY_DYNAMIC_SEARCH_RESULTS);
 
@@ -160,17 +161,27 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
             ]);
 
             $response['instant_results'] =
-                $this->context->smarty->fetch($this->get('brad_templates_dir').'front/search-input-autocomplete.tpl');
+                $this->context->smarty->fetch($bradTemplatesDir.'front/search-input-autocomplete.tpl');
         }
 
         if ($isDynamicSearchResultsEnabled) {
-            $this->addColorsToProductList($products);
+            switch (empty($products)) {
+                case true:
+                    $this->context->smarty->assign('search_query', $originalSearchQuery);
 
-            $this->context->smarty->assign([
-                'products' => $products,
-            ]);
+                    $response['dynamic_results'] =
+                        $this->context->smarty->fetch($bradTemplatesDir.'front/results-not-found-alert.tpl');
+                    break;
+                case false:
+                    $this->addColorsToProductList($products);
 
-            $response['dynamic_results'] = $this->context->smarty->fetch(_PS_THEME_DIR_.'product-list.tpl');
+                    $this->context->smarty->assign([
+                        'products' => $products,
+                    ]);
+
+                    $response['dynamic_results'] = $this->context->smarty->fetch(_PS_THEME_DIR_.'product-list.tpl');
+                    break;
+            }
         }
 
         return json_encode($response);

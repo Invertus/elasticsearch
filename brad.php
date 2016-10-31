@@ -162,16 +162,18 @@ class Brad extends Module
         /** @var Core_Business_ConfigurationInterface $configuration */
         $configuration = $this->container->get('configuration');
 
-        $isDisplaySearchInputEnabled = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_SEARCH);
+        $isFriendlyUrlEnabled = (bool) $configuration->get('PS_REWRITING_SETTINGS');
+        $isSearchEnabled = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_SEARCH);
 
-        if (!$isDisplaySearchInputEnabled) {
+        if (!$isSearchEnabled) {
             return '';
         }
 
         $bradSearchUrl = $this->context->link->getModuleLink($this->name, self::FRONT_BRAD_SEARCH_CONTROLLER);
 
         $this->context->smarty->assign([
-            'bradSearchUrl' => $bradSearchUrl,
+            'brad_search_url' => $bradSearchUrl,
+            'is_friendly_url_enabled' => $isFriendlyUrlEnabled,
         ]);
 
         return $this->context->smarty->fetch($this->container->get('brad_templates_dir').'hook/displayTop.tpl');

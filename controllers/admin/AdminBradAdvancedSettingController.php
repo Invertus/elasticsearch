@@ -76,7 +76,7 @@ class AdminBradAdvancedSettingController extends AbstractAdminBradModuleControll
                 'description' =>
                     $this->l('These settings will be used to create Elasticsearch index before indexing products.')
                     .' '.
-                    $this->l('Settings marked as "Dynamic index setting" will update current Elasticsearch index settings.'),
+                    $this->l('Settings marked as "Dynamic index setting" will update current Elasticsearch index if it exists.'),
                 'fields' => [
                     Setting::NUMBER_OF_SHARDS_ADVANCED => [
                         'title' => $this->l('Number of shards'),

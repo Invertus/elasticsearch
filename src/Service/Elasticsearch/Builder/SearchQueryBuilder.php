@@ -6,10 +6,15 @@ use Context;
 use Core_Business_ConfigurationInterface;
 use Invertus\Brad\Config\Setting;
 
+/**
+ * Class SearchQueryBuilder
+ *
+ * @package Invertus\Brad\Service\Elasticsearch\Builder
+ */
 class SearchQueryBuilder extends AbstractQueryBuilder
 {
     /**
-     * @var ConfigurationInterface
+     * @var Core_Business_ConfigurationInterface
      */
     private $configuration;
 

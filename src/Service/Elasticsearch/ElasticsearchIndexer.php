@@ -221,33 +221,4 @@ class ElasticsearchIndexer
 
         return $response['found'];
     }
-
-    /**
-     * Index given category
-     *
-     * @param Category $category
-     * @param int $idShop
-     *
-     * @return bool
-     */
-    public function indexCategory(Category $category, $idShop)
-    {
-        $body = $this->documentBuilder->buildCategoryBody($category);
-
-        $params = [];
-        $params['index'] = $this->manager->getIndexPrefix().$idShop;
-        $params['type'] = 'categories';
-        $params['id'] = $category->id;
-        $params['body'] = $body;
-
-        $client = $this->manager->getClient();
-
-        try {
-            $response = $client->index($params);
-        } catch (Exception $e) {
-            return false;
-        }
-
-        return $response['created'];
-    }
 }

@@ -4,13 +4,24 @@ namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
 use Attribute;
 use Category;
+use Core_Foundation_Database_EntityManager;
+use Country;
+use Currency;
 use Feature;
 use FeatureValue;
+use Group;
+use Language;
 use Link;
 use Manufacturer;
 use Product;
+use Shop;
 use StockAvailable;
 
+/**
+ * Class DocumentBuilder
+ *
+ * @package Invertus\Brad\Service\Elasticsearch\Builder
+ */
 class DocumentBuilder
 {
     /**
@@ -96,36 +107,59 @@ class DocumentBuilder
                 $attributeObj = new Attribute($attribute['id_attribute']);
 
                 foreach ($attributeObj->name as $idLang => $name) {
-                    $body['attribute_'.$attributeObj->id.'_lang_'.$idLang] = $name;
+                    $body['attribute_' . $attributeObj->id . '_lang_' . $idLang] = $name;
                 }
 
-                $body['attribute_group_'.$attribute['id_attribute_group']][] = $attributeObj->id;
+                $body['attribute_group_' . $attribute['id_attribute_group']][] = $attributeObj->id;
             }
         }
-
-        //@todo: get specific price
 
         return $body;
     }
 
     /**
-     * Build category body
+     * Build product prices body
      *
-     * @param Category $category
+     * @param Product $product
+     * @param int $idShop
+     * @param bool $useTax
+     * @param array $groups
+     * @param array $currencies
+     * @param array $countries
      *
      * @return array
      */
-    public function buildCategoryBody(Category $category)
+    public function buildProductPriceBody(Product $product, $idShop, $useTax, array $groups, array $currencies, array $countries)
     {
         $body = [];
 
-        $body['id_parent'] = $category->id_parent;
-        $body['level_depth'] = $category->level_depth;
-        $body['nleft'] = $category->nleft;
-        $body['nrigt'] = $category->nright;
+        // Must be passed to price calculation
+        $specificPrice = null;
 
-        foreach ($category->name as $idLang => $name) {
-            $body['name_lang_'.$idLang] = $name;
+        foreach ($groups as $idGroup) {
+            foreach ($countries as $idCountry) {
+                foreach ($currencies as $idCurrency) {
+                    $body['price_group_'.$idGroup.'_country_'.$idCountry.'_currency_'.$idCurrency] =
+                        Product::priceCalculation(
+                            $idShop,
+                            $product->id,
+                            null,
+                            $idCountry,
+                            null,
+                            null,
+                            $idCurrency,
+                            $idGroup,
+                            $product->minimal_quantity,
+                            $useTax,
+                            6,
+                            false,
+                            true,
+                            true,
+                            $pr,
+                            true
+                        );
+                }
+            }
         }
 
         return $body;

@@ -103,10 +103,6 @@ class Indexer
             return false;
         }
 
-        if (!$this->indexCategories($idShop)) {
-            return false;
-        }
-
         return true;
     }
 
@@ -130,8 +126,13 @@ class Indexer
             return true;
         }
 
+        $countriesIds = $this->em->getRepository('BradCountry')->findAllIdsByShopId($idShop);
+        $currenciesIds = $this->em->getRepository('BradCurrency')->findAllIdsByShopId($idShop);
+        $groupsIds = $this->em->getRepository('BradGroup')->findAllIdsByShopId($idShop);
+
         $indexPrefix = $this->configuration->get(Setting::INDEX_PREFIX);
         $bulkRequestSize = (int) $this->configuration->get(Setting::BULK_REQUEST_SIZE_ADVANCED);
+        $useTax = (bool) $this->configuration->get('PS_TAX');
 
         $lastProductsIdsKey = Arrays::getLastKey($productsIds);
         $bulkProductIds = [];
@@ -173,7 +174,13 @@ class Indexer
                     ]
                 ];
 
-                $bulkParams['body'][] = $this->documentBuilder->buildProductBody($product);
+                $productBody = $this->documentBuilder->buildProductBody($product);
+                $productPricesBody = $this->documentBuilder
+                    ->buildProductPriceBody($product, $idShop, $useTax, $groupsIds, $currenciesIds, $countriesIds);
+
+                $body = array_merge($productBody, $productPricesBody);
+
+                $bulkParams['body'][] = $body;
             }
 
             $numberOfProductToIndex = (int) (count($bulkParams['body']) / 2);
@@ -187,72 +194,6 @@ class Indexer
             }
 
             unset($bulkProductIds, $bulkParams);
-        }
-
-        return true;
-    }
-
-    /**
-     * Index categories
-     *
-     * @param int $idShop
-     *
-     * @return bool
-     */
-    private function indexCategories($idShop)
-    {
-        /** @var \Invertus\Brad\Repository\CategoryRepository $categoryRepository */
-        $categoryRepository = $this->em->getRepository('BradCategory');
-        $categoriesIds = $categoryRepository->findAllIdsByShopId($idShop);
-
-        if (empty($categoriesIds)) {
-            return true;
-        }
-
-        $idRootCategory = $this->configuration->get('PS_ROOT_CATEGORY');
-        $indexPrefix = $this->configuration->get(Setting::INDEX_PREFIX);
-        $bulkRequestSize = (int) $this->configuration->get(Setting::BULK_REQUEST_SIZE_ADVANCED);
-
-        $lastCategoriesIdsKey = Arrays::getLastKey($categoriesIds);
-        $bulkCategoryIds = [];
-
-        Arrays::removeValue($categoriesIds, $idRootCategory);
-
-        foreach ($categoriesIds as $categoryIdKey => $idCategory) {
-
-            $bulkCategoryIds[] = $idCategory;
-
-            if (count($bulkCategoryIds) != $bulkRequestSize && $categoryIdKey != $lastCategoriesIdsKey) {
-                continue;
-            }
-
-            $categories = new PrestaShopCollection('Category');
-            $categories->where('id_category', 'in', $bulkCategoryIds);
-
-            $bulkParams = ['body' => []];
-
-            /** @var Category $category */
-            foreach ($categories as $category) {
-
-                $bulkParams['body'][] = [
-                    'index' => [
-                        '_index' => $indexPrefix.$idShop,
-                        '_type' => 'categories',
-                        '_id' => $category->id,
-                    ]
-                ];
-
-                $bulkParams['body'][] = $this->documentBuilder->buildCategoryBody($category);
-            }
-
-            if (!empty($bulkParams['body'])) {
-                $success = $this->elasticsearchIndexer->indexBulk($bulkParams);
-                if (!$success) {
-                    return false;
-                }
-            }
-
-            unset($bulkParams);
         }
 
         return true;

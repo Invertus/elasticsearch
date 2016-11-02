@@ -1,6 +1,6 @@
 <?php
 
-use Invertus\Brad\Config\Consts\Sort;
+use Invertus\Brad\Config\Sort;
 use Invertus\Brad\Config\Setting;
 use Invertus\Brad\Util\Arrays;
 
@@ -121,14 +121,14 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
         $this->p = $page;
         $this->n = $size;
 
-        $this->pagination($productsCount);
-        $this->productSort();
         $this->addColorsToProductList($formattedProducts);
 
         $currentUrl = $this->context->link->getModuleLink(
             $this->module->name,
             Brad::FRONT_BRAD_SEARCH_CONTROLLER,
-            ['search_query' => $originalSearchQuery]
+            [
+                'search_query' => $originalSearchQuery,
+            ]
         );
 
         $this->context->smarty->assign([
@@ -139,6 +139,9 @@ class BradSearchModuleFrontController extends AbstractModuleFrontController
             'current_url' => $currentUrl,
             'request' => $currentUrl,
         ]);
+
+        $this->pagination($productsCount);
+        $this->productSort();
     }
 
     /**

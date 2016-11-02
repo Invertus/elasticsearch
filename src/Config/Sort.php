@@ -1,6 +1,6 @@
 <?php
 
-namespace Invertus\Brad\Config\Consts;
+namespace Invertus\Brad\Config;
 
 class Sort
 {

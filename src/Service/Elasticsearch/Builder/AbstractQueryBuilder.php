@@ -3,7 +3,7 @@
 namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
 use Context;
-use Invertus\Brad\Config\Consts\Sort;
+use Invertus\Brad\Config\Sort;
 
 abstract class AbstractQueryBuilder
 {
@@ -37,7 +37,7 @@ abstract class AbstractQueryBuilder
 
         switch ($orderBy) {
             case Sort::BY_NAME:
-                $fieldNameToSortBy = 'name_lang_'.$idLang;
+                $fieldNameToSortBy = 'name_lang_'.$idLang.'.raw';
                 break;
             case Sort::BY_PRICE:
                 $fieldNameToSortBy =

@@ -5,6 +5,7 @@ namespace Invertus\Brad\Service\Elasticsearch\Builder;
 use Core_Business_ConfigurationInterface;
 use Core_Foundation_Database_EntityManager;
 use Invertus\Brad\Config\Setting;
+use Language;
 
 /**
  * Class IndexBuilder
@@ -65,8 +66,11 @@ class IndexBuilder
             ],
         ];
 
-        $indexSettings['mappings']['products']['properties'] =
-            array_merge($indexSettings['mappings']['products']['properties'], $this->buildIndexPriceMappings($idShop));
+        $indexSettings['mappings']['products']['properties'] = array_merge(
+            $indexSettings['mappings']['products']['properties'],
+            $this->buildIndexPriceMappings($idShop),
+            $this->buildIndexNameMapping($idShop)
+        );
 
         return $indexSettings;
     }
@@ -94,6 +98,33 @@ class IndexBuilder
                     ];
                 }
             }
+        }
+
+        return $mapping;
+    }
+
+    /**
+     * Build mapping for product name
+     *
+     * @param int $idShop
+     *
+     * @return array
+     */
+    private function buildIndexNameMapping($idShop)
+    {
+        $mapping = [];
+        $langIds = Language::getIDs(true, $idShop);
+
+        foreach ($langIds as $idLang) {
+            $mapping['name_lang_'.$idLang] = [
+                'type' => 'string',
+                'fields' => [
+                    'raw' => [
+                        'type' => 'string',
+                        'index' => 'not_analyzed',
+                    ],
+                ],
+            ];
         }
 
         return $mapping;

@@ -2,6 +2,11 @@
 
 namespace Invertus\Brad\Traits;
 
+/**
+ * Class GetServiceTrait
+ *
+ * @package Invertus\Brad\Traits
+ */
 trait GetServiceTrait
 {
     /**

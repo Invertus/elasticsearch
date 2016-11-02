@@ -4,6 +4,7 @@ namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
 use Attribute;
 use Category;
+use Core_Business_ConfigurationInterface;
 use Core_Foundation_Database_EntityManager;
 use Country;
 use Currency;
@@ -25,18 +26,56 @@ use StockAvailable;
 class DocumentBuilder
 {
     /**
+     * @var array
+     */
+    protected static $groupsIds;
+
+    /**
+     * @var array
+     */
+    protected static $countriesIds;
+
+    /**
+     * @var array
+     */
+    protected static $currenciesIds;
+
+    /**
      * @var Link
      */
     private $link;
 
     /**
+     * @var Shop
+     */
+    private $shop;
+
+    /**
+     * @var Core_Foundation_Database_EntityManager
+     */
+    private $em;
+
+    /**
+     * @var Core_Business_ConfigurationInterface
+     */
+    private $configuration;
+
+    /**
      * DocumentBuilder constructor.
      *
      * @param Link $link
+     * @param Shop $shop
+     * @param Core_Foundation_Database_EntityManager $em
+     * @param Core_Business_ConfigurationInterface $configuration
      */
-    public function __construct(Link $link)
+    public function __construct(Link $link, Shop $shop, Core_Foundation_Database_EntityManager $em, Core_Business_ConfigurationInterface $configuration)
     {
         $this->link = $link;
+        $this->shop = $shop;
+        $this->em = $em;
+        $this->configuration = $configuration;
+
+        $this->initPricesData();
     }
 
     /**
@@ -122,46 +161,56 @@ class DocumentBuilder
      *
      * @param Product $product
      * @param int $idShop
-     * @param bool $useTax
-     * @param array $groups
-     * @param array $currencies
-     * @param array $countries
      *
      * @return array
      */
-    public function buildProductPriceBody(Product $product, $idShop, $useTax, array $groups, array $currencies, array $countries)
+    public function buildProductPriceBody(Product $product, $idShop)
     {
+        $useTax = (bool) $this->configuration->get('PS_TAX');
+
         $body = [];
 
-        // Must be passed to price calculation
-        $specificPrice = null;
+        foreach (self::$groupsIds as $idGroup) {
+            foreach (self::$countriesIds as $idCountry) {
+                foreach (self::$currenciesIds as $idCurrency) {
 
-        foreach ($groups as $idGroup) {
-            foreach ($countries as $idCountry) {
-                foreach ($currencies as $idCurrency) {
-                    $body['price_group_'.$idGroup.'_country_'.$idCountry.'_currency_'.$idCurrency] =
-                        Product::priceCalculation(
-                            $idShop,
-                            $product->id,
-                            null,
-                            $idCountry,
-                            null,
-                            null,
-                            $idCurrency,
-                            $idGroup,
-                            $product->minimal_quantity,
-                            $useTax,
-                            6,
-                            false,
-                            true,
-                            true,
-                            $pr,
-                            true
-                        );
+                    $price = Product::priceCalculation(
+                        $idShop,
+                        $product->id,
+                        null,
+                        $idCountry,
+                        null,
+                        null,
+                        $idCurrency,
+                        $idGroup,
+                        $product->minimal_quantity,
+                        $useTax,
+                        6,
+                        false,
+                        true,
+                        true,
+                        $pr,
+                        true
+                    );
+
+                    $body['price_group_'.$idGroup.'_country_'.$idCountry.'_currency_'.$idCurrency] = $price;
                 }
             }
         }
 
         return $body;
+    }
+
+    /**
+     * Initialize groups, countries & currencies ids.
+     * These are used for calculating prices.
+     */
+    private function initPricesData()
+    {
+        $idShop = (int) $this->shop->id;
+
+        self::$countriesIds = $this->em->getRepository('BradCountry')->findAllIdsByShopId($idShop);
+        self::$currenciesIds = $this->em->getRepository('BradCurrency')->findAllIdsByShopId($idShop);
+        self::$groupsIds = $this->em->getRepository('BradGroup')->findAllIdsByShopId($idShop);
     }
 }

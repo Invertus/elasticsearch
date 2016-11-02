@@ -59,7 +59,7 @@ class ElasticsearchIndexer
 
         $params = [];
         $params['index'] = $this->manager->getIndexPrefix().$idShop;
-        $params['body'] = $this->indexBuilder->buildIndex();
+        $params['body'] = $this->indexBuilder->buildIndex($idShop);
 
         $client = $this->manager->getClient();
 
@@ -99,6 +99,14 @@ class ElasticsearchIndexer
         return $response['acknowledged'];
     }
 
+    /**
+     * Update index settings
+     *
+     * @param int $idShop
+     * @param array $settings
+     *
+     * @return bool
+     */
     public function updateIndex($idShop, array $settings)
     {
         if (!$this->manager->isIndexCreated($idShop)) {
@@ -130,7 +138,10 @@ class ElasticsearchIndexer
      */
     public function indexProduct(Product $product, $idShop)
     {
-        $body = $this->documentBuilder->buildProductBody($product);
+        $productBody = $this->documentBuilder->buildProductBody($product);
+        $productPricesBody = $this->documentBuilder->buildProductPriceBody($product, $idShop);
+
+        $body = array_merge($productBody, $productPricesBody);
 
         $params = [
             'index' => $this->manager->getIndexPrefix().$idShop,
@@ -193,7 +204,7 @@ class ElasticsearchIndexer
             return false;
         }
 
-        return !$response['errors'];
+        return (bool) !$response['errors'];
     }
 
     /**

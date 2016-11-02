@@ -1,12 +1,18 @@
 <?php
 
 use Invertus\Brad\Config\Setting;
+use Invertus\Brad\Service\Indexer;
 
 /**
  * Class AdminBradSettingController
  */
 class AdminBradSettingController extends AbstractAdminBradModuleController
 {
+    /**
+     * Render options
+     *
+     * @return string
+     */
     public function renderOptions()
     {
         if ($this->module->isElasticsearchConnectionAvailable()) {
@@ -45,13 +51,17 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
     public function postProcess()
     {
         if (Tools::isSubmit('brad_reindex_all_products')) {
-            $this->processIndexing();
+            $this->processIndexing(Indexer::INDEX_ALL_PRODUCTS);
             return true;
         }
 
         if (Tools::isSubmit('brad_reindex_missing_products')) {
-            $indexOnlyMissingProducts = true;
-            $this->processIndexing($indexOnlyMissingProducts);
+            $this->processIndexing(Indexer::INDEX_MISSING_PRODUCTS);
+            return true;
+        }
+
+        if (Tools::isSubmit('brad_reindex_prices')) {
+            $this->processIndexing(Indexer::INDEX_PRICES);
             return true;
         }
 
@@ -136,9 +146,9 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
     /**
      * Index products & categories
      *
-     * @param bool $indexOnlyMissingProducts
+     * @param string $indexingType
      */
-    private function processIndexing($indexOnlyMissingProducts = false)
+    private function processIndexing($indexingType)
     {
         if (!$this->module->isElasticsearchConnectionAvailable()) {
             $this->errors[] = $this->l('Cannot establish Elasticsearch connection');
@@ -150,13 +160,17 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
             return;
         }
 
-        /** @var \Invertus\Brad\Service\Indexer $indexer */
+        /** @var Indexer $indexer */
         $indexer = $this->get('indexer');
-        $hasSuccessfullyIndexed = $indexer->performIndexing($this->context->shop->id, $indexOnlyMissingProducts);
+        $hasSuccessfullyIndexed = $indexer->performIndexing($this->context->shop->id, $indexingType);
 
         if ($hasSuccessfullyIndexed) {
-            $indexedProdductsCount = $indexer->getIndexedProductsCount();
-            $this->confirmations[] = $this->l(sprintf('Successfully indexed %d products', $indexedProdductsCount));
+            $indexedProductsCount = $indexer->getIndexedProductsCount();
+            if ($indexedProductsCount) {
+                $this->confirmations[] = $this->l(sprintf('Successfully indexed %d products', $indexedProductsCount));
+            } else {
+                $this->informations[] = $this->l('No new products have been indexed.');
+            }
             return;
         }
 

@@ -22,6 +22,13 @@ use Product;
 class Indexer
 {
     /**
+     * Indexing constants
+     */
+    const INDEX_ALL_PRODUCTS = 'all';
+    const INDEX_MISSING_PRODUCTS = 'missing';
+    const INDEX_PRICES = 'prices';
+
+    /**
      * @var ElasticsearchIndexer $elasticsearchIndexer
      */
     private $elasticsearchIndexer;
@@ -83,13 +90,13 @@ class Indexer
      * Perform products & categories indexing
      *
      * @param int $idShop
-     * @param bool $indexOnlyMissingProducts
+     * @param string $indexingType
      *
      * @return bool
      */
-    public function performIndexing($idShop, $indexOnlyMissingProducts = false)
+    public function performIndexing($idShop, $indexingType)
     {
-        if (!$indexOnlyMissingProducts) {
+        if (self::INDEX_ALL_PRODUCTS == $indexingType) {
             if (!$this->elasticsearchIndexer->deleteIndex($idShop)) {
                 return false;
             }
@@ -99,22 +106,20 @@ class Indexer
             return false;
         }
 
-        if (!$this->indexProducts($idShop, $indexOnlyMissingProducts)) {
-            return false;
-        }
+        $success = $this->indexProducts($idShop, $indexingType);
 
-        return true;
+        return (bool) $success;
     }
 
     /**
      * Index products
      *
      * @param int $idShop
-     * @param bool $indexOnlyMissingProducts
+     * @param string $indexingType
      *
      * @return bool
      */
-    private function indexProducts($idShop, $indexOnlyMissingProducts = false)
+    private function indexProducts($idShop, $indexingType)
     {
         $this->indexedProductsCount = 0;
 
@@ -126,13 +131,8 @@ class Indexer
             return true;
         }
 
-        $countriesIds = $this->em->getRepository('BradCountry')->findAllIdsByShopId($idShop);
-        $currenciesIds = $this->em->getRepository('BradCurrency')->findAllIdsByShopId($idShop);
-        $groupsIds = $this->em->getRepository('BradGroup')->findAllIdsByShopId($idShop);
-
         $indexPrefix = $this->configuration->get(Setting::INDEX_PREFIX);
         $bulkRequestSize = (int) $this->configuration->get(Setting::BULK_REQUEST_SIZE_ADVANCED);
-        $useTax = (bool) $this->configuration->get('PS_TAX');
 
         $lastProductsIdsKey = Arrays::getLastKey($productsIds);
         $bulkProductIds = [];
@@ -148,39 +148,17 @@ class Indexer
             $products = new PrestaShopCollection('Product');
             $products->where('id_product', 'in', $bulkProductIds);
 
-            $bulkParams = ['body' => []];
-
-            /** @var Product $product */
-            foreach ($products as $product) {
-
-                if ($indexOnlyMissingProducts) {
-                    $isProductIndexed = $this->elasticsearchIndexer->isIndexedProduct($product, $idShop);
-
-                    if ($isProductIndexed) {
-                        continue;
-                    }
-                }
-
-                if (!$this->validator->isProductValidForIndexing($product)) {
-                    $this->elasticsearchIndexer->deleteProduct($product, $idShop);
-                    continue;
-                }
-
-                $bulkParams['body'][] = [
-                    'index' => [
-                        '_index' => $indexPrefix.$idShop,
-                        '_type' => 'products',
-                        '_id' => $product->id,
-                    ]
-                ];
-
-                $productBody = $this->documentBuilder->buildProductBody($product);
-                $productPricesBody = $this->documentBuilder
-                    ->buildProductPriceBody($product, $idShop, $useTax, $groupsIds, $currenciesIds, $countriesIds);
-
-                $body = array_merge($productBody, $productPricesBody);
-
-                $bulkParams['body'][] = $body;
+            switch ($indexingType) {
+                case self::INDEX_PRICES:
+                    $bulkParams = $this->getPricesBulkParams($idShop, $products, $indexPrefix);
+                    break;
+                case self::INDEX_MISSING_PRODUCTS:
+                    $bulkParams = $this->getProductsBulkParams($idShop, $products, true, $indexPrefix);
+                    break;
+                default:
+                case self::INDEX_ALL_PRODUCTS:
+                    $bulkParams = $this->getProductsBulkParams($idShop, $products, false, $indexPrefix);
+                    break;
             }
 
             $numberOfProductToIndex = (int) (count($bulkParams['body']) / 2);
@@ -197,5 +175,96 @@ class Indexer
         }
 
         return true;
+    }
+
+    /**
+     * Get products bulk params
+     *
+     * @param int $idShop
+     * @param PrestaShopCollection $products
+     * @param bool $indexOnlyMissingProducts
+     * @param string $indexPrefix
+     *
+     * @return array
+     */
+    private function getProductsBulkParams($idShop, PrestaShopCollection $products, $indexOnlyMissingProducts, $indexPrefix)
+    {
+        $bulkParams = ['body' => []];
+
+        /** @var Product $product */
+        foreach ($products as $product) {
+
+            if ($indexOnlyMissingProducts) {
+                $isProductIndexed = $this->elasticsearchIndexer->isIndexedProduct($product, $idShop);
+
+                if ($isProductIndexed) {
+                    continue;
+                }
+            }
+
+            if (!$this->validator->isProductValidForIndexing($product)) {
+                $this->elasticsearchIndexer->deleteProduct($product, $idShop);
+                continue;
+            }
+
+            $bulkParams['body'][] = [
+                'index' => [
+                    '_index' => $indexPrefix.$idShop,
+                    '_type' => 'products',
+                    '_id' => $product->id,
+                ],
+            ];
+
+            $productBody = $this->documentBuilder->buildProductBody($product);
+            $productPricesBody = $this->documentBuilder
+                ->buildProductPriceBody($product, $idShop);
+
+            $body = array_merge($productBody, $productPricesBody);
+
+            $bulkParams['body'][] = $body;
+        }
+
+        return $bulkParams;
+    }
+
+    /**
+     * Get prices bulk params
+     *
+     * @param int $idShop
+     * @param PrestaShopCollection $products
+     * @param string $indexPrefix
+     *
+     * @return array
+     */
+    public function getPricesBulkParams($idShop, PrestaShopCollection $products, $indexPrefix)
+    {
+        $bulkParams = ['body' => []];
+
+        /** @var Product $product */
+        foreach ($products as $product) {
+
+            if (!$this->validator->isProductValidForIndexing($product)) {
+                $this->elasticsearchIndexer->deleteProduct($product, $idShop);
+                continue;
+            }
+
+            if (!$this->elasticsearchIndexer->isIndexedProduct($product, $idShop)) {
+                continue;
+            }
+
+            $bulkParams['body'][] = [
+                'update' => [
+                    '_index' => $indexPrefix.$idShop,
+                    '_type' => 'products',
+                    '_id' => $product->id,
+                ],
+            ];
+
+            $productPricesBody = $this->documentBuilder->buildProductPriceBody($product, $idShop);
+
+            $bulkParams['body'][] = ['doc' => $productPricesBody];
+        }
+
+        return $bulkParams;
     }
 }

@@ -17,7 +17,6 @@ class CategoryRepository extends \Core_Foundation_Database_EntityRepository
             SELECT cs.`id_category`
             FROM `'.$this->getPrefix().'category_shop` cs
             WHERE cs.`id_shop` = '.(int)$idShop.'
-                AND cs.`id_category` != 1
         ';
 
         $results = $this->db->select($sql);

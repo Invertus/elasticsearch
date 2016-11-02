@@ -6,6 +6,8 @@ use Adapter_ServiceLocator;
 use Brad;
 use Elasticsearch\ClientBuilder;
 use Invertus\Brad\Config\Setting;
+use Invertus\Brad\Cron\Task\IndexProductsTask;
+use Invertus\Brad\Cron\TaskRunner;
 use Invertus\Brad\Install\Installer;
 use Invertus\Brad\Service\Elasticsearch\Builder\DocumentBuilder;
 use Invertus\Brad\Service\Elasticsearch\Builder\IndexBuilder;
@@ -87,6 +89,10 @@ class Container
      */
     private function initDependencies()
     {
+        $this->container['container'] = function () {
+            return $this;
+        };
+
         $this->container['em'] = function () {
             return Adapter_ServiceLocator::get('Core_Foundation_Database_EntityManager');
         };
@@ -163,6 +169,14 @@ class Container
 
         $this->container['elasticsearch.search'] = function ($c) {
             return new ElasticsearchSearch($c['elasticsearch.manager']);
+        };
+
+        $this->container['task_runner'] = function ($c) {
+            return new TaskRunner($c['container']);
+        };
+
+        $this->container['task.index_products'] = function ($c) {
+            return new IndexProductsTask($c['elasticsearch.manager'], $c['indexer']);
         };
     }
 

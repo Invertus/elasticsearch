@@ -110,11 +110,21 @@ class Brad extends Module
     }
 
     /**
-     * Add autoloader for all controllers
+     * Run given task
+     *
+     * @param string $task
+     * @param int $idShop
      */
-    public function hookModuleRoutes()
+    public function runTask($task, $idShop)
     {
-        $this->requireAutoloader();
+        /** @var \Invertus\Brad\Cron\TaskRunner $taskRunner */
+        $taskRunner = $this->container->get('task_runner');
+
+        try {
+            $taskRunner->run($task, $idShop);
+        } catch (Exception $e) {
+            echo $e->getMessage();
+        }
     }
 
     /**

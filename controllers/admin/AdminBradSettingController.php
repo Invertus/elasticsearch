@@ -25,11 +25,25 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
             $productRepository = $this->getRepository('BradProduct');
             $productsIds = $productRepository->findAllIdsByShopId($this->context->shop->id);
 
+            $token = Tools::encrypt($this->module->name);
+            $baseShopUrl = $this->context->shop->getBaseURL(true);
+            $taskUrl = $baseShopUrl.'modules/'.$this->module->name.'/brad.cron.php?';
+            $taskUrl .= http_build_query([
+                'id_shop' => $this->context->shop->id,
+                'cron' => 'index_products',
+                'token' => $token,
+            ]);
+
+            $indexProductsTaskUrl = $taskUrl.'&'.http_build_query(['action' => Indexer::INDEX_ALL_PRODUCTS]);
+            $indexPricesTaskUrl = $taskUrl.'&'.http_build_query(['action' => Indexer::INDEX_PRICES]);
+
             $this->context->smarty->assign([
                 'elasticsearch_connection_ok' => true,
                 'elasticsearch_version' => $manager->getVersion(),
                 'products_count' => count($productsIds),
                 'indexed_products_count' => $indexedProductsCount,
+                'index_all_products_task_url' => $indexProductsTaskUrl,
+                'index_prices_task_url' => $indexPricesTaskUrl,
             ]);
         }
 

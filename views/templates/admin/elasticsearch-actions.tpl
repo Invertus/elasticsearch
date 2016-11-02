@@ -10,9 +10,14 @@
             <div class="alert alert-info">
                 {l s='Elasticsearch version' mod='brad'}: <strong>{$elasticsearch_version|escape:'htmlall':'UTF-8'}</strong>
             </div>
-            <div class="alert alert-info" style="margin: 0;">
+            <div class="alert alert-info">
                 {l s='Indexed products' mod='brad'}:
                 <strong>{$indexed_products_count|escape:'htmlall':'UTF-8'} / {$products_count|escape:'htmlall':'UTF-8'}</strong>
+            </div>
+            <div class="alert alert-info" style="margin: 0;">
+                {l s='Indexing products can take a while, so it is recommended to use cron jobs.' mod='brad'} <br>
+                <strong>{l s='Reindex all products cron' mod='brad'}: </strong> <em>{$index_all_products_task_url|escape:'htmlall':'UTF-8'}</em> <br>
+                <strong>{l s='Reindex prices cron' mod='brad'}: </strong> <em>{$index_prices_task_url|escape:'htmlall':'UTF-8'}</em>
             </div>
         {else}
             <div class="alert alert-danger" style="margin: 0;">

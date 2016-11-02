@@ -4,7 +4,7 @@ use Invertus\Brad\Config\Sort;
 use Invertus\Brad\Config\Setting;
 use Invertus\Brad\Util\Arrays;
 
-class BradSearchModuleFrontController extends AbstractModuleFrontController
+class BradSearchModuleFrontController extends AbstractBradModuleFrontController
 {
     /**
      * @var Core_Business_ConfigurationInterface $configuration

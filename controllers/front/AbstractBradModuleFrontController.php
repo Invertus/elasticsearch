@@ -2,7 +2,7 @@
 
 use Invertus\Brad\Traits\GetServiceTrait;
 
-abstract class AbstractModuleFrontController extends ModuleFrontController
+abstract class AbstractBradModuleFrontController extends ModuleFrontController
 {
     /**
      * Let's controller get services from container

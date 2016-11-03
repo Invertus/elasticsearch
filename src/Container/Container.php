@@ -221,5 +221,9 @@ class Container
         $this->container['brad_templates_dir'] = function ($c) {
             return $c['brad_dir'].'views/templates/';
         };
+
+        $this->container['brad_img_uri'] = function ($c) {
+            return $c['brad_uri'].'views/img/';
+        };
     }
 }

@@ -1,3 +1,4 @@
+<?php
 /**
  * Copyright (c) 2016-2017 Invertus, JSC
  *
@@ -15,11 +16,13 @@
  * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#maintab-AdminBradModule > a > i {
-    background: url('../../img/brad.png') no-repeat scroll center center / contain transparent;
-}
-
-#maintab-AdminBradModule > a > i:before {
-    content: '\00a0';
-}
+				    	
+header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT");
+						
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+						
+header("Location: ../");
+exit;

@@ -119,6 +119,11 @@ class Installer extends AbstractInstaller
                 'parent' => Brad::ADMIN_BRAD_MODULE_CONTROLLER,
                 'class_name' => Brad::ADMIN_BRAD_ADVANCED_SETTING_CONTROLLER,
             ],
+            [
+                'name' => $this->module->l('Info', __CLASS__),
+                'parent' => Brad::ADMIN_BRAD_MODULE_CONTROLLER,
+                'class_name' => Brad::ADMIN_BRAD_INFO_CONTROLLER,
+            ],
         ];
     }
 

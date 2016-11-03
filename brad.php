@@ -32,6 +32,7 @@ class Brad extends Module
     const ADMIN_BRAD_MODULE_CONTROLLER = 'AdminBradModule';
     const ADMIN_BRAD_SETTING_CONTROLLER = 'AdminBradSetting';
     const ADMIN_BRAD_ADVANCED_SETTING_CONTROLLER = 'AdminBradAdvancedSetting';
+    const ADMIN_BRAD_INFO_CONTROLLER = 'AdminBradInfo';
 
     /**
      * Front controllers
@@ -151,7 +152,7 @@ class Brad extends Module
     {
         $cssUri = $this->container->get('brad_css_uri');
 
-        $this->context->controller->addCSS($cssUri.'back/global.css');
+        $this->context->controller->addCSS($cssUri.'admin/global.css');
     }
 
     /**

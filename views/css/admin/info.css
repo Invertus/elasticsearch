@@ -1,0 +1,114 @@
+/**
+ * Copyright (c) 2016-2017 Invertus, JSC
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+#content.bootstrap #invertus_info .container-fluid  h3 span
+{
+    font-size: 16px;
+    border: none;
+}
+
+#content.bootstrap #invertus_info .container-fluid img
+{
+    margin: 0 auto;
+}
+
+#content.bootstrap #invertus_info .container-fluid button
+{
+    margin: 10px auto 0 auto;
+}
+
+#content.bootstrap #invertus_info .container-fluid p,
+#content.bootstrap #invertus_about .container-fluid
+{
+    font-size: 12px;
+    color: #444444;
+    text-align: justify;
+}
+
+#invertus_about .aboutBlockTitle {
+    text-indent: 2%;
+}
+
+#content.bootstrap #invertus_about .container-fluid h3
+{
+    margin: 20px 0 10px 0;
+    font-size: 16px;
+}
+
+#content.bootstrap #invertus_info button.more-modules
+{
+    margin-top: 0;
+}
+
+#content.bootstrap #invertus_info a.more_details button,
+#content.bootstrap #invertus_info a.more-modules button {
+    background-color: #000;
+    border-color: #000;
+    color: #FFF;
+}
+
+#content.bootstrap #invertus_info a.more_details button:hover,
+#content.bootstrap #invertus_info a.more-modules button:hover {
+    background-color: #FFF;
+    border-color: #000;
+    color: #000;
+}
+
+#content.bootstrap #invertus_info a.more_details,
+#content.bootstrap #invertus_info a.more_details:hover
+{
+    text-decoration: none;
+}
+
+#invertus_about .invertus-about-header {
+    background-color: #000;
+    color: #FFF;
+}
+
+#invertus_about .container-fluid .blue .aboutBlockTitle h3 span,
+#invertus_about .container-fluid .green .aboutBlockTitle h3 span,
+#invertus_about .container-fluid .yellow .aboutBlockTitle h3 span
+{
+    color: #FFFFFF;
+}
+
+#invertus_about .container-fluid .blue .aboutBlockTitle h3,
+#invertus_about .container-fluid .green .aboutBlockTitle h3,
+#invertus_about .container-fluid .yellow .aboutBlockTitle h3
+{
+    background: none;
+    border: none;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+}
+
+#invertus_info a,
+#invertus_info a:hover {
+    text-decoration: none;
+}
+
+#invertus_info a h2 {
+    background-color: #FFF;
+    color: #000;
+}
+
+#invertus_info a:hover h2 {
+    background-color: #000;
+    color: #FFF;
+}

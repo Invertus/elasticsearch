@@ -48,7 +48,7 @@
     <div class="panel-footer">
         <form method="post" action="{$current_url}">
             <button type="submit" class="btn btn-default pull-right" name="brad_reindex_prices">
-                <i class="process-icon-payment"></i> {l s='Reindex prices' mod='brad'}
+                <i class="process-icon-usd icon-usd"></i> {l s='Reindex prices' mod='brad'}
             </button>
             <button type="submit" class="btn btn-default pull-right" name="brad_reindex_missing_products">
                 <i class="process-icon-refresh"></i> {l s='Reindex missing products' mod='brad'}

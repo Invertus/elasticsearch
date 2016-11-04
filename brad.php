@@ -51,7 +51,7 @@ class Brad extends Module
 
         $this->name = 'brad';
         $this->tab = 'front_office_features';
-        $this->version = '2.0.0-dev';
+        $this->version = '2.0.0';
         $this->author = 'Invertus';
         $this->need_instance = 0;
         $this->controllers = [self::FRONT_BRAD_SEARCH_CONTROLLER];

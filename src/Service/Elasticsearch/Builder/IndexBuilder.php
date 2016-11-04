@@ -78,6 +78,15 @@ class IndexBuilder
                         'weight' => [
                             'type' => 'double',
                         ],
+                        'reference' => [
+                            'type' => 'string',
+                            'fields' => [
+                                'raw' => [
+                                    'type' => 'string',
+                                    'index' => 'not_analyzed',
+                                ],
+                            ],
+                        ],
                     ],
                 ],
             ],

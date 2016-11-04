@@ -71,7 +71,7 @@ abstract class AbstractQueryBuilder
                 $fieldNameToSortBy = 'total_quantity';
                 break;
             case Sort::BY_REFERENCE:
-                $fieldNameToSortBy = 'reference';
+                $fieldNameToSortBy = 'reference.raw';
                 break;
             default:
             case Sort::BY_RELEVANCE:

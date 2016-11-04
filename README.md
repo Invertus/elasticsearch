@@ -19,9 +19,11 @@
 2. Extract .zip and rename folder name to "brad"
 3. Switch to Elasticsearch 5 (OPTIONAL)  
     Brad comes with Elasticsearch 2 library ready for use, if you want to switch to Elasticsearch 5, you have to manually     install it. After step *2* `cd` into "brad" directory and run:
+    
     ```
     composer require elasticsearch/elasticsearch ~5.0
     ```  
+    
     After successfully installing Elasticsearch 5 library continue with Brad installation.
 4. Compress the renamed folder into a zip archive
 5. Log into your PrestaShop's back office

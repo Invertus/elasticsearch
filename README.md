@@ -6,20 +6,29 @@
 
 ## Requirements
 
-* PHP >= 5.4.0
+* PHP >= 5.4.0 for Elasticsearch 2 or PHP >= 5.6.6 for Elasticsearch 5
 * ext-curl: the Libcurl extension for PHP
 * PrestaShop 1.6.1.x
-* Elasticsearch® service. [See installation and configuration here.](https://www.elastic.co/guide/en/elasticsearch/reference/2.4/_installation.html)
+* Composer (if you want to switch to Elasticsearch 5)
+* Elasticsearch® service. See installation and configuration for Elasticsearch 2
+[here](https://www.elastic.co/guide/en/elasticsearch/reference/2.4/_installation.html) or Elasticsearch 5 [here](https://www.elastic.co/guide/en/elasticsearch/reference/5.0/_installation.html).
 
 ## Installation
+
 1. Download module's zip
 2. Extract .zip and rename folder name to "brad"
-3. Compress the renamed folder into a zip archive
-4. Log into your PrestaShop's back office
-5. Navigate to "Modules" tab
-6. Click "Add a new module"
-7. Upload module zip file
-8. Click "Install" when "BRAD" appears in modules list
+3. Switch to Elasticsearch 5 (OPTIONAL)  
+    Brad comes with Elasticsearch 2 library ready for use, if you want to switch to Elasticsearch 5, you have to manually     install it. After step *2* `cd` into "brad" directory and run:
+    ```bash
+    composer require elasticsearch/elasticsearch ~5.0
+    ```
+    After successfully installing Elasticsearch 5 library continue with Brad installation.
+4. Compress the renamed folder into a zip archive
+5. Log into your PrestaShop's back office
+6. Navigate to "Modules" tab
+7. Click "Add a new module"
+8. Upload module zip file
+9. Click "Install" when "BRAD" appears in modules list
 
 ## Configuration
 

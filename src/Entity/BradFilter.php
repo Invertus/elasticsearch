@@ -5,6 +5,14 @@
  */
 class BradFilter extends ObjectModel
 {
+    const FILTER_TYPE_PRICE = 1;
+    const FILTER_TYPE_WEIGHT = 2;
+    const FILTER_TYPE_FEATURE = 3;
+    const FILTER_TYPE_ATTRIBUTE_GROUP = 4;
+    const FILTER_TYPE_MANUFACTURER = 5;
+    const FILTER_TYPE_QUANTITY = 6;
+    const FILTER_TYPE_CATEGORY = 7;
+
     const FILTER_STYLE_CHECKBOX = 1;
     const FILTER_STYLE_LIST_OF_VALUES = 2;
     const FILTER_STYLE_INPUT = 3;
@@ -93,5 +101,33 @@ class BradFilter extends ObjectModel
     {
         parent::__construct($id, $idLang, $idShop);
         Shop::addTableAssociation(self::$definition['table'], ['type' => 'shop']);
+    }
+
+    /**
+     * Get tranlslated filter type name
+     *
+     * @param int|null $filterType
+     *
+     * @return array|string
+     */
+    public static function getFilterTypeNames($filterType = null)
+    {
+        $brad = Module::getInstanceByName('brad');
+
+        $translatedFilterTypes = [
+            self::FILTER_TYPE_PRICE => $brad->l('Price', __CLASS__),
+            self::FILTER_TYPE_WEIGHT => $brad->l('Weight', __CLASS__),
+            self::FILTER_TYPE_FEATURE => $brad->l('Feature', __CLASS__),
+            self::FILTER_TYPE_ATTRIBUTE_GROUP => $brad->l('Attribute group', __CLASS__),
+            self::FILTER_TYPE_MANUFACTURER => $brad->l('Manufacturer', __CLASS__),
+            self::FILTER_TYPE_QUANTITY => $brad->l('Quantity', __CLASS__),
+            self::FILTER_TYPE_CATEGORY => $brad->l('Category', __CLASS__),
+        ];
+
+        if (null !== $filterType) {
+            return $translatedFilterTypes[$filterType];
+        }
+
+        return $translatedFilterTypes;
     }
 }

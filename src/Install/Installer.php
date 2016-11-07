@@ -37,13 +37,20 @@ class Installer extends AbstractInstaller
     private $module;
 
     /**
+     * @var DbInstaller
+     */
+    private $dbInstaller;
+
+    /**
      * Installer constructor
      *
      * @param Brad $module
+     * @param DbInstaller $dbInstaller
      */
-    public function __construct(Brad $module)
+    public function __construct(Brad $module, DbInstaller $dbInstaller)
     {
         $this->module = $module;
+        $this->dbInstaller = $dbInstaller;
     }
 
     /**
@@ -62,7 +69,11 @@ class Installer extends AbstractInstaller
         }
 
         if (!$this->installSettings()) {
+            return false;
+        }
 
+        if (!$this->dbInstaller->install()) {
+            return false;
         }
 
         return true;
@@ -80,6 +91,10 @@ class Installer extends AbstractInstaller
         }
 
         if (!$this->uninstallSettings()) {
+            return false;
+        }
+
+        if (!$this->dbInstaller->uninstall()) {
             return false;
         }
 
@@ -118,6 +133,11 @@ class Installer extends AbstractInstaller
                 'name' => $this->module->l('Advanced settings', __CLASS__),
                 'parent' => Brad::ADMIN_BRAD_MODULE_CONTROLLER,
                 'class_name' => Brad::ADMIN_BRAD_ADVANCED_SETTING_CONTROLLER,
+            ],
+            [
+                'name' => $this->module->l('Filters', __CLASS__),
+                'parent' => Brad::ADMIN_BRAD_MODULE_CONTROLLER,
+                'class_name' => Brad::ADMIN_BRAD_FILTER_CONTROLLER,
             ],
             [
                 'name' => $this->module->l('Info', __CLASS__),

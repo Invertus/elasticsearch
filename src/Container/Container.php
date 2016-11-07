@@ -21,10 +21,12 @@ namespace Invertus\Brad\Container;
 
 use Adapter_ServiceLocator;
 use Brad;
+use Db;
 use Elasticsearch\ClientBuilder;
 use Invertus\Brad\Config\Setting;
 use Invertus\Brad\Cron\Task\IndexProductsTask;
 use Invertus\Brad\Cron\TaskRunner;
+use Invertus\Brad\Install\DbInstaller;
 use Invertus\Brad\Install\Installer;
 use Invertus\Brad\Service\Elasticsearch\Builder\DocumentBuilder;
 use Invertus\Brad\Service\Elasticsearch\Builder\IndexBuilder;
@@ -110,6 +112,10 @@ class Container
             return $this;
         };
 
+        $this->container['db'] = function () {
+            return Db::getInstance();
+        };
+
         $this->container['em'] = function () {
             return Adapter_ServiceLocator::get('Core_Foundation_Database_EntityManager');
         };
@@ -122,8 +128,12 @@ class Container
             return $this->module->getContext();
         };
 
-        $this->container['installer'] = function () {
-            return new Installer($this->module);
+        $this->container['db_installer'] = function ($c) {
+            return new DbInstaller($c['db'], $c['brad_dir']);
+        };
+
+        $this->container['installer'] = function ($c) {
+            return new Installer($this->module, $c['db_installer']);
         };
 
         $this->container['elasticsearch.client'] = function ($c) {

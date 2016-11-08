@@ -148,9 +148,8 @@ class DocumentBuilder
                 foreach ($featureObj->name as $idLang => $name) {
                     $body['feature_'.$featureObj->id.'_lang_'.$idLang] = $name;
                     $body['feature_value_'.$featureValueObj->id.'_lang_'.$idLang] = $featureValueObj->value[$idLang];
+                    $body['feature_value_keywords_lang_'.$idLang][] = $featureValueObj->value[$idLang];
                 }
-
-                $body['feature_'.$featureObj->id] = $featureValueObj->id;
             }
         }
 
@@ -159,7 +158,8 @@ class DocumentBuilder
                 $attributeObj = new Attribute($attribute['id_attribute']);
 
                 foreach ($attributeObj->name as $idLang => $name) {
-                    $body['attribute_' . $attributeObj->id . '_lang_' . $idLang] = $name;
+                    $body['attribute_'.$attributeObj->id.'_lang_'.$idLang] = $name;
+                    $body['attribute_keywords_lang_'.$idLang][] = $name;
                 }
 
                 $body['attribute_group_' . $attribute['id_attribute_group']][] = $attributeObj->id;

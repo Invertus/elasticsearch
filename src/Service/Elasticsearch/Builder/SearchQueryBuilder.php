@@ -113,6 +113,20 @@ class SearchQueryBuilder extends AbstractQueryBuilder
                                 ],
                             ],
                         ],
+                        [
+                            'match_phrase_prefix' => [
+                                'feature_value_keywords_lang_'.$idLang => [
+                                    'query' => $query,
+                                ],
+                            ],
+                        ],
+                        [
+                            'match_phrase_prefix' => [
+                                'attribute_keywords_lang_'.$idLang => [
+                                    'query' => $query,
+                                ],
+                            ],
+                        ],
                     ],
                 ],
             ],

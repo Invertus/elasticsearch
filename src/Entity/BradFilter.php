@@ -21,16 +21,7 @@ class BradFilter extends ObjectModel
     const ORDER_BY_NONE = 1;
     const ORDER_BY_NUMBER_OF_PRODUCTS = 2;
     const ORDER_BY_NATURAL = 3;
-
-    /**
-     * @var string|array
-     */
-    public $name;
-
-    /**
-     * @var string|array
-     */
-    public $custom_name;
+    const ORDER_BY_ALPHA_NUM = 4;
 
     /**
      * @var int
@@ -57,7 +48,7 @@ class BradFilter extends ObjectModel
     /**
      * @var string
      */
-    public $criteria_sign;
+    public $criteria_suffix;
 
     /**
      * @var int
@@ -70,24 +61,27 @@ class BradFilter extends ObjectModel
     public $criteria_order_way;
 
     /**
+     * @var string
+     */
+    public $name;
+
+    /**
      * @var array Entity definition
      */
     public static $definition = [
         'table' => 'brad_filter',
         'primary' => 'id_brad_filter',
         'fields' => [
-            'name' => ['type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isGenericName'],
-            'custom_name' => ['type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isGenericName'],
+            'name' => ['type' => self::TYPE_STRING, 'required' => true, 'validate' => 'isString'],
             'filter_type' => ['type' => self::TYPE_INT, 'required' => true, 'validate' => 'isUnsignedInt'],
-            'id_key' => ['type' => self::TYPE_INT, 'required' => true, 'validate' => 'isUnsignedInt'],
+            'id_key' => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
             'filter_style' => ['type' => self::TYPE_INT, 'required' => true, 'validate' => 'isUnsignedInt'],
             'custom_height' => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
-            'criteria_sign' => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
+            'criteria_suffix' => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
             'criteria_order_by' => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
-            'criteria_order_way' => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
+            'criteria_order_way' => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
         ],
         'multishop' => true,
-        'multilang' => true,
     ];
 
     /**
@@ -103,6 +97,11 @@ class BradFilter extends ObjectModel
         Shop::addTableAssociation(self::$definition['table'], ['type' => 'shop']);
     }
 
+    public function add($autoData = true, $nullValues = false)
+    {
+        parent::add($autoData, $nullValues);
+    }
+
     /**
      * Get tranlslated filter type name
      *
@@ -110,7 +109,7 @@ class BradFilter extends ObjectModel
      *
      * @return array|string
      */
-    public static function getFilterTypeNames($filterType = null)
+    public static function getFilterTypeTranslations($filterType = null)
     {
         $brad = Module::getInstanceByName('brad');
 
@@ -120,7 +119,7 @@ class BradFilter extends ObjectModel
             self::FILTER_TYPE_FEATURE => $brad->l('Feature', __CLASS__),
             self::FILTER_TYPE_ATTRIBUTE_GROUP => $brad->l('Attribute group', __CLASS__),
             self::FILTER_TYPE_MANUFACTURER => $brad->l('Manufacturer', __CLASS__),
-            self::FILTER_TYPE_QUANTITY => $brad->l('Quantity', __CLASS__),
+            self::FILTER_TYPE_QUANTITY => $brad->l('Stock', __CLASS__),
             self::FILTER_TYPE_CATEGORY => $brad->l('Category', __CLASS__),
         ];
 
@@ -129,5 +128,110 @@ class BradFilter extends ObjectModel
         }
 
         return $translatedFilterTypes;
+    }
+
+    /**
+     * Get tranlslated filter styles name
+     *
+     * @param int|null $filterStyle
+     *
+     * @return array|string
+     */
+    public static function getFilterStyleTranslations($filterStyle = null)
+    {
+        $brad = Module::getInstanceByName('brad');
+
+        $translatedFilterTypes = [
+            self::FILTER_STYLE_LIST_OF_VALUES => $brad->l('List of values', __CLASS__),
+            self::FILTER_STYLE_CHECKBOX => $brad->l('Checkbox', __CLASS__),
+            self::FILTER_STYLE_INPUT => $brad->l('Input fields', __CLASS__),
+            self::FILTER_STYLE_SLIDER => $brad->l('Slider', __CLASS__),
+        ];
+
+        if (null !== $filterStyle) {
+            return $translatedFilterTypes[$filterStyle];
+        }
+
+        return $translatedFilterTypes;
+    }
+
+    /**
+     * Get array for filter type selection input
+     *
+     * @return array
+     */
+    public static function getFilterTypesSelect()
+    {
+        $filterTypeSelect = [];
+
+        foreach (self::getFilterTypeTranslations() as $key => $filterTypeTranslation) {
+            $filterTypeSelect[] = [
+                'id' => $key,
+                'name' => $filterTypeTranslation,
+            ];
+        }
+
+        return $filterTypeSelect;
+    }
+
+    /**
+     * Get array for filter styles selection input
+     *
+     * @return array
+     */
+    public static function getFilterStylesSelect()
+    {
+        $filterStyleSelect = [];
+
+        foreach (self::getFilterStyleTranslations() as $key => $filterStyleTranslation) {
+            $filterStyleSelect[] = [
+                'id' => $key,
+                'name' => $filterStyleTranslation,
+            ];
+        }
+
+        return $filterStyleSelect;
+    }
+
+    /**
+     * Get available filter styles by filters
+     *
+     * @return array
+     */
+    public static function getFilterStylesByFilterType()
+    {
+        return [
+            self::FILTER_TYPE_PRICE => [
+                self::FILTER_STYLE_SLIDER,
+                self::FILTER_STYLE_INPUT,
+                self::FILTER_STYLE_LIST_OF_VALUES,
+            ],
+            self::FILTER_TYPE_WEIGHT => [
+                self::FILTER_STYLE_SLIDER,
+                self::FILTER_STYLE_INPUT,
+                self::FILTER_STYLE_LIST_OF_VALUES,
+            ],
+            self::FILTER_TYPE_FEATURE => [
+                self::FILTER_STYLE_SLIDER,
+                self::FILTER_STYLE_INPUT,
+                self::FILTER_STYLE_LIST_OF_VALUES,
+                self::FILTER_STYLE_CHECKBOX,
+            ],
+            self::FILTER_TYPE_ATTRIBUTE_GROUP => [
+                self::FILTER_STYLE_SLIDER,
+                self::FILTER_STYLE_INPUT,
+                self::FILTER_STYLE_LIST_OF_VALUES,
+                self::FILTER_STYLE_CHECKBOX,
+            ],
+            self::FILTER_TYPE_MANUFACTURER => [
+                self::FILTER_STYLE_CHECKBOX,
+            ],
+            self::FILTER_TYPE_QUANTITY => [
+                self::FILTER_STYLE_CHECKBOX,
+            ],
+            self::FILTER_TYPE_CATEGORY => [
+                self::FILTER_STYLE_CHECKBOX,
+            ],
+        ];
     }
 }

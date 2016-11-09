@@ -45,6 +45,7 @@ abstract class AbstractAdminBradModuleController extends ModuleAdminController
     {
         $this->initOptions();
         $this->initForm();
+        $this->initFieldsValue();
         $this->initList();
 
         parent::init();
@@ -111,5 +112,13 @@ abstract class AbstractAdminBradModuleController extends ModuleAdminController
     protected function initList()
     {
         //@todo: Override this method to initialize list
+    }
+
+    /**
+     * Initialize fields value
+     */
+    protected function initFieldsValue()
+    {
+        //@todo: Override this method to initialize fields value
     }
 }

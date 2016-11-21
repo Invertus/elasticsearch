@@ -21,19 +21,22 @@ if (!isset($_GET['id_shop']) && isset($argv[3])) {
     $_GET['id_shop'] = $argv[3];
 }
 
+if (!isset($_GET['cron']) && isset($argv[2])) {
+    $_GET['cron'] = $argv[2];
+}
+
+if (!isset($_GET['token']) && isset($argv[1])) {
+    $_GET['token'] = $argv[1];
+}
+
+if (!isset($_GET['action']) && isset($argv[4])) {
+    $_GET['action'] = $argv[4];
+}
+
 include_once(dirname(__FILE__).'/../../config/config.inc.php');
 
-if (isset($_GET['cron'])) {
-    $cron = Tools::getValue('cron');
-} else {
-    $cron = $argv[2];
-}
-
-if (isset($_GET['token'])) {
-    $token = Tools::getValue('token');
-} else {
-    $token = $argv[1];
-}
+$cron = Tools::getValue('cron');
+$token = Tools::getValue('token');
 
 $moduleName = 'brad';
 

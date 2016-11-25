@@ -22,10 +22,12 @@ namespace Invertus\Brad\Service;
 use Core_Business_ConfigurationInterface;
 use Core_Foundation_Database_EntityManager;
 use Invertus\Brad\Config\Setting;
+use Invertus\Brad\Logger\LoggerInterface;
 use Invertus\Brad\Repository\ProductRepository;
 use Invertus\Brad\Service\Elasticsearch\Builder\DocumentBuilder;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer;
 use Invertus\Brad\Util\Arrays;
+use Invertus\Brad\Util\MemoryStat;
 use Invertus\Brad\Util\Validator;
 use PrestaShopCollection;
 use Product;
@@ -73,6 +75,10 @@ class Indexer
      * @var Validator
      */
     private $validator;
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
     /**
      * Indexer constructor.
@@ -82,14 +88,16 @@ class Indexer
      * @param Core_Business_ConfigurationInterface $configuration
      * @param DocumentBuilder $documentBuilder
      * @param Validator $validator
+     * @param LoggerInterface $logger
      */
-    public function __construct(ElasticsearchIndexer $elasticserachIndexer, Core_Foundation_Database_EntityManager $em, Core_Business_ConfigurationInterface $configuration, DocumentBuilder $documentBuilder, Validator $validator)
+    public function __construct(ElasticsearchIndexer $elasticserachIndexer, Core_Foundation_Database_EntityManager $em, Core_Business_ConfigurationInterface $configuration, DocumentBuilder $documentBuilder, Validator $validator, LoggerInterface $logger)
     {
         $this->elasticsearchIndexer = $elasticserachIndexer;
         $this->em = $em;
         $this->configuration = $configuration;
         $this->documentBuilder = $documentBuilder;
         $this->validator = $validator;
+        $this->logger = $logger;
     }
 
     /**
@@ -112,6 +120,10 @@ class Indexer
      */
     public function performIndexing($idShop, $indexingType)
     {
+        $startTime = microtime(true);
+        $message = sprintf('Memory usage before indexing is %s', MemoryStat::getMemoryUsage());
+        $this->logger->log($message, [], LoggerInterface::INFO);
+
         if (self::INDEX_ALL_PRODUCTS == $indexingType) {
             if (!$this->elasticsearchIndexer->deleteIndex($idShop)) {
                 return false;
@@ -123,6 +135,15 @@ class Indexer
         }
 
         $success = $this->indexProducts($idShop, $indexingType);
+
+        if ($success) {
+            $timeTook = microtime(true) - $startTime;
+            $message = sprintf('Time indexing took: %s', gmdate('H:i:s', $timeTook));
+            $this->logger->log($message, [], LoggerInterface::INFO);
+
+            $message = sprintf('Memory usage before indexing is %s', MemoryStat::getMemoryUsage());
+            $this->logger->log($message, [], LoggerInterface::INFO);
+        }
 
         return (bool) $success;
     }

@@ -19,7 +19,9 @@
 
 namespace Invertus\Brad\Service\Elasticsearch;
 
+use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Exception;
+use Invertus\Brad\Logger\LoggerInterface;
 use Invertus\Brad\Service\Elasticsearch\Builder\DocumentBuilder;
 use Invertus\Brad\Service\Elasticsearch\Builder\IndexBuilder;
 use Product;
@@ -47,17 +49,24 @@ class ElasticsearchIndexer
     private $indexBuilder;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * ElasticsearchIndexer constructor.
      *
      * @param ElasticsearchManager $manager
      * @param DocumentBuilder $documentBuilder
      * @param IndexBuilder $indexBuilder
+     * @param LoggerInterface $logger
      */
-    public function __construct(ElasticsearchManager $manager, DocumentBuilder $documentBuilder, IndexBuilder $indexBuilder)
+    public function __construct(ElasticsearchManager $manager, DocumentBuilder $documentBuilder, IndexBuilder $indexBuilder, LoggerInterface $logger)
     {
         $this->manager = $manager;
         $this->documentBuilder = $documentBuilder;
         $this->indexBuilder = $indexBuilder;
+        $this->logger = $logger;
     }
 
     /**
@@ -82,6 +91,8 @@ class ElasticsearchIndexer
         try {
             $response = $client->indices()->create($params);
         } catch (Exception $e) {
+            $message = sprintf('Failed to create index: %s', $e->getMessage());
+            $this->logger->log($message);
             return false;
         }
 
@@ -109,6 +120,8 @@ class ElasticsearchIndexer
         try {
             $response = $client->indices()->delete($params);
         } catch (Exception $e) {
+            $message = sprintf('Failed to delete index: %s', $e->getMessage());
+            $this->logger->log($message);
             return false;
         }
 
@@ -138,6 +151,8 @@ class ElasticsearchIndexer
         try {
             $response = $client->indices()->putSettings($params);
         } catch (Exception $e) {
+            $message = sprintf('Failed to update index: %s', $e->getMessage());
+            $this->logger->log($message);
             return false;
         }
 
@@ -171,6 +186,8 @@ class ElasticsearchIndexer
         try {
             $response = $client->index($params);
         } catch (Exception $e) {
+            $message = sprintf('Failed to index product: %s', $e->getMessage());
+            $this->logger->log($message);
             return false;
         }
 
@@ -196,7 +213,11 @@ class ElasticsearchIndexer
 
         try {
             $response = $client->get($params);
-        } catch (Exception $exception) {
+        } catch (Missing404Exception $e) {
+            return false;
+        } catch (Exception $e) {
+            $message = sprintf('Failed to find product with id %s: %s', $product->id, $e->getMessage());
+            $this->logger->log($message);
             return false;
         }
 
@@ -217,6 +238,8 @@ class ElasticsearchIndexer
         try {
             $response = $client->bulk($params);
         } catch (Exception $e) {
+            $message = sprintf('Failed to perform bulk indexing: %s', $e->getMessage());
+            $this->logger->log($message);
             return false;
         }
 
@@ -243,6 +266,8 @@ class ElasticsearchIndexer
         try {
             $response = $client->delete($params);
         } catch (Exception $e) {
+            $message = sprintf('Failed to delete product: %s', $e->getMessage());
+            $this->logger->log($message);
             return false;
         }
 

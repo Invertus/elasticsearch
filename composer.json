@@ -20,6 +20,7 @@
     },
     "require": {
         "pimple/pimple": "~3.0",
-        "elasticsearch/elasticsearch": "~2.0"
+        "elasticsearch/elasticsearch": "~2.0",
+        "monolog/monolog": "^1.0"
     }
 }

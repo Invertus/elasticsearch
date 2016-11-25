@@ -34,7 +34,7 @@ return [
 
     'elasticsearch.manager' => [
         'class' => 'Invertus\Brad\Service\Elasticsearch\ElasticsearchManager',
-        'arguments' => ['elasticsearch.client', '@BRAD_ELASTICSEARCH_INDEX_PREFIX'],
+        'arguments' => ['elasticsearch.client', '@BRAD_ELASTICSEARCH_INDEX_PREFIX', 'logger'],
     ],
 
     'elasticsearch.client' => [
@@ -52,6 +52,7 @@ return [
             'elasticsearch.manager',
             'elasticsearch.builder.document_builder',
             'elasticsearch.builder.index_builder',
+            'logger',
         ],
     ],
 
@@ -73,6 +74,7 @@ return [
             'configuration',
             'elasticsearch.builder.document_builder',
             'util.validator',
+            'logger',
         ],
     ],
 
@@ -94,5 +96,10 @@ return [
     'task.index_products' => [
         'class' => 'Invertus\Brad\Cron\Task\IndexProductsTask',
         'arguments' => ['elasticsearch.manager', 'indexer'],
+    ],
+
+    'logger' => [
+        'class' => 'Invertus\Brad\Logger\Logger',
+        'arguments' => ['brad_log_dir'],
     ],
 ];

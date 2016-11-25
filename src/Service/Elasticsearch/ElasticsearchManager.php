@@ -21,6 +21,7 @@ namespace Invertus\Brad\Service\Elasticsearch;
 
 use Elasticsearch\Client;
 use Exception;
+use Invertus\Brad\Logger\LoggerInterface;
 
 /**
  * Class ElasticsearchManager
@@ -40,15 +41,22 @@ class ElasticsearchManager
     private $indexPrefix;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * ElasticsearchManager constructor.
      *
      * @param Client $client
      * @param string $indexPrefix
+     * @param LoggerInterface $logger
      */
-    public function __construct(Client $client, $indexPrefix)
+    public function __construct(Client $client, $indexPrefix, LoggerInterface $logger)
     {
         $this->client = $client;
         $this->indexPrefix = $indexPrefix;
+        $this->logger = $logger;
     }
 
     /**

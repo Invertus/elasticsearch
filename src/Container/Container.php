@@ -159,6 +159,10 @@ class Container
         $this->container['brad_img_uri'] = function ($c) {
             return $c['brad_uri'].'views/img/';
         };
+
+        $this->container['brad_log_dir'] = function ($c) {
+            return $c['brad_dir'].'logs/';
+        };
     }
 
     /**
@@ -182,7 +186,7 @@ class Container
 
         foreach ($services as $serviceName => $service) {
             if (!class_exists($service['class'])) {
-                $msg = sprintf('Service %s class %s was not found', $serviceName, $service['class']);
+                $msg = sprintf('Class %s for service %s was not found', $service['class'], $serviceName);
                 throw new ServiceNotFoundException($msg);
             }
 
@@ -194,8 +198,10 @@ class Container
                         if (0 === strpos($argument, '@')) {
                             $configurationName = ltrim($argument, '@');
                             $args[] = $container['configuration']->get($configurationName);
-                        } else {
+                        } elseif (isset($container[$argument])) {
                             $args[] = $container[$argument];
+                        } else {
+                            $args[] = $argument;
                         }
                     }
                 }

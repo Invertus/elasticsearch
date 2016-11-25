@@ -34,8 +34,9 @@
             </div>
             <div class="alert alert-info" style="margin: 0;">
                 {l s='Indexing products can take a while, so it is recommended to use cron jobs.' mod='brad'} <br>
-                <strong>{l s='Reindex all products cron' mod='brad'}: </strong> <em>{$index_all_products_task_url|escape:'htmlall':'UTF-8'}</em> <br>
-                <strong>{l s='Reindex prices cron' mod='brad'}: </strong> <em>{$index_prices_task_url|escape:'htmlall':'UTF-8'}</em>
+                <strong>{l s='Reindex all products cron' mod='brad'}: </strong> <em>{$index_all_cron|escape:'htmlall':'UTF-8'}</em> <br>
+                <strong>{l s='Reindex missing products cron' mod='brad'}: </strong> <em>{$index_missing_cron|escape:'htmlall':'UTF-8'}</em> <br>
+                <strong>{l s='Reindex prices cron' mod='brad'}: </strong> <em>{$index_prices_cron|escape:'htmlall':'UTF-8'}</em>
             </div>
         {else}
             <div class="alert alert-danger" style="margin: 0;">

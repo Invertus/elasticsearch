@@ -32,10 +32,10 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
      */
     public function renderOptions()
     {
-        if ($this->module->isElasticsearchConnectionAvailable()) {
+        /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchManager $manager */
+        $manager = $this->get('elasticsearch.manager');
 
-            /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchManager $manager */
-            $manager = $this->get('elasticsearch.manager');
+        if ($manager->isConnectionAvailable()) {
             $indexedProductsCount = (int) $manager->getProductsCount($this->context->shop->id);
 
             /** @var \Invertus\Brad\Repository\ProductRepository $productRepository */
@@ -43,24 +43,24 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
             $productsIds = $productRepository->findAllIdsByShopId($this->context->shop->id);
 
             $token = Tools::encrypt($this->module->name);
-            $baseShopUrl = $this->context->shop->getBaseURL(true);
-            $taskUrl = $baseShopUrl.'modules/'.$this->module->name.'/brad.cron.php?';
-            $taskUrl .= http_build_query([
-                'id_shop' => $this->context->shop->id,
-                'cron' => 'index_products',
-                'token' => $token,
-            ]);
+            $idShop = (int) $this->context->shop->id;
+            $file = $this->module->getLocalPath().'brad.cron.php';
 
-            $indexProductsTaskUrl = $taskUrl.'&'.http_build_query(['action' => Indexer::INDEX_ALL_PRODUCTS]);
-            $indexPricesTaskUrl = $taskUrl.'&'.http_build_query(['action' => Indexer::INDEX_PRICES]);
+            $indexProductsCron =
+                sprintf('php %s %s %s %s %s', $file, $token, 'index_products', $idShop, Indexer::INDEX_ALL_PRODUCTS);
+            $indexMissingProductsCron =
+                sprintf('php %s %s %s %s %s', $file, $token, 'index_products', $idShop, Indexer::INDEX_MISSING_PRODUCTS);
+            $indexPrices =
+                sprintf('php %s %s %s %s %s', $file, $token, 'index_products', $idShop, Indexer::INDEX_PRICES);
 
             $this->context->smarty->assign([
                 'elasticsearch_connection_ok' => true,
                 'elasticsearch_version' => $manager->getVersion(),
                 'products_count' => count($productsIds),
                 'indexed_products_count' => $indexedProductsCount,
-                'index_all_products_task_url' => $indexProductsTaskUrl,
-                'index_prices_task_url' => $indexPricesTaskUrl,
+                'index_all_cron' => $indexProductsCron,
+                'index_missing_cron' => $indexMissingProductsCron,
+                'index_prices_cron' => $indexPrices,
             ]);
         }
 
@@ -181,7 +181,10 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
      */
     private function processIndexing($indexingType)
     {
-        if (!$this->module->isElasticsearchConnectionAvailable()) {
+        /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchManager $manager */
+        $manager = $this->get('elasticsearch.manager');
+
+        if (!$manager->isConnectionAvailable()) {
             $this->errors[] = $this->l('Cannot establish Elasticsearch connection');
             return;
         }

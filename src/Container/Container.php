@@ -22,21 +22,9 @@ namespace Invertus\Brad\Container;
 use Adapter_ServiceLocator;
 use Brad;
 use Db;
-use Elasticsearch\ClientBuilder;
-use Invertus\Brad\Config\Setting;
-use Invertus\Brad\Cron\Task\IndexProductsTask;
-use Invertus\Brad\Cron\TaskRunner;
-use Invertus\Brad\Install\DbInstaller;
-use Invertus\Brad\Install\Installer;
-use Invertus\Brad\Service\Elasticsearch\Builder\DocumentBuilder;
-use Invertus\Brad\Service\Elasticsearch\Builder\IndexBuilder;
-use Invertus\Brad\Service\Elasticsearch\Builder\SearchQueryBuilder;
-use Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer;
-use Invertus\Brad\Service\Elasticsearch\ElasticsearchManager;
-use Invertus\Brad\Service\Elasticsearch\ElasticsearchSearch;
-use Invertus\Brad\Service\Indexer;
-use Invertus\Brad\Util\Validator;
+use Invertus\Brad\Exception\ServiceNotFoundException;
 use Pimple\Container as Pimple;
+use ReflectionClass;
 
 /**
  * Class Container Simple container for module dependencies
@@ -65,8 +53,8 @@ class Container
         $this->module = $module;
 
         $this->initContainer();
-        $this->initDependencies();
         $this->initParameters();
+        $this->initDependencies();
     }
 
     /**
@@ -112,6 +100,10 @@ class Container
             return $this;
         };
 
+        $this->container['module'] = function () {
+            return $this->module;
+        };
+
         $this->container['db'] = function () {
             return Db::getInstance();
         };
@@ -128,83 +120,15 @@ class Container
             return $this->module->getContext();
         };
 
-        $this->container['db_installer'] = function ($c) {
-            return new DbInstaller($c['db'], $c['brad_dir']);
+        $this->container['context.link'] = function ($c) {
+            return $c['context']->link;
         };
 
-        $this->container['installer'] = function ($c) {
-            return new Installer($this->module, $c['db_installer']);
+        $this->container['context.shop'] = function ($c) {
+            return $c['context']->shop;
         };
 
-        $this->container['elasticsearch.client'] = function ($c) {
-            $elasticsearchHost1 = $c['configuration']->get(Setting::ELASTICSEARCH_HOST_1);
-
-            if (false === strpos($elasticsearchHost1, 'http://') &&
-                false === strpos($elasticsearchHost1, 'https://')
-            ) {
-                $elasticsearchHost1 = 'http://'.$elasticsearchHost1;
-            }
-
-            $hosts = [$elasticsearchHost1];
-
-            $clientBuilder = ClientBuilder::create();
-            $clientBuilder->setHosts($hosts);
-            $client = $clientBuilder->build();
-
-            return $client;
-        };
-
-        $this->container['elasticsearch.manager'] = function ($c) {
-            $elasticsearchIndexPrefix = $c['configuration']->get(Setting::INDEX_PREFIX);
-
-            return new ElasticsearchManager($c['elasticsearch.client'], $elasticsearchIndexPrefix);
-        };
-
-        $this->container['util.validator'] = function () {
-            return new Validator();
-        };
-
-        $this->container['elasticsearch.indexer'] = function ($c) {
-            return new ElasticsearchIndexer(
-                $c['elasticsearch.manager'],
-                $c['elasticsearch.builder.document_builder'],
-                $c['elasticsearch.builder.index_builder']
-            );
-        };
-
-        $this->container['elasticsearch.builder.document_builder'] = function ($c) {
-            return new DocumentBuilder($c['context']->link, $c['context']->shop, $c['em'], $c['configuration']);
-        };
-
-        $this->container['elasticsearch.builder.index_builder'] = function ($c) {
-            return new IndexBuilder($c['configuration'], $c['em']);
-        };
-
-        $this->container['indexer'] = function ($c) {
-            return new Indexer(
-                $c['elasticsearch.indexer'],
-                $c['em'],
-                $c['configuration'],
-                $c['elasticsearch.builder.document_builder'],
-                $c['util.validator']
-            );
-        };
-
-        $this->container['elasticsearch.builder.search_query_builder'] = function ($c) {
-            return new SearchQueryBuilder($c['configuration'], $c['context']);
-        };
-
-        $this->container['elasticsearch.search'] = function ($c) {
-            return new ElasticsearchSearch($c['elasticsearch.manager']);
-        };
-
-        $this->container['task_runner'] = function ($c) {
-            return new TaskRunner($c['container']);
-        };
-
-        $this->container['task.index_products'] = function ($c) {
-            return new IndexProductsTask($c['elasticsearch.manager'], $c['indexer']);
-        };
+        $this->initCustomDependencies();
     }
 
     /**
@@ -235,5 +159,65 @@ class Container
         $this->container['brad_img_uri'] = function ($c) {
             return $c['brad_uri'].'views/img/';
         };
+    }
+
+    /**
+     * Init custom services defined in /config/services.php
+     *
+     * @throws ServiceNotFoundException
+     */
+    private function initCustomDependencies()
+    {
+        $servicesConfigFile = $this->container['brad_dir'].'config/services.php';
+
+        if (!file_exists($servicesConfigFile)) {
+            return;
+        }
+
+        $services = require_once $servicesConfigFile;
+
+        if (!is_array($services) || empty($services)) {
+            return;
+        }
+
+        foreach ($services as $serviceName => $service) {
+            if (!class_exists($service['class'])) {
+                $msg = sprintf('Service %s class %s was not found', $serviceName, $service['class']);
+                throw new ServiceNotFoundException($msg);
+            }
+
+            $this->container[$serviceName] = function ($container) use ($service) {
+
+                $args = [];
+                if (isset($service['arguments']) && is_array($service['arguments'])) {
+                    foreach ($service['arguments'] as $argument) {
+                        if (0 === strpos($argument, '@')) {
+                            $configurationName = ltrim($argument, '@');
+                            $args[] = $container['configuration']->get($configurationName);
+                        } else {
+                            $args[] = $container[$argument];
+                        }
+                    }
+                }
+
+                $reflection = new ReflectionClass($service['class']);
+                $serviceInstance = $reflection->newInstanceArgs($args);
+
+                if (isset($service['call']['method'])) {
+                    $method = $service['call']['method'];
+                    $isFactory = $service['call']['factory'] ?: false;
+
+                    if ($reflection->hasMethod($method)) {
+                        $result = $serviceInstance->$method();
+
+                        if ($isFactory) {
+                            return $result;
+                        }
+                    }
+                }
+
+                return $serviceInstance;
+            };
+        }
     }
 }

@@ -48,10 +48,7 @@ abstract class AbstractAdminBradModuleController extends ModuleAdminController
         $this->initOptions();
         $this->initForm();
         $this->initList();
-
-        if ('edit' == $this->display) {
-            $this->initFieldsValue();
-        }
+        $this->initFieldsValue();
     }
 
     /**

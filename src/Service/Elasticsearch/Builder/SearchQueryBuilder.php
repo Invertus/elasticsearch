@@ -139,7 +139,7 @@ class SearchQueryBuilder extends AbstractQueryBuilder
                     'query' => $query,
                     'fuzziness' => 'AUTO',
                     'prefix_length' => 2,
-                    'max_expansions' => 15,
+                    'max_expansions' => 50,
                 ],
             ];
         }

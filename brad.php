@@ -34,6 +34,7 @@ class Brad extends Module
     const ADMIN_BRAD_ADVANCED_SETTING_CONTROLLER = 'AdminBradAdvancedSetting';
     const ADMIN_BRAD_INFO_CONTROLLER = 'AdminBradInfo';
     const ADMIN_BRAD_FILTER_CONTROLLER = 'AdminBradFilter';
+    const ADMIN_BRAD_FILTER_TEMPLATE_CONTROLLER = 'AdminBradFilterTemplate';
 
     /**
      * Front controllers

@@ -140,6 +140,11 @@ class Installer extends AbstractInstaller
                 'class_name' => Brad::ADMIN_BRAD_FILTER_CONTROLLER,
             ],
             [
+                'name' => $this->module->l('Filter templates', __CLASS__),
+                'parent' => Brad::ADMIN_BRAD_MODULE_CONTROLLER,
+                'class_name' => Brad::ADMIN_BRAD_FILTER_TEMPLATE_CONTROLLER,
+            ],
+            [
                 'name' => $this->module->l('Info', __CLASS__),
                 'parent' => Brad::ADMIN_BRAD_MODULE_CONTROLLER,
                 'class_name' => Brad::ADMIN_BRAD_INFO_CONTROLLER,

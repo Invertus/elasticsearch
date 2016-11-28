@@ -97,9 +97,45 @@ class BradFilter extends ObjectModel
         Shop::addTableAssociation(self::$definition['table'], ['type' => 'shop']);
     }
 
+    /**
+     * Custom add
+     *
+     * @param bool $autoData
+     * @param bool $nullValues
+     *
+     * @return bool
+     */
     public function add($autoData = true, $nullValues = false)
     {
-        parent::add($autoData, $nullValues);
+        $parentReturn = parent::add($autoData, $nullValues);
+
+        if (!$parentReturn) {
+            return $parentReturn;
+        }
+
+        $this->updateCriteria();
+
+        return $parentReturn;
+    }
+
+    /**
+     * Custom update
+     *
+     * @param bool $nullValues
+     *
+     * @return bool
+     */
+    public function update($nullValues = false)
+    {
+        $parentReturn = parent::update($nullValues);
+
+        if (!$parentReturn) {
+            return $parentReturn;
+        }
+
+        $this->updateCriteria();
+
+        return $parentReturn;
     }
 
     /**
@@ -233,5 +269,58 @@ class BradFilter extends ObjectModel
                 self::FILTER_STYLE_CHECKBOX,
             ],
         ];
+    }
+
+    /**
+     * Update filter criteria (custom ranges)
+     *
+     * @return bool
+     */
+    protected function updateCriteria()
+    {
+        BradCriteria::deleteFilterCriteria($this->id);
+
+        $criterias = [];
+        $position = 1;
+
+        foreach ($_POST as $key => $value) {
+            if (0 === strpos($key, 'brad_min_range_')) {
+                $criteriaNumber = substr($key, -1);
+                $criterias[$criteriaNumber]['min'] = (float) $value;
+
+                if (!isset($criterias[$criteriaNumber]['position'])) {
+                    $criterias[$criteriaNumber]['position'] = $position;
+                    $position += 1;
+                }
+            }
+
+            if (0 === strpos($key, 'brad_max_range_')) {
+                $criteriaNumber = substr($key, -1);
+                $criterias[$criteriaNumber]['max'] = (float) $value;
+
+                if (!isset($criterias[$criteriaNumber]['position'])) {
+                    $criterias[$criteriaNumber]['position'] = $position;
+                    $position += 1;
+                }
+            }
+        }
+
+        if (empty($criterias)) {
+            return true;
+        }
+
+        foreach ($criterias as $criteria) {
+            $filterCriteria = new BradCriteria();
+            $filterCriteria->position = $criteria['position'];
+            $filterCriteria->min_value = $criteria['min'];
+            $filterCriteria->max_value = $criteria['max'];
+            $filterCriteria->id_brad_filter = $this->id;
+
+            if (!$filterCriteria->save()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

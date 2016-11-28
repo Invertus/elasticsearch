@@ -7,6 +7,11 @@ use Invertus\Brad\Config\Sort;
 class AdminBradFilterController extends AbstractAdminBradModuleController
 {
     /**
+     * @var BradFilter
+     */
+    protected $object;
+
+    /**
      * AdminBradFilterController constructor.
      */
     public function __construct()
@@ -270,6 +275,15 @@ class AdminBradFilterController extends AbstractAdminBradModuleController
                 'title' => $this->l('Save'),
             ],
         ];
+
+        if (Shop::isFeatureActive()) {
+            $form_fields['input'][] = [
+                'type' => 'shop',
+                'label' => $this->l('Shop association'),
+                'name' => 'checkBoxShopAsso',
+                'required' => true,
+            ];
+        }
     }
 
     /**
@@ -277,6 +291,42 @@ class AdminBradFilterController extends AbstractAdminBradModuleController
      */
     protected function initFieldsValue()
     {
+        $this->loadObject();
+
+        $attributeGroupOrFeature = [BradFilter::FILTER_TYPE_ATTRIBUTE_GROUP, BradFilter::FILTER_TYPE_FEATURE];
+
+        if (in_array($this->object->filter_type, $attributeGroupOrFeature)) {
+            if (BradFilter::FILTER_TYPE_ATTRIBUTE_GROUP == $this->object->filter_type) {
+                $attributeGroup = new AttributeGroup($this->object->id_key, $this->context->language->id);
+                $this->fields_value['id_key_search'] = $attributeGroup->public_name;
+            } elseif (BradFilter::FILTER_TYPE_FEATURE == $this->object->filter_type) {
+                $feature = new Feature($this->object->id_key, $this->context->language->id);
+                $this->fields_value['id_key_search'] = $feature->name;
+            }
+        }
+
+        $customRanges = [];
+
+        if ($this->object->filter_style == BradFilter::FILTER_STYLE_LIST_OF_VALUES) {
+            $criterias = new PrestaShopCollection('BradCriteria');
+            $criterias->where('id_brad_filter', '=', $this->object->id);
+            $criterias->orderBy('position');
+
+            /** @var BradCriteria $criteria */
+            foreach ($criterias->getResults() as $criteria) {
+                $customRanges[] = [
+                    'id' => $criteria->id,
+                    'position' => $criteria->position,
+                    'min_value' => $criteria->min_value,
+                    'max_value' => $criteria->max_value,
+                ];
+            }
+        }
+
+        $this->context->smarty->assign([
+            'custom_ranges' => $customRanges,
+        ]);
+
         $this->fields_value['custom_ranges'] = $this->context->smarty->fetch(
             $this->module->getLocalPath().'views/templates/admin/custom-ranges.tpl'
         );
@@ -301,5 +351,21 @@ class AdminBradFilterController extends AbstractAdminBradModuleController
                 }
             }
         }
+    }
+
+    /**
+     * Load object only if its not loaded
+     *
+     * @param bool $opt
+     *
+     * @return BradFilter|false|ObjectModel
+     */
+    protected function loadObject($opt = false)
+    {
+        if (Validate::isLoadedObject($this->object)) {
+            return $this->object;
+        }
+
+        return parent::loadObject($opt);
     }
 }

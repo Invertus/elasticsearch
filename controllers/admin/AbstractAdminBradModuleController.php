@@ -43,12 +43,15 @@ abstract class AbstractAdminBradModuleController extends ModuleAdminController
      */
     public function init()
     {
+        parent::init();
+
         $this->initOptions();
         $this->initForm();
-        $this->initFieldsValue();
         $this->initList();
 
-        parent::init();
+        if ('edit' == $this->display) {
+            $this->initFieldsValue();
+        }
     }
 
     /**

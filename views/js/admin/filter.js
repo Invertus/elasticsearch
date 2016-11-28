@@ -31,17 +31,38 @@ $(document).ready(function () {
     var FILTER_STYLE_INPUT = 3;
     var FILTER_STYLE_SLIDER = 4;
 
-    var $searchFeatureAndAttributeInput = $('#id_key_search');
     // it's either id_attribute_group or id_feature depending on filter type
     var $idKeyHiddenInput = $('#id_key');
-
+    var $searchFeatureAndAttributeInput = $('#id_key_search');
     var $filterTypeInput = $('#filter_type');
-    var $filterStyle = $('#filter_style');
+    var $filterStyleInput = $('#filter_style');
 
-    $filterTypeInput.on('change', adjustFormLayout);
-    $filterStyle.on('change', handleAvailableFilterStyles);
+    var $filterStyleCheckboxOption = $filterStyleInput.find('option[value="' + FILTER_STYLE_CHECKBOX + '"]');
+    var $filterStyleListOfValuesOption = $filterStyleInput.find('option[value="' + FILTER_STYLE_LIST_OF_VALUES + '"]');
+    var $filterStyleInputOption = $filterStyleInput.find('option[value="' + FILTER_STYLE_INPUT + '"]');
+    var $filterStyleSliderOption = $filterStyleInput.find('option[value="' + FILTER_STYLE_SLIDER + '"]');
 
-    adjustFormLayout();
+    var $customRangesFormGroup = $('#brad_custom_ranges').closest('.form-group');
+    var $criteriaSuffixFormGroup = $('#criteria_suffix').closest('.form-group');
+    var $criteriaOrderByFormGroup = $('#criteria_order_by').closest('.form-group');
+    var $criteriaOrderWayFormGroup = $('#criteria_order_way').closest('.form-group');
+    var $featureAndAttributeFormGroup = $searchFeatureAndAttributeInput.closest('.form-group');
+
+    var $selectedFilterTypeValue = $filterTypeInput.find('option:selected').val();
+    toggleFilterStyles($selectedFilterTypeValue);
+
+    var $selectedFilterStyleValue = $filterStyleInput.find('option:selected').val();
+    toggleFilterForm($selectedFilterStyleValue);
+
+    $filterTypeInput.on('change', function () {
+        var $selectedFilterTypeValue = $(this).val();
+        toggleFilterStyles($selectedFilterTypeValue);
+    });
+
+    $filterStyleInput.on('change', function () {
+        var $selectedFilterStyleValue = $(this).val();
+        toggleFilterForm($selectedFilterStyleValue);
+    });
 
     $searchFeatureAndAttributeInput
         .autocomplete($globalBradFilterControllerUrl, {
@@ -82,76 +103,71 @@ $(document).ready(function () {
         });
 
     /**
-     * Adjust filter form layout
+     * Toggle filter styles select input
+     *
+     * @param $selectedFilterType
      */
-    function adjustFormLayout()
+    function toggleFilterStyles($selectedFilterType)
     {
-        var $customRangesInput = $('#brad_custom_ranges');
-        var $criteriaSuffix = $('#criteria_suffix');
-        var $criteriaOrderBy = $('#criteria_order_by');
-        var $criteriaOrderWay = $('#criteria_order_way');
+        $selectedFilterType = parseInt($selectedFilterType);
 
-        switch (parseInt($filterTypeInput.val())) {
-            case FILTER_TYPE_WEIGHT:
+        switch ($selectedFilterType) {
             case FILTER_TYPE_PRICE:
-                $searchFeatureAndAttributeInput.closest('.form-group').hide();
-                if (parseInt($filterStyle.val()) == FILTER_STYLE_LIST_OF_VALUES) {
-                    $customRangesInput.closest('.form-group').show();
-                    $criteriaSuffix.closest('.form-group').show();
-                    $criteriaOrderBy.closest('.form-group').hide();
-                    $criteriaOrderWay.closest('.form-group').hide();
-                } else if (
-                    parseInt($filterStyle.val()) == FILTER_STYLE_SLIDER ||
-                    parseInt($filterStyle.val()) == FILTER_STYLE_INPUT
-                ) {
-                    $criteriaOrderBy.closest('.form-group').hide();
-                    $criteriaOrderWay.closest('.form-group').hide();
-                    $customRangesInput.closest('.form-group').hide();
-                } else {
-                    $customRangesInput.closest('.form-group').hide();
-                    $criteriaSuffix.closest('.form-group').hide();
-                    $criteriaOrderBy.closest('.form-group').show();
-                    $criteriaOrderWay.closest('.form-group').show();
-                }
-                break;
+            case FILTER_TYPE_WEIGHT:
             case FILTER_TYPE_ATTRIBUTE_GROUP:
             case FILTER_TYPE_FEATURE:
-                $searchFeatureAndAttributeInput.closest('.form-group').show();
-                if (parseInt($filterStyle.val()) == FILTER_STYLE_LIST_OF_VALUES) {
-                    $customRangesInput.closest('.form-group').show();
-                    $criteriaSuffix.closest('.form-group').show();
-                    $criteriaOrderBy.closest('.form-group').hide();
-                    $criteriaOrderWay.closest('.form-group').hide();
-                } else if (
-                    parseInt($filterStyle.val()) == FILTER_STYLE_SLIDER ||
-                    parseInt($filterStyle.val()) == FILTER_STYLE_INPUT
-                ) {
-                    $criteriaOrderBy.closest('.form-group').hide();
-                    $criteriaOrderWay.closest('.form-group').hide();
-                    $customRangesInput.closest('.form-group').hide();
-                } else {
-                    $customRangesInput.closest('.form-group').hide();
-                    $criteriaSuffix.closest('.form-group').hide();
-                    $criteriaOrderBy.closest('.form-group').show();
-                    $criteriaOrderWay.closest('.form-group').show();
-                }
+                $filterStyleCheckboxOption.show();
+                $filterStyleListOfValuesOption.show();
+                $filterStyleInputOption.show();
+                $filterStyleSliderOption.show();
                 break;
             case FILTER_TYPE_MANUFACTURER:
             case FILTER_TYPE_QUANTITY:
             case FILTER_TYPE_CATEGORY:
-                $searchFeatureAndAttributeInput.closest('.form-group').hide();
-                $criteriaOrderBy.closest('.form-group').show();
-                $criteriaOrderWay.closest('.form-group').show();
-                $customRangesInput.closest('.form-group').hide();
-                $criteriaSuffix.closest('.form-group').hide();
+                $filterStyleCheckboxOption.show().attr('selected','selected');
+                $filterStyleListOfValuesOption.hide();
+                $filterStyleInputOption.hide();
+                $filterStyleSliderOption.hide();
+                toggleFilterForm(FILTER_STYLE_CHECKBOX);
                 break;
+        }
+
+        if (-1 != $.inArray($selectedFilterType, [FILTER_TYPE_FEATURE, FILTER_TYPE_ATTRIBUTE_GROUP])) {
+            $featureAndAttributeFormGroup.show();
+        } else {
+            $featureAndAttributeFormGroup.hide();
         }
     }
 
-    function handleAvailableFilterStyles()
+    /**
+     * Toggle filter form layout based on selected filter style
+     *
+     * @param $selectedFilterStyle
+     */
+    function toggleFilterForm($selectedFilterStyle)
     {
-        $.ajax($globalBradFilterControllerUrl, {
+        $selectedFilterStyle = parseInt($selectedFilterStyle);
 
-        });
+        switch ($selectedFilterStyle) {
+            case FILTER_STYLE_CHECKBOX:
+                $criteriaOrderByFormGroup.show();
+                $criteriaOrderWayFormGroup.show();
+                $customRangesFormGroup.hide();
+                $criteriaSuffixFormGroup.hide();
+                break;
+            case FILTER_STYLE_LIST_OF_VALUES:
+                $criteriaOrderByFormGroup.show();
+                $criteriaOrderWayFormGroup.show();
+                $customRangesFormGroup.show();
+                $criteriaSuffixFormGroup.show();
+                break;
+            case FILTER_STYLE_INPUT:
+            case FILTER_STYLE_SLIDER:
+                $criteriaOrderByFormGroup.hide();
+                $criteriaOrderWayFormGroup.hide();
+                $customRangesFormGroup.hide();
+                $criteriaSuffixFormGroup.hide();
+                break;
+        }
     }
 });

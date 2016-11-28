@@ -52,4 +52,34 @@ class BradCriteria extends ObjectModel
         parent::__construct($id, $idLang, $idShop);
         Shop::addTableAssociation(self::$definition['table'], ['type' => 'shop']);
     }
+
+    /**
+     * Delete all criterias by filter
+     *
+     * @param int $idFilter
+     *
+     * @return bool
+     */
+    public static function deleteFilterCriteria($idFilter)
+    {
+        $db = Db::getInstance();
+
+        $success = true;
+
+        $success &= $db->execute('
+            DELETE
+            FROM `'._DB_PREFIX_.'brad_criteria_shop`
+            WHERE `id_brad_criteria` IN (
+                SELECT `id_brad_criteria`
+                FROM `ps_brad_criteria`
+                WHERE `id_brad_filter` = '.(int)$idFilter.'
+            )
+        ');
+
+        $success &= $db->execute(
+            'DELETE FROM `'._DB_PREFIX_.'brad_criteria` WHERE `id_brad_filter` = '.(int)$idFilter
+        );
+
+        return $success;
+    }
 }

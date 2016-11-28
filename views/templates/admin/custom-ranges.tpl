@@ -8,21 +8,21 @@
         </div>
 
         <ul class="brad-custom-ranges-list list-group">
-            {if isset($values)}
-                {foreach from=$values item=value}
+            {if isset($custom_ranges) && !empty($custom_ranges)}
+                {foreach from=$custom_ranges item=value}
                     <li class="row list-group-item">
                         <div class="col-lg-6 brad-custom-range-min text-center">
                             <input type="text"
-                                   name="brad_min_range_{$value.id_elasticsearch_criterion_value|intval}"
-                                   data-id="{$value.id_elasticsearch_criterion_value|intval}"
-                                   value="{$value.value_min|escape:'htmlall':'UTF-8'}"
+                                   name="brad_min_range_{$value.id|intval}"
+                                   data-id="{$value.id|intval}"
+                                   value="{$value.min_value|escape:'htmlall':'UTF-8'}"
                             >
                         </div>
                         <div class="col-lg-6 brad-custom-range-max text-center">
                             <input type="text"
-                                   name="brad_max_range_{$value.id_elasticsearch_criterion_value|intval}"
-                                   data-id="{$value.id_elasticsearch_criterion_value|intval}"
-                                   value="{$value.value_max|escape:'htmlall':'UTF-8'}"
+                                   name="brad_max_range_{$value.id|intval}"
+                                   data-id="{$value.id|intval}"
+                                   value="{$value.max_value|escape:'htmlall':'UTF-8'}"
                             >
                         </div>
                     </li>

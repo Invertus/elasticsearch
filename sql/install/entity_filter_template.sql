@@ -14,8 +14,12 @@ CREATE TABLE IF NOT EXISTS `PREFIX_brad_filter_template_shop` (
 ) ENGINE=ENGINE_TYPE DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `PREFIX_brad_filter_template_category` (
-  `id_brad_filter_template_category` INT(11) UNSIGNED NOT NULL,
   `id_brad_filter_template` INT(11) UNSIGNED NOT NULL,
-  `id_category` INT(11) UNSIGNED NOT NULL,
-  PRIMARY KEY (`id_brad_filter_template_category`, `id_brad_filter_template`)
+  `id_category` INT(11) UNSIGNED NOT NULL
+) ENGINE=ENGINE_TYPE DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `PREFIX_brad_filter_template_filter` (
+  `id_brad_filter_template` INT(11) UNSIGNED NOT NULL,
+  `id_brad_filter` INT(11) UNSIGNED NOT NULL,
+  `position` INT(11) UNSIGNED NOT NULL
 ) ENGINE=ENGINE_TYPE DEFAULT CHARSET=utf8;

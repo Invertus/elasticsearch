@@ -1,4 +1,5 @@
 <?php
+
 use Invertus\Brad\Config\Sort;
 
 /**
@@ -289,39 +290,35 @@ class AdminBradFilterController extends AbstractAdminBradModuleController
     /**
      * Initialize fields value
      */
-    protected function initFieldsValue()
+    protected function initFormFieldsValue()
     {
         $customRanges = [];
 
-        if ('display' == $this->display) {
-            $this->loadObject();
+        $attributeGroupOrFeature = [BradFilter::FILTER_TYPE_ATTRIBUTE_GROUP, BradFilter::FILTER_TYPE_FEATURE];
 
-            $attributeGroupOrFeature = [BradFilter::FILTER_TYPE_ATTRIBUTE_GROUP, BradFilter::FILTER_TYPE_FEATURE];
-
-            if (in_array($this->object->filter_type, $attributeGroupOrFeature)) {
-                if (BradFilter::FILTER_TYPE_ATTRIBUTE_GROUP == $this->object->filter_type) {
-                    $attributeGroup = new AttributeGroup($this->object->id_key, $this->context->language->id);
-                    $this->fields_value['id_key_search'] = $attributeGroup->public_name;
-                } elseif (BradFilter::FILTER_TYPE_FEATURE == $this->object->filter_type) {
-                    $feature = new Feature($this->object->id_key, $this->context->language->id);
-                    $this->fields_value['id_key_search'] = $feature->name;
-                }
+        if (in_array($this->object->filter_type, $attributeGroupOrFeature)) {
+            if (BradFilter::FILTER_TYPE_ATTRIBUTE_GROUP == $this->object->filter_type) {
+                $attributeGroup = new AttributeGroup($this->object->id_key, $this->context->language->id);
+                $this->fields_value['id_key_search'] = $attributeGroup->public_name;
+            } elseif (BradFilter::FILTER_TYPE_FEATURE == $this->object->filter_type) {
+                $feature = new Feature($this->object->id_key, $this->context->language->id);
+                $this->fields_value['id_key_search'] = $feature->name;
             }
+        }
 
-            if ($this->object->filter_style == BradFilter::FILTER_STYLE_LIST_OF_VALUES) {
-                $criterias = new PrestaShopCollection('BradCriteria');
-                $criterias->where('id_brad_filter', '=', $this->object->id);
-                $criterias->orderBy('position');
+        if ($this->object->filter_style == BradFilter::FILTER_STYLE_LIST_OF_VALUES) {
+            $criterias = new PrestaShopCollection('BradCriteria');
+            $criterias->where('id_brad_filter', '=', $this->object->id);
+            $criterias->orderBy('position');
 
-                /** @var BradCriteria $criteria */
-                foreach ($criterias->getResults() as $criteria) {
-                    $customRanges[] = [
-                        'id' => $criteria->id,
-                        'position' => $criteria->position,
-                        'min_value' => $criteria->min_value,
-                        'max_value' => $criteria->max_value,
-                    ];
-                }
+            /** @var BradCriteria $criteria */
+            foreach ($criterias->getResults() as $criteria) {
+                $customRanges[] = [
+                    'id' => $criteria->id,
+                    'position' => $criteria->position,
+                    'min_value' => $criteria->min_value,
+                    'max_value' => $criteria->max_value,
+                ];
             }
         }
 

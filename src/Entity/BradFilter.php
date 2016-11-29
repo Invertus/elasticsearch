@@ -272,6 +272,16 @@ class BradFilter extends ObjectModel
     }
 
     /**
+     * Get repository class name
+     *
+     * @return string
+     */
+    public static function getRepositoryClassName()
+    {
+        return 'Invertus\Brad\Repository\FilterRepository';
+    }
+
+    /**
      * Update filter criteria (custom ranges)
      *
      * @return bool

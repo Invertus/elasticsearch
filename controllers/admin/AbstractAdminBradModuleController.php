@@ -39,16 +39,40 @@ abstract class AbstractAdminBradModuleController extends ModuleAdminController
     public $module;
 
     /**
-     * {@inheritDoc}
+     * Initialize options before render
+     *
+     * @return false|string
      */
-    public function init()
+    public function renderOptions()
     {
-        parent::init();
-
         $this->initOptions();
-        $this->initForm();
+
+        return parent::renderOptions();
+    }
+
+    /**
+     * Initialize list before render
+     *
+     * @return false|string
+     */
+    public function renderList()
+    {
         $this->initList();
-        $this->initFieldsValue();
+
+        return parent::renderList();
+    }
+
+    /**
+     * Initialize form and form values before render
+     *
+     * @return string
+     */
+    public function renderForm()
+    {
+        $this->initForm();
+        $this->initFormFieldsValue();
+
+        return parent::renderForm();
     }
 
     /**
@@ -115,10 +139,10 @@ abstract class AbstractAdminBradModuleController extends ModuleAdminController
     }
 
     /**
-     * Initialize fields value
+     * Initialize from fields values
      */
-    protected function initFieldsValue()
+    protected function initFormFieldsValue()
     {
-        //@todo: Override this method to initialize fields value
+        //@todo: Override this method to initialize form fields values
     }
 }

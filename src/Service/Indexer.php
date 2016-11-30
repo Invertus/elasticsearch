@@ -23,6 +23,7 @@ use Core_Business_ConfigurationInterface;
 use Core_Foundation_Database_EntityManager;
 use Invertus\Brad\Config\Setting;
 use Invertus\Brad\Logger\LoggerInterface;
+use Invertus\Brad\Repository\CategoryRepository;
 use Invertus\Brad\Repository\ProductRepository;
 use Invertus\Brad\Service\Elasticsearch\Builder\DocumentBuilder;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer;
@@ -135,6 +136,7 @@ class Indexer
         }
 
         $success = $this->indexProducts($idShop, $indexingType);
+        $this->indexCategories($idShop);
 
         if ($success) {
             $timeTook = microtime(true) - $startTime;
@@ -303,5 +305,66 @@ class Indexer
         }
 
         return $bulkParams;
+    }
+
+    /**
+     * Index categories
+     *
+     * @param int $idShop
+     *
+     * @return bool
+     */
+    public function indexCategories($idShop)
+    {
+        /** @var CategoryRepository $categoryRepository */
+        $categoryRepository = $this->em->getRepository('BradCategory');
+        $categoriesIds = $categoryRepository->findAllIdsByShopId($idShop);
+
+        if (empty($categoriesIds)) {
+            return true;
+        }
+
+        $indexPrefix = $this->configuration->get(Setting::INDEX_PREFIX);
+        $bulkRequestSize = (int) $this->configuration->get(Setting::BULK_REQUEST_SIZE_ADVANCED);
+
+        $lastCategoryIdsKey = Arrays::getLastKey($categoriesIds);
+        $bulkCategoriesIds = [];
+
+        foreach ($categoriesIds as $key => $idCategory) {
+            $bulkCategoriesIds[] = $idCategory;
+
+            if (count($categoriesIds) != $bulkRequestSize && $lastCategoryIdsKey != $key) {
+                continue;
+            }
+
+            /** @var \Category[] $categories */
+            $categories = new PrestaShopCollection('Category');
+            $categories->where('id_category', 'in', $bulkCategoriesIds);
+            $bulkParams = [];
+
+            foreach ($categories as $category) {
+
+                $bulkParams['body'][] = [
+                    'index' => [
+                        '_index' => $indexPrefix.$idShop,
+                        '_type' => 'categories',
+                        '_id' => $category->id,
+                    ],
+                ];
+
+                $categoryBody = $this->documentBuilder->buildCategoryBody($category);
+
+                $bulkParams['body'][] = $categoryBody;
+
+                if (!$this->elasticsearchIndexer->indexBulk($bulkParams)) {
+                    $this->logger->log('Failed to index categories', [], LoggerInterface::ERROR);
+                }
+            }
+
+            $bulkCategoriesIds = [];
+            unset($bulkParams);
+        }
+
+        return true;
     }
 }

@@ -73,6 +73,7 @@ form#bradSearchBox {
 }
 
 #bradInstantSearchResults {
+    z-index: 1000;
     position: absolute;
     width: 100%;
 }

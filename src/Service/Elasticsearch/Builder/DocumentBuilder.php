@@ -215,6 +215,32 @@ class DocumentBuilder
     }
 
     /**
+     * Build category fields for indexing
+     *
+     * @param Category $category
+     *
+     * @return array
+     */
+    public function buildCategoryBody(Category $category)
+    {
+        $body = [];
+        $body['id'] = $category->id;
+        $body['id_parent'] = $category->id_parent;
+        $body['nleft'] = $category->nleft;
+        $body['nright'] = $category->nleft;
+
+        if (is_array($category->name)) {
+            foreach ($category->name as $idLang => $name) {
+                $body['name_lang_'.(int)$idLang] = $name;
+            }
+        } else {
+            $body['name'] = $category->name;
+        }
+
+        return $body;
+    }
+
+    /**
      * Initialize groups, countries & currencies ids.
      * These are used for calculating prices.
      */

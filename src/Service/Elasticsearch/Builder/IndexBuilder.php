@@ -89,6 +89,16 @@ class IndexBuilder
                         ],
                     ],
                 ],
+                'categories' => [
+                    'properties' => [
+                        'nleft' => [
+                            'type' => 'integer',
+                        ],
+                        'nright' => [
+                            'type' => 'integer',
+                        ],
+                    ],
+                ],
             ],
         ];
 

@@ -25,6 +25,16 @@ use Invertus\Brad\Config\Setting;
 class AdminBradAdvancedSettingController extends AbstractAdminBradModuleController
 {
     /**
+     * Init
+     */
+    public function init()
+    {
+        parent::init();
+
+        $this->initOptions();
+    }
+
+    /**
      * Update dynamic index settings
      */
     public function processUpdateOptions()
@@ -73,6 +83,10 @@ class AdminBradAdvancedSettingController extends AbstractAdminBradModuleControll
 
     protected function initOptions()
     {
+        if (!empty($this->fields_options)) {
+            return;
+        }
+
         $this->fields_options = [
             'general_settings' => [
                 'title' => $this->l('Indexing configuration'),

@@ -49,8 +49,6 @@ class Brad extends Module
      */
     public function __construct()
     {
-        $this->requireAutoloader();
-
         $this->name = 'brad';
         $this->tab = 'front_office_features';
         $this->version = '2.0.0';
@@ -59,6 +57,8 @@ class Brad extends Module
         $this->controllers = [self::FRONT_BRAD_SEARCH_CONTROLLER];
 
         parent::__construct();
+
+        $this->requireAutoloader();
 
         $this->displayName = $this->l('BRAD');
         $this->description = $this->l('Elasticsearch® module for PrestaShop that makes search and filter significantly faster.');
@@ -72,6 +72,7 @@ class Brad extends Module
      */
     public function getContent()
     {
+        $this->registerHook('displayLeftColumn');
         Tools::redirectAdmin($this->context->link->getAdminLink(self::ADMIN_BRAD_SETTING_CONTROLLER));
     }
 
@@ -214,6 +215,31 @@ class Brad extends Module
         ]);
 
         return $this->context->smarty->fetch($this->container->get('brad_templates_dir').'hook/displayTop.tpl');
+    }
+
+    /**
+     * Display filters and handle filtering
+     */
+    public function hookDisplayLeftColumn()
+    {
+        $availableControllers = ['category'];
+        $currentController = Tools::getValue('controller');
+
+        if (!in_array($currentController, $availableControllers)) {
+            return;
+        }
+
+        /** @var Core_Business_ConfigurationInterface $configuration */
+        $configuration = $this->container->get('configuration');
+
+        $isFiltersEnalbed = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_FILTERS);
+        if (!$isFiltersEnalbed) {
+            return;
+        }
+
+        /** @var \Invertus\Brad\Service\Filter $filter */
+        $filter = $this->container->get('filter');
+        $filter->process();
     }
 
     /**

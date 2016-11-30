@@ -164,6 +164,7 @@ class Installer extends AbstractInstaller
             'displayBackOfficeHeader',
             'displayTop',
             'displayHeader',
+            'displayLeftColumn',
             'actionObjectProductAddAfter',
             'actionObjectProductUpdateAfter',
             'actionObjectProductDeleteAfter',

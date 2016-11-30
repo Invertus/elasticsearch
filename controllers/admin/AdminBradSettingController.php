@@ -26,6 +26,16 @@ use Invertus\Brad\Service\Indexer;
 class AdminBradSettingController extends AbstractAdminBradModuleController
 {
     /**
+     * Init
+     */
+    public function init()
+    {
+        parent::init();
+
+        $this->initOptions();
+    }
+
+    /**
      * Render options
      *
      * @return string
@@ -104,6 +114,10 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
      */
     protected function initOptions()
     {
+        if (!empty($this->fields_options)) {
+            return;
+        }
+
         $this->fields_options = [
             'elasticsearch_settings' => [
                 'title' => $this->l('Elasticsearch settings'),
@@ -165,6 +179,30 @@ class AdminBradSettingController extends AbstractAdminBradModuleController
                         'type' => 'text',
                         'class' => 'fixed-width-sm',
                         'suffix' => $this->l('symbols'),
+                    ],
+                ],
+                'submit' => [
+                    'title' => $this->l('Save'),
+                ],
+            ],
+            'filter_settings' => [
+                'title' => $this->l('Filter settings'),
+                'icon' => 'icon-filter',
+                'fields' => [
+                    Setting::ENABLE_FILTERS => [
+                        'title' => $this->l('Enable filters'),
+                        'validation' => 'isBool',
+                        'type' => 'bool',
+                    ],
+                    Setting::HIDE_FILTERS_WITH_NO_PRODUCTS => [
+                        'title' => $this->l('Hide filters with no matching products'),
+                        'validation' => 'isBool',
+                        'type' => 'bool',
+                    ],
+                    Setting::DISPLAY_NUMBER_OF_MATCHING_PRODUCTS => [
+                        'title' => $this->l('Display number of matching products'),
+                        'validation' => 'isBool',
+                        'type' => 'bool',
                     ],
                 ],
                 'submit' => [

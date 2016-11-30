@@ -46,6 +46,13 @@ class Setting
     const FUZZY_SEARCH = 'BRAD_FUZZY_SEARCH';
 
     /**
+     * Filter settings
+     */
+    const ENABLE_FILTERS = 'BRAD_ENABLE_FILTERS';
+    const HIDE_FILTERS_WITH_NO_PRODUCTS = 'BRAD_HIDE_FILTERS_WITH_NO_PRODUCTS';
+    const DISPLAY_NUMBER_OF_MATCHING_PRODUCTS = 'BRAD_DISPLAY_NUMBER_OF_MATCHING_PRODUCTS';
+
+    /**
      * General settings
      */
     const BULK_REQUEST_SIZE_ADVANCED = 'BRAD_BULK_REQUEST_SIZE';
@@ -71,6 +78,10 @@ class Setting
             self::FUZZY_SEARCH => 1,
 
             self::BULK_REQUEST_SIZE_ADVANCED => 2000,
+
+            self::ENABLE_FILTERS => 1,
+            self::HIDE_FILTERS_WITH_NO_PRODUCTS => 0,
+            self::DISPLAY_NUMBER_OF_MATCHING_PRODUCTS => 1,
         ];
     }
 }

@@ -71,4 +71,27 @@ class FilterTemplateRepository extends \Core_Foundation_Database_EntityRepositor
 
         return $results;
     }
+
+    /**
+     * Find all template filters by category
+     *
+     * @param int $idCategory
+     * @param int $idShop
+     *
+     * @return array
+     */
+    public function findTemplateFilters($idCategory, $idShop)
+    {
+        //@todo: finish implementing
+        $sql = '
+            SELET
+            FROM `'.$this->getPrefix().'brad_filter_template` ft
+            LEFT JOIN `'.$this->getPrefix().'brad_filter_template_shop` fts
+                ON fts.`id_brad_filter_template` = ft.`id_brad_filter_template`
+                    AND fts.`id_shop` = '.(int)$idShop.'
+            LEFT JOIN `'.$this->getPrefix().'brad_filter_template_category` ftc
+                ON ft.`id_brad_filter_template` = ftc.`id_brad_filter_template`
+                    AND ftc.`id_category` = '.(int)$idCategory.'
+        ';
+    }
 }

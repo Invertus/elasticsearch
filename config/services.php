@@ -102,4 +102,19 @@ return [
         'class' => 'Invertus\Brad\Logger\Logger',
         'arguments' => ['brad_log_dir'],
     ],
+
+    'url_parser' => [
+        'class' => 'Invertus\Brad\Service\UrlParser',
+        'arguments' => ['context', 'configuration'],
+    ],
+
+    'template_builder' => [
+        'class' => 'Invertus\Brad\Service\Builder\TemplateBuilder',
+        'arguments' => ['context'],
+    ],
+
+    'filter' => [
+        'class' => 'Invertus\Brad\Service\Filter',
+        'arguments' => ['context', 'em', 'url_parser', 'template_builder'],
+    ],
 ];

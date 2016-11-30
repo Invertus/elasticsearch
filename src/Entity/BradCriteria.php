@@ -37,21 +37,7 @@ class BradCriteria extends ObjectModel
             'max_value' => ['type' => self::TYPE_FLOAT, 'required' => true, 'validate' => 'isUnsignedFloat'],
             'position' => ['type' => self::TYPE_INT, 'required' => true, 'validate' => 'isUnsignedInt'],
         ],
-        'multishop' => true,
     ];
-
-    /**
-     * BradCriteria constructor.
-     *
-     * @param int|null $id
-     * @param int|null $idLang
-     * @param int|null $idShop
-     */
-    public function __construct($id = null, $idLang = null, $idShop = null)
-    {
-        parent::__construct($id, $idLang, $idShop);
-        Shop::addTableAssociation(self::$definition['table'], ['type' => 'shop']);
-    }
 
     /**
      * Delete all criterias by filter
@@ -64,19 +50,7 @@ class BradCriteria extends ObjectModel
     {
         $db = Db::getInstance();
 
-        $success = true;
-
-        $success &= $db->execute('
-            DELETE
-            FROM `'._DB_PREFIX_.'brad_criteria_shop`
-            WHERE `id_brad_criteria` IN (
-                SELECT `id_brad_criteria`
-                FROM `ps_brad_criteria`
-                WHERE `id_brad_filter` = '.(int)$idFilter.'
-            )
-        ');
-
-        $success &= $db->execute(
+        $success = $db->execute(
             'DELETE FROM `'._DB_PREFIX_.'brad_criteria` WHERE `id_brad_filter` = '.(int)$idFilter
         );
 

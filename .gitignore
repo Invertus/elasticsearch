@@ -1,2 +1,3 @@
 *.xml
-logs/
+logs/*
+!logs/.gitkeep

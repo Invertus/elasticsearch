@@ -139,6 +139,25 @@ class BradFilter extends ObjectModel
     }
 
     /**
+     * Delete filter criteria & remove filter from templates
+     *
+     * @return bool
+     */
+    public function delete()
+    {
+        $idFilter = (int) $this->id;
+
+        $parentReturn = parent::delete();
+
+        if ($parentReturn) {
+            BradCriteria::deleteFilterCriteria($idFilter);
+            Db::getInstance()->delete('brad_filter_template_filter', 'id_brad_filter = '.(int)$idFilter);
+        }
+
+        return $parentReturn;
+    }
+
+    /**
      * Get tranlslated filter type name
      *
      * @param int|null $filterType

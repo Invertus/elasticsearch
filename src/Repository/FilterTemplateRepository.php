@@ -10,19 +10,29 @@ namespace Invertus\Brad\Repository;
 class FilterTemplateRepository extends \Core_Foundation_Database_EntityRepository
 {
     /**
-     * Find all filter tempalte categories ids
+     * Find all filter template categories ids
      *
-     * @param int $idFilterTemplate
+     * @param int|null $idFilterTemplate
+     * @param array $excludeTemplatesIds
      *
      * @return array|int[]
      */
-    public function findAllCategories($idFilterTemplate)
+    public function findAllCategories($idFilterTemplate = null, array $excludeTemplatesIds = [])
     {
         $sql = '
             SELECT bftc.`id_category`
             FROM `'.$this->getPrefix().'brad_filter_template_category` bftc
-            WHERE bftc.`id_brad_filter_template` = '.(int)$idFilterTemplate.'
+            WHERE 1
         ';
+
+        if (null !== $idFilterTemplate) {
+            $sql .= ' AND bftc.`id_brad_filter_template` = '.(int)$idFilterTemplate;
+        }
+
+        if (!empty($excludeTemplatesIds)) {
+            $excludeTemplatesIds = array_map('intval', $excludeTemplatesIds);
+            $sql .= ' AND bftc.`id_brad_filter_template` NOT IN ('.implode(',', $excludeTemplatesIds).')';
+        }
 
         $results = $this->db->select($sql);
         $categoriesIds = [];
@@ -43,27 +53,22 @@ class FilterTemplateRepository extends \Core_Foundation_Database_EntityRepositor
      *
      * @param int $idFilterTemplate
      *
-     * @return array|int[]
+     * @return array
      */
     public function findAllFilters($idFilterTemplate)
     {
         $sql = '
-            SELECT bftf.`id_brad_filter`
+            SELECT bftf.`id_brad_filter`, bftf.`position`
             FROM `'.$this->getPrefix().'brad_filter_template_filter` bftf
             WHERE bftf.`id_brad_filter_template` = '.(int)$idFilterTemplate.'
         ';
 
         $results = $this->db->select($sql);
-        $filtersIds = [];
 
         if (!is_array($results)) {
-            return $filtersIds;
+            return [];
         }
 
-        foreach ($results as $result) {
-            $filtersIds[] = (int) $result['id_brad_filter'];
-        }
-
-        return $filtersIds;
+        return $results;
     }
 }

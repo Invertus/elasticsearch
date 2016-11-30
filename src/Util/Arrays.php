@@ -71,4 +71,39 @@ class Arrays
     {
         return array_slice($data, 0, $numberOfElements);
     }
+
+    /**
+     * Sort multidimensional array
+     *
+     * @param array $items
+     * @param string $field
+     */
+    public static function multiSort(array &$items, $field)
+    {
+        $sort = array();
+        foreach ($items as $key => $row) {
+            $sort[$key] = $row[$field];
+        }
+
+        array_multisort($sort, SORT_ASC, $items);
+    }
+
+    /**
+     * Check if array contains duplicate values
+     *
+     * @param array $items
+     *
+     * @return bool
+     */
+    public static function hasDuplicateValues(array $items)
+    {
+        $elementsCount = count($items);
+        $uniqueElementsCount = count(array_unique($items));
+
+        if ($elementsCount > $uniqueElementsCount) {
+            return true;
+        }
+
+        return false;
+    }
 }

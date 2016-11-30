@@ -141,7 +141,7 @@ class Indexer
             $message = sprintf('Time indexing took: %s', gmdate('H:i:s', $timeTook));
             $this->logger->log($message, [], LoggerInterface::INFO);
 
-            $message = sprintf('Memory usage before indexing is %s', MemoryStat::getMemoryUsage());
+            $message = sprintf('Memory usage after indexing is %s', MemoryStat::getMemoryUsage());
             $this->logger->log($message, [], LoggerInterface::INFO);
         }
 

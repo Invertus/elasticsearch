@@ -1,4 +1,5 @@
 <?php
+use Invertus\Brad\Util\Arrays;
 
 /**
  * Class AdminBradFilterTemplateController
@@ -109,31 +110,130 @@ class AdminBradFilterTemplateController extends AbstractAdminBradModuleControlle
      */
     protected function _childValidation()
     {
-        //@todo: add template validation (check if category already selected in other template)
+        $this->validateCategories();
+        $this->validateFilters();
     }
 
     /**
      * Initialize form fields values
      */
-    public function initFormFieldsValue()
+    protected function initFormFieldsValue()
     {
         /** @var \Invertus\Brad\Repository\FilterRepository $filterRepository */
         $filterRepository = $this->getRepository('BradFilter');
-        $availableFilters = $filterRepository->findAllByShopId($this->context->shop->id);
+        $availableTemplateFilters = $filterRepository->findAllByShopId($this->context->shop->id);
+        $selectedTemplateFilters = [];
 
         if (Validate::isLoadedObject($this->object)) {
             /** @var \Invertus\Brad\Repository\FilterTemplateRepository $filterTemplateRepository */
             $filterTemplateRepository = $this->getRepository('BradFilterTemplate');
             $selectedFilters = $filterTemplateRepository->findAllFilters($this->object->id);
-            //@todo: mark available filters as selected
+
+            $selectedFiltersIds = [];
+            $selectedFiltersPositions = [];
+
+            foreach ($selectedFilters as $selectedFilter) {
+                $idFilter = (int) $selectedFilter['id_brad_filter'];
+                $selectedFiltersIds[] = $idFilter;
+                $selectedFiltersPositions[$idFilter] = (int) $selectedFilter['position'];
+            }
+
+            foreach ($availableTemplateFilters as $key => $availableTemplateFilter) {
+                $idFilter = (int) $availableTemplateFilter['id_brad_filter'];
+                if (!in_array($idFilter, $selectedFiltersIds)) {
+                    continue;
+                }
+
+                $selectedFilter = $availableTemplateFilter;
+                $selectedFilter['position'] = $selectedFiltersPositions[$idFilter];
+
+                $selectedTemplateFilters[] = $selectedFilter;
+                unset($availableTemplateFilters[$key]);
+            }
+
+            if (!empty($selectedTemplateFilters)) {
+                Arrays::multiSort($selectedTemplateFilters, 'position');
+            }
         }
 
         $this->context->smarty->assign([
-            'available_filters' => $availableFilters,
+            'available_filters' => $availableTemplateFilters,
+            'selected_filters' => $selectedTemplateFilters,
         ]);
 
         $this->fields_value['template_filters'] = $this->context->smarty->fetch(
             $this->module->getLocalPath().'views/templates/admin/template_filters_select.tpl'
         );
+    }
+
+    /**
+     * Validate template categories
+     */
+    protected function validateCategories()
+    {
+        $checkedCategories = Tools::getValue('filter_template_categories');
+
+        if (empty($checkedCategories)) {
+            $this->errors[] = $this->l('You must select at least one category');
+            return;
+        }
+
+        $excludeTemplates = [];
+        if (Tools::isSubmit('id_brad_filter_template')) {
+            $excludeTemplates[] = (int) Tools::getValue('id_brad_filter_template');
+        }
+
+        /** @var \Invertus\Brad\Repository\FilterTemplateRepository $filterTemplateRepository */
+        $filterTemplateRepository = $this->getRepository('BradFilterTemplate');
+        $allTemplatesCategories = $filterTemplateRepository->findAllCategories(null, $excludeTemplates);
+
+        $intersect = array_intersect($allTemplatesCategories, $checkedCategories);
+
+        if (!empty($intersect)) {
+            $this->errors[] = $this->l('More or more category is already assigned to other template');
+        }
+    }
+
+    /**
+     * Validate template filters
+     */
+    protected function validateFilters()
+    {
+        $templateFilers = [];
+        $featuresIds = [];
+        $attributeGroupsIds = [];
+
+        foreach (array_keys($_POST) as $key) {
+            if (0 !== strpos($key, 'template_filter')) {
+                continue;
+            }
+
+            $filterData = explode(':', $key)[1];
+            // $idKey - id_feature / id_attribute_group if filter type is feature or attribute group OR 0 otherwise
+            list($idFilter, $filterType, $idKey) = explode('-', $filterData);
+
+            $templateFilers[] = (int) $idFilter;
+
+            if (BradFilter::FILTER_TYPE_ATTRIBUTE_GROUP == (int) $filterType) {
+                $attributeGroupsIds[] = (int) $idKey;
+            } elseif (BradFilter::FILTER_TYPE_FEATURE == (int) $filterType) {
+                $featuresIds[] = (int) $idKey;
+            }
+        }
+
+        if (empty($templateFilers)) {
+            $this->errors[] = $this->l('Template must have at least one filter');
+            return;
+        }
+
+        if (Arrays::hasDuplicateValues($featuresIds)) {
+            $this->errors[] = $this->l('Template cannot have multipile filters with same feature');
+            return;
+        }
+
+        if (Arrays::hasDuplicateValues($attributeGroupsIds)) {
+            $this->errors[] = $this->l('Template cannot have multipile filters with same attribute group');
+            return;
+        }
     }
 }

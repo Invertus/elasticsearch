@@ -93,6 +93,23 @@ class BradFilterTemplate extends ObjectModel
     }
 
     /**
+     * Remove template categories & filters when deleting template
+     *
+     * @return bool
+     */
+    public function delete()
+    {
+        $parentReturn = parent::delete();
+
+        if ($parentReturn) {
+            $this->deleteCategories();
+            $this->deleteFilters();
+        }
+
+        return $parentReturn;
+    }
+
+    /**
      * Update template filters
      *
      * @return bool
@@ -105,11 +122,12 @@ class BradFilterTemplate extends ObjectModel
         $position = 1;
 
         foreach (array_keys($_POST) as $key) {
-            if (0 !== strpos($key, 'template_filter_')) {
+            if (0 !== strpos($key, 'template_filter')) {
                 continue;
             }
 
-            $idFilter = substr($key, -1);
+            $filterData = explode(':', $key)[1];
+            $idFilter = (int) explode('-', $filterData)[0];
 
             $templateFilters[] = [
                 'id_brad_filter' => (int) $idFilter,

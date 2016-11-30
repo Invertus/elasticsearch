@@ -11,5 +11,4 @@ use Exception;
  */
 class ServiceNotFoundException extends Exception
 {
-
 }

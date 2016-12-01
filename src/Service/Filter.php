@@ -4,6 +4,7 @@ namespace Invertus\Brad\Service;
 
 use Context;
 use Core_Foundation_Database_EntityManager;
+use Invertus\Brad\Repository\FeatureRepository;
 use Invertus\Brad\Repository\FilterTemplateRepository;
 use Invertus\Brad\Service\Builder\TemplateBuilder;
 use Tools;
@@ -36,6 +37,11 @@ class Filter
     private $templatebuilder;
 
     /**
+     * @var array Array of filters data
+     */
+    private $filters;
+
+    /**
      * Filter constructor.
      *
      * @param Context $context
@@ -56,9 +62,7 @@ class Filter
      */
     public function process()
     {
-        $filters = $this->getFilters();
-        //@todo: parser url
-        //@todo: get results by parsed url data
+        $this->filters = $this->getFilters();
     }
 
     /**
@@ -68,7 +72,7 @@ class Filter
      */
     public function renderFilters()
     {
-        return 'rendered_filters';
+        return $this->templatebuilder->buildFilters($this->filters);
     }
 
     /**
@@ -94,6 +98,13 @@ class Filter
         $filterTemplateRepository = $this->em->getRepository('BradFilterTemplate');
 
         $filters = $filterTemplateRepository->findTemplateFilters($idCategory, $this->context->shop->id);
+
+        /** @var FeatureRepository $featureRepository */
+        $featureRepository = $this->em->getRepository('BradFeature');
+        $features = $featureRepository->findNames($this->context->language->id, $this->context->shop->id);
+        //@todo: get all attribute groups
+
+        //@todo: set filter names
 
         return $filters;
     }

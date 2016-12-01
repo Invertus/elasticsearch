@@ -72,7 +72,6 @@ class Brad extends Module
      */
     public function getContent()
     {
-        $this->registerHook('displayLeftColumn');
         Tools::redirectAdmin($this->context->link->getAdminLink(self::ADMIN_BRAD_SETTING_CONTROLLER));
     }
 
@@ -240,6 +239,7 @@ class Brad extends Module
         /** @var \Invertus\Brad\Service\Filter $filter */
         $filter = $this->container->get('filter');
         $filter->process();
+        return $filter->renderFilters();
     }
 
     /**

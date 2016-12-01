@@ -110,7 +110,7 @@ return [
 
     'template_builder' => [
         'class' => 'Invertus\Brad\Service\Builder\TemplateBuilder',
-        'arguments' => ['context'],
+        'arguments' => ['context', 'brad_templates_dir'],
     ],
 
     'filter' => [

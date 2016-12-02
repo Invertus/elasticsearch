@@ -115,6 +115,6 @@ return [
 
     'filter' => [
         'class' => 'Invertus\Brad\Service\Filter',
-        'arguments' => ['context', 'em', 'url_parser', 'template_builder'],
+        'arguments' => ['context', 'em', 'url_parser'],
     ],
 ];

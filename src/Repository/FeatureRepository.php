@@ -63,6 +63,7 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
             SELECT fl.`id_feature`, fl.`name`
             FROM `'.$this->getPrefix().'feature_lang` fl
             LEFT JOIN `'.$this->getPrefix().'feature_shop` fs
+                ON fs.`id_feature` = fl.`id_feature`
             WHERE fl.`id_lang` = '.(int)$idLang.'
                 AND fs.`id_shop` = '.(int)$idShop.'
         ';
@@ -80,5 +81,40 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
         }
 
         return $features;
+    }
+
+    /**
+     * Find all feature values
+     *
+     * @param int $idLang
+     *
+     * @return array
+     */
+    public function findFeaturesValues($idLang)
+    {
+        $sql = '
+            SELECT fv.`id_feature`, fvl.`id_feature_value`, fvl.`value`
+            FROM `'.$this->getPrefix().'feature_value_lang` fvl
+            LEFT JOIN `'.$this->getPrefix().'feature_value` fv
+                ON fv.`id_feature_value` = fvl.`id_feature_value`
+            WHERE fvl.`id_lang` = '.(int)$idLang.'
+        ';
+
+        $results = $this->db->select($sql);
+
+        if (!is_array($results) || !$results) {
+            return [];
+        }
+
+        $featureValues = [];
+
+        foreach ($results as $result) {
+            $featureValues[$result['id_feature']][] = [
+                'name' => $result['value'],
+                'id_feature_value' => $result['id_feature_value']
+            ];
+        }
+
+        return $featureValues;
     }
 }

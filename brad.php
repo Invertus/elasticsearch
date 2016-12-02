@@ -239,7 +239,6 @@ class Brad extends Module
         /** @var \Invertus\Brad\Service\Filter $filter */
         $filter = $this->container->get('filter');
         $filter->process();
-        return $filter->renderFilters();
     }
 
     /**

@@ -34,4 +34,35 @@ class FilterRepository extends \Core_Foundation_Database_EntityRepository
 
         return $results;
     }
+
+    /**
+     *
+     *
+     * @return array
+     */
+    public function findAllCriterias()
+    {
+        $sql = '
+            SELECT c.`id_brad_filter`, c.`min_value`, c.`max_value`, c.`position`
+            FROM `'.$this->getPrefix().'brad_criteria` c
+        ';
+
+        $results = $this->db->select($sql);
+
+        if (!is_array($results) || !$results) {
+            return [];
+        }
+
+        $criterias = [];
+
+        foreach ($results as $result) {
+            $criterias[$result['id_brad_filter']][] = [
+                'min_value' => $result['min_value'],
+                'max_value' => $result['max_value'],
+                'position' => $result['position'],
+            ];
+        }
+
+        return $criterias;
+    }
 }

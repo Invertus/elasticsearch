@@ -22,6 +22,7 @@ return array(
     'BradFilter' => $baseDir . '/src/Entity/BradFilter.php',
     'BradFilterTemplate' => $baseDir . '/src/Entity/BradFilterTemplate.php',
     'BradGroup' => $baseDir . '/src/Entity/BradGroup.php',
+    'BradManufacturer' => $baseDir . '/src/Entity/BradManufacturer.php',
     'BradProduct' => $baseDir . '/src/Entity/BradProduct.php',
     'BradSearchModuleFrontController' => $baseDir . '/controllers/front/search.php',
     'BradShop' => $baseDir . '/src/Entity/BradShop.php',

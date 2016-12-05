@@ -35,4 +35,27 @@ class BradProduct extends Product
     {
         return '\Invertus\Brad\Repository\ProductRepository';
     }
+
+    /**
+     * Get stock criteria values
+     *
+     * @return array
+     */
+    public static function getStockCriterias()
+    {
+        $brad = Module::getInstanceByName('brad');
+
+        $criterias = [
+            [
+                'value' => 1,
+                'name' => $brad->l('In stock', __CLASS__),
+            ],
+            [
+                'value' => 0,
+                'name' => $brad->l('Out of stock', __CLASS__),
+            ],
+        ];
+
+        return $criterias;
+    }
 }

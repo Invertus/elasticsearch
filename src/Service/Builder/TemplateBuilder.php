@@ -34,13 +34,13 @@ class TemplateBuilder
     }
 
     /**
-     * Build filters html
+     * Build filters html template
      *
      * @param array $filterData
      *
      * @return string
      */
-    public function buildFilters(array $filterData)
+    public function buildFiltersTemplate(array $filterData)
     {
         $this->context->smarty->assign([
             'filters' => $filterData,
@@ -49,7 +49,14 @@ class TemplateBuilder
         return $this->context->smarty->fetch($this->bradViewsDir.'front/filter-template.tpl');
     }
 
-    public function buildResults(array $filterResults)
+    /**
+     * Build filter results html template
+     *
+     * @param array $filterResults
+     *
+     * @return string
+     */
+    public function buildResultsTemplate(array $filterResults)
     {
         //@todo: implement results builder
     }

@@ -106,38 +106,6 @@ class FilterTemplateRepository extends \Core_Foundation_Database_EntityRepositor
             return [];
         }
 
-        $criteriaFiltersIds = [];
-        foreach ($results as &$result) {
-            $result['criterias'] = [];
-            if (BradFilter::FILTER_STYLE_LIST_OF_VALUES == (int) $result['filter_style']) {
-                $criteriaFiltersIds[] = (int) $result['id_brad_filter'];
-            }
-        }
-
-        if (empty($criteriaFiltersIds)) {
-            return $results;
-        }
-
-        $sql = '
-            SELECT c.`id_brad_filter`, c.`min_value`, c.`max_value`, c.`position`
-            FROM `'.$this->getPrefix().'brad_criteria` c
-            WHERE c.`id_brad_filter` IN ('.implode(',', array_map('intval', $criteriaFiltersIds)).')
-        ';
-
-        $criterias = $this->db->select($sql);
-
-        if (!is_array($criterias) || !$criterias) {
-            return $results;
-        }
-
-        foreach ($results as &$result) {
-            foreach ($criterias as $criteria) {
-                if ($result['id_brad_filter'] == $criteria['id_brad_filter']) {
-                    $result['criterias'][] = $criteria;
-                }
-            }
-        }
-
         return $results;
     }
 }

@@ -221,11 +221,15 @@ class Brad extends Module
      */
     public function hookDisplayLeftColumn()
     {
+        if (!$this->isElasticsearchConnectionAvailable()) {
+            return '';
+        }
+
         $availableControllers = ['category'];
         $currentController = Tools::getValue('controller');
 
         if (!in_array($currentController, $availableControllers)) {
-            return;
+            return '';
         }
 
         /** @var Core_Business_ConfigurationInterface $configuration */
@@ -233,12 +237,23 @@ class Brad extends Module
 
         $isFiltersEnalbed = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_FILTERS);
         if (!$isFiltersEnalbed) {
-            return;
+            return '';
         }
+
+        /** @var \Invertus\Brad\Service\Builder\FilterBuilder $filterBuilder */
+        $filterBuilder = $this->container->get('filter_builder');
+        $filterBuilder->build();
+
+        $filters = $filterBuilder->getBuiltFilters();
 
         /** @var \Invertus\Brad\Service\Filter $filter */
         $filter = $this->container->get('filter');
-        $filter->process();
+        $products = $filter->process($filters); //@TODO: implements filtering
+
+        /** @var \Invertus\Brad\Service\Builder\TemplateBuilder $templateBuilder */
+        $templateBuilder = $this->container->get('template_builder');
+
+        return $templateBuilder->buildFiltersTemplate($filters);
     }
 
     /**

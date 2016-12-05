@@ -50,4 +50,88 @@ class ProductRepository extends \Core_Foundation_Database_EntityRepository
 
         return $productsIds;
     }
+
+    /**
+     * Find min product weight
+     *
+     * @param int $idShop
+     *
+     * @return float
+     */
+    public function findMinWeight($idShop)
+    {
+        $sql = '
+            SELECT MIN(p.`weight`) AS `min_weight`
+            FROM `'.$this->getPrefix().'product` p
+            LEFT JOIN `'.$this->getPrefix().'product_shop` ps
+                ON ps.`id_product` = p.`id_product`
+            WHERE ps.`id_shop` = '.(int)$idShop.'
+        ';
+
+        $results = $this->db->select($sql);
+
+        if (!is_array($results) || !$results) {
+            return 0.0;
+        }
+
+        return $results[0]['min_weight'];
+    }
+
+    /**
+     * Find max product weight
+     *
+     * @param int $idShop
+     *
+     * @return float
+     */
+    public function findMaxWeight($idShop)
+    {
+        $sql = '
+            SELECT MAX(p.`weight`) AS `max_weight`
+            FROM `'.$this->getPrefix().'product` p
+            LEFT JOIN `'.$this->getPrefix().'product_shop` ps
+                ON ps.`id_product` = p.`id_product`
+            WHERE ps.`id_shop` = '.(int)$idShop.'
+        ';
+
+        $results = $this->db->select($sql);
+
+        if (!is_array($results) || !$results) {
+            return 0.0;
+        }
+
+        return $results[0]['max_weight'];
+    }
+
+    /**
+     * Find all products weights
+     *
+     * @param int $idShop
+     *
+     * @return array|float[]
+     */
+    public function findAllWeights($idShop)
+    {
+        $sql = '
+            SELECT DISTINCT p.`weight`
+            FROM `'.$this->getPrefix().'product` p
+            LEFT JOIN `'.$this->getPrefix().'product_shop` ps
+                ON ps.`id_product` = p.`id_product`
+            WHERE ps.`id_shop` = '.(int)$idShop.'
+        ';
+
+        $results = $this->db->select($sql);
+
+        if (!is_array($results) || !$results) {
+            return [];
+        }
+
+        $weights = [];
+
+        foreach ($results as $result) {
+            $weights[] = $result['weight'];
+        }
+
+        return $weights;
+    }
 }

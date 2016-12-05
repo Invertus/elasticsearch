@@ -113,8 +113,18 @@ return [
         'arguments' => ['context', 'brad_templates_dir'],
     ],
 
+    'filter_builder' => [
+        'class' => 'Invertus\Brad\Service\Builder\FilterBuilder',
+        'arguments' => ['context', 'em', 'elasticsearch.helper'],
+    ],
+
     'filter' => [
         'class' => 'Invertus\Brad\Service\Filter',
-        'arguments' => ['context', 'em', 'url_parser'],
+        'arguments' => ['context', 'em'],
+    ],
+
+    'elasticsearch.helper' => [
+        'class' => 'Invertus\Brad\Service\Elasticsearch\ElasticsearchHelper',
+        'arguments' => ['elasticsearch.manager', 'context'],
     ],
 ];

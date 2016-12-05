@@ -122,4 +122,68 @@ class AttributeGroupRepository extends \Core_Foundation_Database_EntityRepositor
 
         return $attributeGroupsValues;
     }
+
+    /**
+     * Get min attribute group value
+     *
+     * @param int $idAttributeGroup
+     * @param int $idLang
+     * @param int $idShop
+     *
+     * @return float
+     */
+    public function findMinAttributeGroupValue($idAttributeGroup, $idLang, $idShop)
+    {
+        $sql = '
+            SELECT MIN(al.`name`) AS `min_value`
+            FROM `'.$this->getPrefix().'attribute` a
+            LEFT JOIN `'.$this->getPrefix().'attribute_group_shop` ags
+                ON ags.`id_attribute_group` = a.`id_attribute_group`
+            LEFT JOIN `'.$this->getPrefix().'attribute_lang` al
+                ON al.`id_attribute` = a.`id_attribute`
+            WHERE a.`id_attribute_group` = '.(int)$idAttributeGroup.'
+                AND al.`id_lang` = '.(int)$idLang.'
+                AND ags.`id_shop` = '.(int)$idShop.'
+        ';
+
+        $results = $this->db->select($sql);
+
+        if (!is_array($results) || !$results) {
+            return 0.0;
+        }
+
+        return $results[0]['min_value'];
+    }
+
+    /**
+     * Get max attribute group value
+     *
+     * @param int $idAttributeGroup
+     * @param int $idLang
+     * @param int $idShop
+     *
+     * @return float
+     */
+    public function findMaxAttributeGroupValue($idAttributeGroup, $idLang, $idShop)
+    {
+        $sql = '
+            SELECT MAX(al.`name`) AS `max_value`
+            FROM `'.$this->getPrefix().'attribute` a
+            LEFT JOIN `'.$this->getPrefix().'attribute_group_shop` ags
+                ON ags.`id_attribute_group` = a.`id_attribute_group`
+            LEFT JOIN `'.$this->getPrefix().'attribute_lang` al
+                ON al.`id_attribute` = a.`id_attribute`
+            WHERE a.`id_attribute_group` = '.(int)$idAttributeGroup.'
+                AND al.`id_lang` = '.(int)$idLang.'
+                AND ags.`id_shop` = '.(int)$idShop.'
+        ';
+
+        $results = $this->db->select($sql);
+
+        if (!is_array($results) || !$results) {
+            return 0.0;
+        }
+
+        return $results[0]['max_value'];
+    }
 }

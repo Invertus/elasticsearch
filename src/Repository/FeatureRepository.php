@@ -117,4 +117,64 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
 
         return $featureValues;
     }
+
+    /**
+     * Find max feature value
+     *
+     * @param int $idFeature
+     * @param int $idShop
+     *
+     * @return float
+     */
+    public function findMaxFeatureValue($idFeature, $idShop)
+    {
+        $sql = '
+            SELECT MAX(fvl.`value`) AS `max_value`
+            FROM `'.$this->getPrefix().'feature_value` fv
+            LEFT JOIN `'.$this->getPrefix().'feature_value_lang` fvl
+                ON fvl.`id_feature_value` = fv.`id_feature_value`
+            LEFT JOIN `'.$this->getPrefix().'feature_shop` fs
+                ON fs.`id_feature` = fv.`id_feature`
+            WHERE fs.`id_shop` = '.(int)$idShop.'
+                AND fv.`id_feature` = '.(int)$idFeature.'
+        ';
+
+        $results = $this->db->select($sql);
+
+        if (!is_array($results) || !$results) {
+            return 0.0;
+        }
+
+        return $results[0]['max_value'];
+    }
+
+    /**
+     * Find min feature value
+     *
+     * @param int $idFeature
+     * @param int $idShop
+     *
+     * @return float
+     */
+    public function findMinFeatureValue($idFeature, $idShop)
+    {
+        $sql = '
+            SELECT MIN(fvl.`value`) AS `min_value`
+            FROM `'.$this->getPrefix().'feature_value` fv
+            LEFT JOIN `'.$this->getPrefix().'feature_value_lang` fvl
+                ON fvl.`id_feature_value` = fv.`id_feature_value`
+            LEFT JOIN `'.$this->getPrefix().'feature_shop` fs
+                ON fs.`id_feature` = fv.`id_feature`
+            WHERE fs.`id_shop` = '.(int)$idShop.'
+                AND fv.`id_feature` = '.(int)$idFeature.'
+        ';
+
+        $results = $this->db->select($sql);
+
+        if (!is_array($results) || !$results) {
+            return 0.0;
+        }
+
+        return $results[0]['min_value'];
+    }
 }

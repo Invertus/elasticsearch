@@ -40,6 +40,7 @@ class Brad extends Module
      * Front controllers
      */
     const FRONT_BRAD_SEARCH_CONTROLLER = 'search';
+    const FRONT_BRAD_FILTER_CONTROLLER = 'filter';
 
     /** @var \Invertus\Brad\Container\Container */
     private $container;
@@ -54,7 +55,7 @@ class Brad extends Module
         $this->version = '2.0.0';
         $this->author = 'Invertus';
         $this->need_instance = 0;
-        $this->controllers = [self::FRONT_BRAD_SEARCH_CONTROLLER];
+        $this->controllers = [self::FRONT_BRAD_SEARCH_CONTROLLER, self::FRONT_BRAD_FILTER_CONTROLLER];
 
         parent::__construct();
 
@@ -165,28 +166,40 @@ class Brad extends Module
         /** @var Core_Business_ConfigurationInterface $configuration */
         $configuration = $this->container->get('configuration');
 
-        $isSearchEnalbed = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_SEARCH);
-        if (!$isSearchEnalbed) {
-            return;
+        $isFiltersEnalbed = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_FILTERS);
+
+        if ($isFiltersEnalbed) {
+            $jsUri = $this->container->get('brad_js_uri');
+            $this->context->controller->addJqueryUI('ui.slider');
+            $this->context->controller->addJS($jsUri.'front/filter.js');
+
+            $bradFilterUrl = $this->context->link->getModuleLink($this->name, self::FRONT_BRAD_FILTER_CONTROLLER);
+
+            Media::addJsDef([
+                '$globalBradFilterUrl' => $bradFilterUrl,
+            ]);
         }
 
-        $bradMinWordLength = (int) $configuration->get(\Invertus\Brad\Config\Setting::MINIMAL_SEARCH_WORD_LENGTH);
-        $bradInstantSearchResultsCount = (int) $configuration->get(\Invertus\Brad\Config\Setting::INSTANT_SEARCH_RESULTS_COUNT);
-        $bradSearchUrl = $this->context->link->getModuleLink($this->name, self::FRONT_BRAD_SEARCH_CONTROLLER);
+        $isSearchEnalbed = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_SEARCH);
+        if ($isSearchEnalbed) {
+            $bradMinWordLength = (int) $configuration->get(\Invertus\Brad\Config\Setting::MINIMAL_SEARCH_WORD_LENGTH);
+            $bradInstantSearchResultsCount = (int) $configuration->get(\Invertus\Brad\Config\Setting::INSTANT_SEARCH_RESULTS_COUNT);
+            $bradSearchUrl = $this->context->link->getModuleLink($this->name, self::FRONT_BRAD_SEARCH_CONTROLLER);
 
-        Media::addJsDef([
-            '$globalBradMinWordLength' => $bradMinWordLength,
-            '$globalBradInstantSearchResultsCount' => $bradInstantSearchResultsCount,
-            '$globalBradSearchUrl' => $bradSearchUrl,
-        ]);
+            Media::addJsDef([
+                '$globalBradMinWordLength' => $bradMinWordLength,
+                '$globalBradInstantSearchResultsCount' => $bradInstantSearchResultsCount,
+                '$globalBradSearchUrl' => $bradSearchUrl,
+            ]);
 
-        $this->context->controller->addCSS([
-            $this->container->get('brad_css_uri').'front/global.css',
-        ]);
+            $this->context->controller->addCSS([
+                $this->container->get('brad_css_uri').'front/global.css',
+            ]);
 
-        $this->context->controller->addJS([
-            $this->container->get('brad_js_uri').'front/search.js',
-        ]);
+            $this->context->controller->addJS([
+                $this->container->get('brad_js_uri').'front/search.js',
+            ]);
+        }
     }
 
     /**

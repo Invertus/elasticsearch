@@ -13,7 +13,6 @@ use Invertus\Brad\Repository\FeatureRepository;
 use Invertus\Brad\Repository\FilterRepository;
 use Invertus\Brad\Repository\FilterTemplateRepository;
 use Invertus\Brad\Repository\ManufacturerRepository;
-use Invertus\Brad\Repository\ProductRepository;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchHelper;
 use Invertus\Brad\Util\RangeParser;
 use Tools;
@@ -158,6 +157,7 @@ class FilterBuilder
      */
     private function getFeatureCriterias(array &$filterData)
     {
+        $filterData['input_name'] = 'feature_'.$filterData['id_key'];
         $filterStyle = (int) $filterData;
 
         /** @var FeatureRepository $featureRepository */
@@ -197,6 +197,8 @@ class FilterBuilder
      */
     private function getAttributeGroupCriterias(array &$filterData)
     {
+        $filterData['input_name'] = 'attribute_group_'.$filterData['id_key'];
+
         /** @var AttributeGroupRepository $attributeGroupRepository */
         $attributeGroupRepository = $this->em->getRepository('BradAttributeGroup');
 
@@ -238,6 +240,7 @@ class FilterBuilder
      */
     private function getPriceCriterias(array &$filterData)
     {
+        $filterData['input_name'] = 'price';
         $filterStyle = (int) $filterData['filter_style'];
         $pricesCriterias = [];
 
@@ -245,7 +248,7 @@ class FilterBuilder
             $maxPrice = $this->esHelper->getAggregatedProductPrice(ElasticsearchHelper::AGGS_MAX);
             $minPrice = $this->esHelper->getAggregatedProductPrice(ElasticsearchHelper::AGGS_MIN);
 
-            $pricesCriterias = ['max_value' => $maxPrice, 'min_value' => $minPrice];
+            $pricesCriterias = ['max_value' => round($maxPrice, 2), 'min_value' => round($minPrice, 2)];
         } elseif (BradFilter::FILTER_STYLE_CHECKBOX == $filterStyle) {
             $maxPrice = $this->esHelper->getAggregatedProductPrice(ElasticsearchHelper::AGGS_MAX);
             $minPrice = $this->esHelper->getAggregatedProductPrice(ElasticsearchHelper::AGGS_MIN);
@@ -299,6 +302,8 @@ class FilterBuilder
      */
     private function getManufacturerCriterias(array &$filterData)
     {
+        $filterData['input_name'] = 'manufacturer';
+
         /** @var ManufacturerRepository $manufacturerRepository */
         $manufacturerRepository = $this->em->getRepository('BradManufacturer');
         $manufacturers = $manufacturerRepository->findAllByShopId($this->context->shop->id);
@@ -318,6 +323,8 @@ class FilterBuilder
      */
     private function getQuantityCriterias(array &$filterData)
     {
+        $filterData['input_name'] = 'quantity';
+
         $criterias = BradProduct::getStockCriterias();
 
         $filterData['criteria_name'] = 'name';
@@ -335,6 +342,7 @@ class FilterBuilder
      */
     private function getWeightCriterias(array &$filterData)
     {
+        $filterData['input_name'] = 'weight';
         $filterStyle = (int) $filterData['filter_style'];
         $weightCriterias = [];
 
@@ -398,6 +406,8 @@ class FilterBuilder
      */
     private function getCategoryCriterias(array &$filterData)
     {
+        $filterData['input_name'] = 'category';
+
         $idShop = $this->context->shop->id;
         $idLang = $this->context->language->id;
         $idCategory = (int) Tools::getValue('id_category');

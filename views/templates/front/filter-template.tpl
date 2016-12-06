@@ -26,19 +26,54 @@
                                                 height: 15px;
                                                 background-color: {$criteria.color|escape:'htmlall':'UTF-8'};
                                                 display: inline-block;
-                                            ">
-                                            </span>
+                                            "></span>
                                         {/if}
-                                        <input value="{$criteria[$criteria_value_key]|escape:'htmlall':'UTF-8'}" type="checkbox">
+                                        <input name="{$filter.input_name|escape:'htmlall':'UTF-8'}"
+                                               value="{$criteria[$criteria_value_key]|escape:'htmlall':'UTF-8'}"
+                                               type="checkbox"
+                                               class="brad-checkbox-filter-input"
+                                        >
                                         {$criteria[$criteria_name_key]|escape:'htmlall':'UTF-8'}
                                     </label>
                                 </div>
                             {/foreach}
                         {elseif BradFilter::FILTER_STYLE_INPUT == $filter.filter_style}
-
-
+                            <div class="row brad-input-area"
+                                 data-input-name="{$filter.input_name|escape:'htmlall':'UTF-8'}">
+                                <div class="col-md-4">
+                                    <label for="">{l s='From:' mod='brad'}</label>
+                                    <input type="text"
+                                           class="form-control brad-min-range"
+                                           value="{$filter.criterias.min_value|escape:'htmlall':'UTF-8'}"
+                                           data-default-min-value="{$filter.criterias.min_value|escape:'htmlall':'UTF-8'}"
+                                    >
+                                </div>
+                                <div class="col-md-4" >
+                                    <label for="">{l s='To:' mod='brad'}</label>
+                                    <input type="text"
+                                           class="form-control brad-max-range"
+                                           value="{$filter.criterias.max_value|escape:'htmlall':'UTF-8'}"
+                                           data-default-max-value="{$filter.criterias.max_value|escape:'htmlall':'UTF-8'}"
+                                    >
+                                </div>
+                                <input class="brad-input-filter-input" type="hidden" name="{$filter.input_name|escape:'htmlall':'UTF-8'}">
+                            </div>
                         {elseif BradFilter::FILTER_STYLE_SLIDER == $filter.filter_style}
-
+                            <div>
+                                <label>{l s='Range:' mod="brad"} <span class="brad-selected-range"></span></label>
+                                <input class="brad-slider-input brad-slider-filter-input"
+                                       type="text"
+                                       readonly
+                                       style="border:0; color:#777; font-weight:bold;"
+                                       name="{$filter.input_name|escape:'htmlall':'UTF-8'}"
+                                >
+                                <div data-min-value="{$filter.criterias.min_value|escape:'htmlall':'UTF-8'}"
+                                     data-max-value="{$filter.criterias.max_value|escape:'htmlall':'UTF-8'}"
+                                     data-input-name="{$filter.input_name|escape:'htmlall':'UTF-8'}"
+                                     class="brad-slider"
+                                >
+                                </div>
+                            </div>
                         {/if}
                     </div>
                     <hr>

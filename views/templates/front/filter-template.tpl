@@ -1,4 +1,4 @@
-<div class="block">
+<div class="block" id="bradFilterContainer">
     <p class="title_block">
         {l s='Filter' mod='brad'}
     </p>
@@ -20,7 +20,7 @@
                             {foreach $filter.criterias as $criteria}
                                 <div class="checkbox">
                                     <label>
-                                        {if isset($criteria.color)}
+                                        {if isset($criteria.color) && !empty($criteria.color)}
                                             <span style="
                                                 width: 15px;
                                                 height: 15px;
@@ -32,6 +32,7 @@
                                                value="{$criteria[$criteria_value_key]|escape:'htmlall':'UTF-8'}"
                                                type="checkbox"
                                                class="brad-checkbox-filter-input"
+                                               {if isset($criteria.checked)}checked="checked"{/if}
                                         >
                                         {$criteria[$criteria_name_key]|escape:'htmlall':'UTF-8'}
                                     </label>
@@ -44,7 +45,7 @@
                                     <label for="">{l s='From:' mod='brad'}</label>
                                     <input type="text"
                                            class="form-control brad-min-range"
-                                           value="{$filter.criterias.min_value|escape:'htmlall':'UTF-8'}"
+                                           value="{if isset($filter.criterias.selected_min_value)}{$filter.criterias.selected_min_value|escape:'htmlall':'UTF-8'}{else}{$filter.criterias.min_value|escape:'htmlall':'UTF-8'}{/if}"
                                            data-default-min-value="{$filter.criterias.min_value|escape:'htmlall':'UTF-8'}"
                                     >
                                 </div>
@@ -52,11 +53,12 @@
                                     <label for="">{l s='To:' mod='brad'}</label>
                                     <input type="text"
                                            class="form-control brad-max-range"
-                                           value="{$filter.criterias.max_value|escape:'htmlall':'UTF-8'}"
+                                           value="{if isset($filter.criterias.selected_max_value)}{$filter.criterias.selected_max_value|escape:'htmlall':'UTF-8'}{else}{$filter.criterias.max_value|escape:'htmlall':'UTF-8'}{/if}"
                                            data-default-max-value="{$filter.criterias.max_value|escape:'htmlall':'UTF-8'}"
                                     >
                                 </div>
-                                <input class="brad-input-filter-input" type="hidden" name="{$filter.input_name|escape:'htmlall':'UTF-8'}">
+                                {assign var='is_selected_value' value=(isset($filter.criterias.selected_min_value) || isset($filter.criterias.selected_max_value))}
+                                <input class="brad-input-filter-input" type="hidden" name="{$filter.input_name|escape:'htmlall':'UTF-8'}" {if $is_selected_value}checked="checked" value="{$filter.criterias.selected_min_value|escape:'htmlall':'UTF-8'}:{$filter.criterias.selected_max_value|escape:'htmlall':'UTF-8'}" {/if}>
                             </div>
                         {elseif BradFilter::FILTER_STYLE_SLIDER == $filter.filter_style}
                             <div>
@@ -70,6 +72,8 @@
                                 <div data-min-value="{$filter.criterias.min_value|escape:'htmlall':'UTF-8'}"
                                      data-max-value="{$filter.criterias.max_value|escape:'htmlall':'UTF-8'}"
                                      data-input-name="{$filter.input_name|escape:'htmlall':'UTF-8'}"
+                                     {if isset($filter.criterias.selected_min_value)}data-selected-min-value="{$filter.criterias.selected_min_value|escape:'htmlall':'UTF-8'}"{/if}
+                                     {if isset($filter.criterias.selected_max_value)}data-selected-max-value="{$filter.criterias.selected_max_value|escape:'htmlall':'UTF-8'}"{/if}
                                      class="brad-slider"
                                 >
                                 </div>

@@ -1,5 +1,7 @@
 $(document).ready(function() {
 
+    var $sendingRequest = false;
+
     handleInputArea();
     handleSlider();
 
@@ -8,18 +10,55 @@ $(document).ready(function() {
     /**
      * Perform filtering
      */
-    function performFiltering() {
-        debug('Filtering started');
-
+    function performFiltering()
+    {
         var $selectedFilters = getSelectedFilters();
-        debug('Finished searching filters');
-        debug($selectedFilters);
+        $selectedFilters['id_category'] = $globalIdCategory;
 
+        if ($sendingRequest) {
+            if (typeof $xhr == 'object') {
+                $xhr.abort();
+            }
+        }
 
+        $sendingRequest = true;
+
+        var $xhr = $.ajax($globalBradFilterUrl, {
+            data: $selectedFilters,
+            success: handleFilteringResponse
+        });
     }
 
     /**
-     * get all selected filters values
+     * Handle filtering response
+     *
+     * @param $response
+     */
+    function handleFilteringResponse($response)
+    {
+        $sendingRequest = false;
+
+        $response = JSON.parse($response);
+
+        var $queryString = $response.query_string;
+
+        if ($globalBaseUrl.indexOf('?') > -1) {
+            window.history.pushState([], '', $globalBaseUrl + '&' + $queryString);
+        } else {
+            window.history.pushState([], '', $globalBaseUrl + '?' + $queryString);
+        }
+
+        if (typeof $response.filters_template != 'undefined') {
+            $("#bradFilterContainer").replaceWith($response.filters_template);
+            $('.brad-checkbox-filter-input').on('change', performFiltering);
+            handleSlider();
+            handleInputArea();
+            updateUniform();
+        }
+    }
+
+    /**
+     * Get all selected filters values
      */
     function getSelectedFilters()
     {
@@ -49,7 +88,6 @@ $(document).ready(function() {
             var $inputName = $($element).data('input-name');
 
             $($element).on('focusout', '.brad-min-range, .brad-max-range', function() {
-
                 var $defaultMinValue = $($element).find('.brad-min-range').data('default-min-value');
                 var $defaultMaxValue = $($element).find('.brad-max-range').data('default-max-value');
 
@@ -82,15 +120,20 @@ $(document).ready(function() {
     {
         $('.brad-slider').each(function($index, $element) {
 
+            var $selectedMinValue = $($element).data('selected-min-value');
+            var $selectedMaxValue = $($element).data('selected-max-value');
             var $defaultMinValue = $($element).data('min-value');
             var $defaultMaxValue = $($element).data('max-value');
             var $inputName = $($element).data('input-name');
+
+            var $rangeMinValue = (typeof $selectedMinValue != 'undefined') ? $selectedMinValue : $defaultMinValue;
+            var $rangeMaxValue = (typeof $selectedMaxValue != 'undefined') ? $selectedMaxValue : $defaultMaxValue;
 
             $($element).slider({
                 range: true,
                 min: $defaultMinValue,
                 max: $defaultMaxValue,
-                values: [$defaultMinValue, $defaultMaxValue],
+                values: [$rangeMinValue, $rangeMaxValue],
                 slide: function($event, $ui) {
                     var $selectedMinValue = $ui.values[0];
                     var $selectedMaxValue = $ui.values[1];
@@ -110,13 +153,48 @@ $(document).ready(function() {
                 }
             });
 
-            $('input[name="' + $inputName + '"]').val(
-                $($element).slider("values", 0) + ":" + $($element).slider("values", 1)
-            );
+            var $value = $($element).slider("values", 0) + ":" + $($element).slider("values", 1);
+            if (typeof $selectedMaxValue != 'undefined' && typeof $selectedMinValue != 'undefined') {
+                $value = $selectedMinValue + ':' + $selectedMaxValue;
+            }
+
+            $('input[name="' + $inputName + '"]').val($value);
         });
+    }
+
+    /**
+     * Update uniform after inserting new content
+     */
+    function updateUniform()
+    {
+        if (typeof isMobile != 'undefined' && !isMobile && typeof $.fn.uniform !== 'undefined'){
+            $('#bradFilterContainer').find('input[type="checkbox"]').uniform();
+        }
+    }
+    
+    /**
+     * Get all selected filters values
+     */
+    function getSelectedFilters()
+    {
+        var $selectedFilters = {};
+
+        $('.brad-checkbox-filter-input:checked, .brad-slider-filter-input[checked], .brad-input-filter-input[checked]').each(function($index, $element) {
+            var $filterName = $($element).attr('name');
+            var $filterValue = $($element).val();
+
+            if (typeof $selectedFilters[$filterName] == 'undefined') {
+                $selectedFilters[$filterName] = $filterValue;
+            } else {
+                $selectedFilters[$filterName] += '-' + $filterValue;
+            }
+        });
+
+        return $selectedFilters;
     }
 
     function debug(msg) {
         console.log(msg);
     }
 });
+

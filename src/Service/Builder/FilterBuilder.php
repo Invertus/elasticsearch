@@ -37,7 +37,7 @@ class FilterBuilder
     /**
      * @var array
      */
-    private $filters = [];
+    private $builtFilters = [];
 
     /**
      * @var ElasticsearchHelper
@@ -60,22 +60,24 @@ class FilterBuilder
 
     /**
      * Build filters
+     *
+     * @param array $selectedFilters
      */
-    public function build()
+    public function build(array $selectedFilters)
     {
         $idCategory = Tools::getValue('id_category');
 
         /** @var FilterTemplateRepository $filterTemplateRepository */
         $filterTemplateRepository = $this->em->getRepository('BradFilterTemplate');
-        $this->filters = $filterTemplateRepository->findTemplateFilters($idCategory, $this->context->shop->id);
+        $filters = $filterTemplateRepository->findTemplateFilters($idCategory, $this->context->shop->id);
 
-        if (empty($this->filters)) {
+        if (empty($filters)) {
             return;
         }
 
-        $this->setFiltersNames();
+        $selectedFiltersInputNames = array_keys($selectedFilters);
 
-        foreach ($this->filters as &$filter) {
+        foreach ($filters as $filter) {
             $filterType = (int) $filter['filter_type'];
             switch ($filterType) {
                 case BradFilter::FILTER_TYPE_ATTRIBUTE_GROUP:
@@ -100,7 +102,15 @@ class FilterBuilder
                     $filter['criterias'] = $this->getCategoryCriterias($filter);
                     break;
             }
+
+            if (in_array($filter['input_name'], $selectedFiltersInputNames)) {
+                $this->addSelectedValues($filter, $selectedFilters[$filter['input_name']]);
+            }
+
+            $this->builtFilters[$filter['input_name']] = $filter;
         }
+
+        $this->setFiltersNames();
     }
 
     /**
@@ -110,7 +120,7 @@ class FilterBuilder
      */
     public function getBuiltFilters()
     {
-        return $this->filters;
+        return $this->builtFilters;
     }
 
     /**
@@ -128,7 +138,7 @@ class FilterBuilder
 
         $filterTypeTranslations = BradFilter::getFilterTypeTranslations();
 
-        foreach ($this->filters as &$filter) {
+        foreach ($this->builtFilters as &$filter) {
             $filterType = (int) $filter['filter_type'];
             switch ($filterType) {
                 case BradFilter::FILTER_TYPE_PRICE:
@@ -421,5 +431,47 @@ class FilterBuilder
         $filterData['criteria_value'] = 'id_category';
 
         return $childCategories;
+    }
+
+    /**
+     * Add selected values to filter
+     *
+     * @param array $filter
+     * @param array $selectedValues
+     */
+    private function addSelectedValues(array &$filter, array $selectedValues)
+    {
+        $filterType = (int) $filter['filter_type'];
+        $filterStyle = (int) $filter['filter_style'];
+
+        $rangesTypeFilters = [BradFilter::FILTER_TYPE_PRICE, BradFilter::FILTER_TYPE_WEIGHT];
+
+        if ((in_array($filterType, $rangesTypeFilters) &&
+            !in_array($filterStyle, [BradFilter::FILTER_STYLE_SLIDER, BradFilter::FILTER_STYLE_INPUT])) ||
+            BradFilter::FILTER_STYLE_LIST_OF_VALUES == $filterStyle
+        ) {
+            foreach ($filter['criterias'] as &$criteria) {
+                foreach ($selectedValues as $selectedValue) {
+                    $value = implode(':', [$selectedValue['min_value'], $selectedValue['max_value']]);
+
+                    if ($value == $criteria['value']) {
+                        $criteria['checked'] = true;
+                    }
+                }
+            }
+        }  elseif (BradFilter::FILTER_STYLE_CHECKBOX == $filterStyle) {
+            foreach ($filter['criterias'] as &$criteria) {
+                foreach ($selectedValues as $selectedValue) {
+                    if ($selectedValue == $criteria[$filter['criteria_value']]) {
+                        $criteria['checked'] = true;
+                    }
+                }
+            }
+        } elseif (BradFilter::FILTER_STYLE_INPUT == $filterStyle ||
+            BradFilter::FILTER_STYLE_SLIDER == $filterStyle
+        ) {
+            $filter['criterias']['selected_min_value'] = $selectedValues[0]['min_value'];
+            $filter['criterias']['selected_max_value'] = $selectedValues[0]['max_value'];
+        }
     }
 }

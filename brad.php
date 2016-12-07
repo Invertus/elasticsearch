@@ -163,6 +163,10 @@ class Brad extends Module
      */
     public function hookDisplayHeader()
     {
+        if (!$this->isElasticsearchConnectionAvailable()) {
+            return;
+        }
+
         /** @var Core_Business_ConfigurationInterface $configuration */
         $configuration = $this->container->get('configuration');
 
@@ -177,6 +181,8 @@ class Brad extends Module
 
             Media::addJsDef([
                 '$globalBradFilterUrl' => $bradFilterUrl,
+                '$globalBaseUrl' => $this->context->link->getCategoryLink(Tools::getValue('id_category')),
+                '$globalIdCategory' => (int) Tools::getValue('id_category'),
             ]);
         }
 
@@ -209,6 +215,10 @@ class Brad extends Module
      */
     public function hookDisplayTop()
     {
+        if (!$this->isElasticsearchConnectionAvailable()) {
+            return '';
+        }
+
         /** @var Core_Business_ConfigurationInterface $configuration */
         $configuration = $this->container->get('configuration');
 
@@ -253,15 +263,17 @@ class Brad extends Module
             return '';
         }
 
+        /** @var \Invertus\Brad\Service\UrlParser $urlParser */
+        $urlParser = $this->container->get('url_parser');
+        $urlParser->parse();
+
+        $selectedFilters = $urlParser->getSelectedFilters();
+
         /** @var \Invertus\Brad\Service\Builder\FilterBuilder $filterBuilder */
         $filterBuilder = $this->container->get('filter_builder');
-        $filterBuilder->build();
+        $filterBuilder->build($selectedFilters);
 
         $filters = $filterBuilder->getBuiltFilters();
-
-        /** @var \Invertus\Brad\Service\Filter $filter */
-        $filter = $this->container->get('filter');
-        $products = $filter->process($filters); //@TODO: implements filtering
 
         /** @var \Invertus\Brad\Service\Builder\TemplateBuilder $templateBuilder */
         $templateBuilder = $this->container->get('template_builder');

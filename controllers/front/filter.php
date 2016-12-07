@@ -33,8 +33,35 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
         parent::init();
     }
 
+    /**
+     * Process filtering request
+     */
     public function postProcess()
     {
-        $filters = Tools::getValue('filters');
+        /** @var \Invertus\Brad\Service\UrlParser $urlParser */
+        $urlParser = $this->get('url_parser');
+        $urlParser->parse();
+
+        $selectedFilters =$urlParser->getSelectedFilters();
+        $queryString = $urlParser->getQueryString();
+
+        /** @var \Invertus\Brad\Service\Filter $filter */
+        $filter = $this->get('filter');
+        $products = $filter->process($selectedFilters); //@TODO: implements filtering
+
+        /** @var \Invertus\Brad\Service\Builder\FilterBuilder $filterBuilder */
+        $filterBuilder = $this->get('filter_builder');
+        $filterBuilder->build($selectedFilters);
+
+        $filters = $filterBuilder->getBuiltFilters();
+
+        /** @var \Invertus\Brad\Service\Builder\TemplateBuilder $templateBuilder */
+        $templateBuilder = $this->get('template_builder');
+        $filtersTemplate = $templateBuilder->buildFiltersTemplate($filters);
+
+        die(json_encode([
+            'query_string' => $queryString,
+            'filters_template' => $filtersTemplate,
+        ]));
     }
 }

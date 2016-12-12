@@ -1,6 +1,7 @@
 <?php
 
 use Invertus\Brad\Config\Setting;
+use Invertus\Brad\Service\UrlParser;
 
 /**
  * Class BradFilterModuleFrontController
@@ -38,30 +39,24 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
      */
     public function postProcess()
     {
-        /** @var \Invertus\Brad\Service\UrlParser $urlParser */
-        $urlParser = $this->get('url_parser');
-        $urlParser->parse();
-
-        $selectedFilters =$urlParser->getSelectedFilters();
-        $queryString = $urlParser->getQueryString();
+        $urlParser = new UrlParser();
+        $urlParser->parse($_GET);
+        $selectedFilters = $urlParser->getSelectedFilters();
 
         /** @var \Invertus\Brad\Service\Filter $filter */
         $filter = $this->get('filter');
-        $products = $filter->process($selectedFilters); //@TODO: implements filtering
-
-        /** @var \Invertus\Brad\Service\Builder\FilterBuilder $filterBuilder */
-        $filterBuilder = $this->get('filter_builder');
-        $filterBuilder->build($selectedFilters);
-
-        $filters = $filterBuilder->getBuiltFilters();
+        $products = $filter->filterProducts($selectedFilters);
+        $products = $this->formatProducts($products);   //@todo: move
 
         /** @var \Invertus\Brad\Service\Builder\TemplateBuilder $templateBuilder */
         $templateBuilder = $this->get('template_builder');
-        $filtersTemplate = $templateBuilder->buildFiltersTemplate($filters);
+        $filtersTemplate = $templateBuilder->buildFiltersTemplate($selectedFilters);
+        $productsList = $templateBuilder->buildResultsTemplate($products);
 
         die(json_encode([
-            'query_string' => $queryString,
+            'query_string' => $urlParser->getQueryString(),
             'filters_template' => $filtersTemplate,
+            'products_list' => $productsList,
         ]));
     }
 }

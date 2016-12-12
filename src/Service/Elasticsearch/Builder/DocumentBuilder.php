@@ -145,6 +145,7 @@ class DocumentBuilder
                 $featureObj = new Feature($feature['id_feature']);
                 $featureValueObj = new FeatureValue($feature['id_feature_value']);
 
+                $body['feature_'.$featureObj->id] = $featureValueObj->id;
                 foreach ($featureObj->name as $idLang => $name) {
                     $body['feature_'.$featureObj->id.'_lang_'.$idLang] = $name;
                     $body['feature_value_'.$featureValueObj->id.'_lang_'.$idLang] = $featureValueObj->value[$idLang];

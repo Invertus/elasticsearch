@@ -3,7 +3,8 @@
 namespace Invertus\Brad\Service;
 
 use Context;
-use Core_Foundation_Database_EntityManager;
+use Invertus\Brad\Service\Elasticsearch\Builder\FilterQueryBuilder;
+use Invertus\Brad\Service\Elasticsearch\ElasticsearchSearch;
 
 /**
  * Class Filter
@@ -13,34 +14,44 @@ use Core_Foundation_Database_EntityManager;
 class Filter
 {
     /**
-     * @var Core_Foundation_Database_EntityManager
+     * @var FilterQueryBuilder
      */
-    private $em;
-
+    private $filterQueryBuilder;
     /**
-     * @var Context
+     * @var ElasticsearchSearch
      */
-    private $context;
+    private $elasticsearchSearch;
 
     /**
      * Filter constructor.
      *
-     * @param Context $context
-     * @param Core_Foundation_Database_EntityManager $em
+     * @param FilterQueryBuilder $filterQueryBuilder
+     * @param ElasticsearchSearch $elasticsearchSearch
      */
-    public function __construct(Context $context, Core_Foundation_Database_EntityManager $em)
+    public function __construct(FilterQueryBuilder $filterQueryBuilder, ElasticsearchSearch $elasticsearchSearch)
     {
-        $this->em = $em;
-        $this->context = $context;
+        $this->filterQueryBuilder = $filterQueryBuilder;
+        $this->elasticsearchSearch = $elasticsearchSearch;
     }
 
     /**
      * Perform filtering
      *
-     * @param array $filters
+     * @param array $selectedFilters
+     * @param bool $countOnly
+     *
+     * @return array
      */
-    public function process(array $filters)
+    public function filterProducts(array $selectedFilters, $countOnly = false)
     {
+        $context = Context::getContext();
+        $data = [];
+        $data['selected_filters'] = $selectedFilters;
 
+        $productsFilterQuery = $this->filterQueryBuilder->buildFilterQuery($data);
+
+        $products = $this->elasticsearchSearch->searchProducts($productsFilterQuery, $context->shop->id);
+
+        return $products;
     }
 }

@@ -55,27 +55,18 @@ $(document).ready(function() {
             handleInputArea();
             updateUniform();
         }
-    }
 
-    /**
-     * Get all selected filters values
-     */
-    function getSelectedFilters()
-    {
-        var $selectedFilters = {};
+        var $centerColumn = $('#center_column');
+        var $centerColumnClasses = $centerColumn.attr('class');
+        $('#bradResults').remove();
 
-        $('.brad-checkbox-filter-input:checked, .brad-slider-filter-input[checked], .brad-input-filter-input[checked]').each(function($index, $element) {
-            var $filterName = $($element).attr('name');
-            var $filterValue = $($element).val();
-
-            if (typeof $selectedFilters[$filterName] == 'undefined') {
-                $selectedFilters[$filterName] = $filterValue;
-            } else {
-                $selectedFilters[$filterName] += '-' + $filterValue;
-            }
-        });
-
-        return $selectedFilters;
+        if (typeof $response.products_list != 'undefined' && $response.products_list) {
+            console.log($response.products_list);
+            $centerColumn.hide();
+            $centerColumn.after('<div id="bradResults" class="' + $centerColumnClasses + '">' + $response.products_list + '</div>');
+        } else {
+            $centerColumn.show();
+        }
     }
     
     /**
@@ -171,7 +162,7 @@ $(document).ready(function() {
             $('#bradFilterContainer').find('input[type="checkbox"]').uniform();
         }
     }
-    
+
     /**
      * Get all selected filters values
      */

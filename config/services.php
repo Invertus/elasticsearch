@@ -105,7 +105,6 @@ return [
 
     'url_parser' => [
         'class' => 'Invertus\Brad\Service\UrlParser',
-        'arguments' => ['context', 'configuration'],
     ],
 
     'template_builder' => [
@@ -120,11 +119,15 @@ return [
 
     'filter' => [
         'class' => 'Invertus\Brad\Service\Filter',
-        'arguments' => ['context', 'em'],
+        'arguments' => ['elasticsearch.builder.filter_query_builder', 'elasticsearch.search'],
     ],
 
     'elasticsearch.helper' => [
         'class' => 'Invertus\Brad\Service\Elasticsearch\ElasticsearchHelper',
         'arguments' => ['elasticsearch.manager', 'context'],
+    ],
+
+    'elasticsearch.builder.filter_query_builder' => [
+        'class' => 'Invertus\Brad\Service\Elasticsearch\Builder\FilterQueryBuilder',
     ],
 ];

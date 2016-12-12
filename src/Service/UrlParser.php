@@ -17,11 +17,6 @@ class UrlParser
     private $context;
 
     /**
-     * @var Core_Business_ConfigurationInterface
-     */
-    private $configuration;
-
-    /**
      * @var array After parsing url selected filters are stored here
      */
     private $selectedFilters = [];
@@ -33,22 +28,20 @@ class UrlParser
 
     /**
      * UrlParser constructor.
-     *
-     * @param Context $context
-     * @param Core_Business_ConfigurationInterface $configuration
      */
-    public function __construct(Context $context, Core_Business_ConfigurationInterface $configuration)
+    public function __construct()
     {
-        $this->context = $context;
-        $this->configuration = $configuration;
+        $this->context = Context::getContext();
     }
 
     /**
      * Parse url
+     *
+     * @param array $query
      */
-    public function parse()
+    public function parse(array $query)
     {
-        foreach ($_GET as $filterName => $filterValue) {
+        foreach ($query as $filterName => $filterValue) {
             if (!$this->checkIfFilter($filterName)) {
                 continue;
             }

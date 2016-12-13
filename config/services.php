@@ -28,10 +28,6 @@ return [
         'arguments' => ['module', 'db_installer'],
     ],
 
-    'util.validator' => [
-        'class' => 'Invertus\Brad\Util\Validator',
-    ],
-
     'elasticsearch.manager' => [
         'class' => 'Invertus\Brad\Service\Elasticsearch\ElasticsearchManager',
         'arguments' => ['elasticsearch.client', '@BRAD_ELASTICSEARCH_INDEX_PREFIX', 'logger'],
@@ -73,14 +69,8 @@ return [
             'em',
             'configuration',
             'elasticsearch.builder.document_builder',
-            'util.validator',
             'logger',
         ],
-    ],
-
-    'elasticsearch.builder.search_query_builder' => [
-        'class' => 'Invertus\Brad\Service\Elasticsearch\Builder\SearchQueryBuilder',
-        'arguments' => ['configuration', 'context'],
     ],
 
     'elasticsearch.search' => [
@@ -103,28 +93,29 @@ return [
         'arguments' => ['brad_log_dir'],
     ],
 
-    'url_parser' => [
-        'class' => 'Invertus\Brad\Service\UrlParser',
-    ],
-
     'template_builder' => [
         'class' => 'Invertus\Brad\Service\Builder\TemplateBuilder',
-        'arguments' => ['context', 'brad_templates_dir'],
+        'arguments' => ['brad_templates_dir', 'filter_builder'],
     ],
 
     'filter_builder' => [
         'class' => 'Invertus\Brad\Service\Builder\FilterBuilder',
-        'arguments' => ['context', 'em', 'elasticsearch.helper'],
+        'arguments' => ['em', 'elasticsearch.helper'],
     ],
 
-    'filter' => [
-        'class' => 'Invertus\Brad\Service\Filter',
+    'filter_service' => [
+        'class' => 'Invertus\Brad\Service\FilterService',
         'arguments' => ['elasticsearch.builder.filter_query_builder', 'elasticsearch.search'],
+    ],
+
+    'search_service' => [
+        'class' => 'Invertus\Brad\Service\SearchService',
+        'arguments' => ['elasticsearch.search'],
     ],
 
     'elasticsearch.helper' => [
         'class' => 'Invertus\Brad\Service\Elasticsearch\ElasticsearchHelper',
-        'arguments' => ['elasticsearch.manager', 'context'],
+        'arguments' => ['elasticsearch.manager'],
     ],
 
     'elasticsearch.builder.filter_query_builder' => [

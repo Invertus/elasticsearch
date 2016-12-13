@@ -19,8 +19,8 @@
 
 namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
+use Configuration;
 use Context;
-use Core_Business_ConfigurationInterface;
 use Invertus\Brad\Config\Setting;
 
 /**
@@ -30,24 +30,6 @@ use Invertus\Brad\Config\Setting;
  */
 class SearchQueryBuilder extends AbstractQueryBuilder
 {
-    /**
-     * @var Core_Business_ConfigurationInterface
-     */
-    private $configuration;
-
-    /**
-     * SearchQueryBuilder constructor.
-     *
-     * @param Core_Business_ConfigurationInterface $configuration
-     * @param Context $context
-     */
-    public function __construct(Core_Business_ConfigurationInterface $configuration, Context $context)
-    {
-        parent::__construct($context);
-
-        $this->configuration = $configuration;
-    }
-
     /**
      * Build search query
      *
@@ -61,8 +43,10 @@ class SearchQueryBuilder extends AbstractQueryBuilder
      */
     public function buildProductsQuery($query, $from = null, $size = null, $orderBy = null, $orderWay = null)
     {
-        $idLang = (int) $this->context->language->id;
-        $isFuzzySeearchEnabled = (bool) $this->configuration->get(Setting::FUZZY_SEARCH);
+        $context = Context::getContext();
+
+        $idLang = (int) $context->language->id;
+        $isFuzzySeearchEnabled = (bool) Configuration::get(Setting::FUZZY_SEARCH);
 
         $elasticsearchQuery = [
             'query' => [

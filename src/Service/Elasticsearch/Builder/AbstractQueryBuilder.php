@@ -30,21 +30,6 @@ use Invertus\Brad\Config\Sort;
 abstract class AbstractQueryBuilder
 {
     /**
-     * @var Context
-     */
-    protected $context;
-
-    /**
-     * AbstractQueryBuilder constructor.
-     *
-     * @param Context $context
-     */
-    public function __construct(Context $context)
-    {
-        $this->context = $context;
-    }
-
-    /**
      * Build query sort part
      *
      * @param string $orderBy
@@ -54,7 +39,9 @@ abstract class AbstractQueryBuilder
      */
     protected function buildOrderQuery($orderBy, $orderWay)
     {
-        $idLang = (int) $this->context->language->id;
+        $context = Context::getContext();
+
+        $idLang = (int) $context->language->id;
         $fieldNameToSortBy = null;
 
         switch ($orderBy) {
@@ -63,9 +50,9 @@ abstract class AbstractQueryBuilder
                 break;
             case Sort::BY_PRICE:
                 $fieldNameToSortBy =
-                    'price_group_'.$this->context->customer->id_default_group.
-                    '_country_'.$this->context->country->id.
-                    '_currency_'.$this->context->currency->id;
+                    'price_group_'.(int)$context->customer->id_default_group.
+                    '_country_'.(int)$context->country->id.
+                    '_currency_'.(int)$context->currency->id;
                 break;
             case Sort::BY_QUANTITY:
                 $fieldNameToSortBy = 'total_quantity';

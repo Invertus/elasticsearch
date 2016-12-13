@@ -6,7 +6,6 @@ use BradFilter;
 use BradProduct;
 use Category;
 use Context;
-use Core_Foundation_Database_EntityManager;
 use Invertus\Brad\Repository\AttributeGroupRepository;
 use Invertus\Brad\Repository\CategoryRepository;
 use Invertus\Brad\Repository\FeatureRepository;
@@ -30,7 +29,7 @@ class FilterBuilder
     private $context;
 
     /**
-     * @var Core_Foundation_Database_EntityManager
+     * @var \Core_Foundation_Database_EntityManager
      */
     private $em;
 
@@ -47,13 +46,12 @@ class FilterBuilder
     /**
      * FilterBuilder constructor.
      *
-     * @param Context $context
-     * @param Core_Foundation_Database_EntityManager $em
+     * @param \Core_Foundation_Database_EntityManager $em
      * @param ElasticsearchHelper $esHelper
      */
-    public function __construct(Context $context, Core_Foundation_Database_EntityManager $em, ElasticsearchHelper $esHelper)
+    public function __construct($em, ElasticsearchHelper $esHelper)
     {
-        $this->context = $context;
+        $this->context = Context::getContext();
         $this->em = $em;
         $this->esHelper = $esHelper;
     }
@@ -65,7 +63,7 @@ class FilterBuilder
      */
     public function build(array $selectedFilters)
     {
-        $idCategory = Tools::getValue('id_category');
+        $idCategory = (int) Tools::getValue('id_category');
 
         /** @var FilterTemplateRepository $filterTemplateRepository */
         $filterTemplateRepository = $this->em->getRepository('BradFilterTemplate');
@@ -134,7 +132,8 @@ class FilterBuilder
 
         /** @var AttributeGroupRepository $attributeGroupRepository */
         $attributeGroupRepository = $this->em->getRepository('BradAttributeGroup');
-        $attributeGroupsNames = $attributeGroupRepository->findNames($this->context->language->id, $this->context->shop->id);
+        $attributeGroupsNames =
+            $attributeGroupRepository->findNames($this->context->language->id, $this->context->shop->id);
 
         $filterTypeTranslations = BradFilter::getFilterTypeTranslations();
 
@@ -441,6 +440,10 @@ class FilterBuilder
      */
     private function addSelectedValues(array &$filter, array $selectedValues)
     {
+        if (empty($selectedValues)) {
+            return;
+        }
+
         $filterType = (int) $filter['filter_type'];
         $filterStyle = (int) $filter['filter_style'];
 

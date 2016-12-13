@@ -2,10 +2,7 @@ $(document).ready(function() {
 
     var $sendingRequest = false;
 
-    handleInputArea();
-    handleSlider();
-
-    $('.brad-checkbox-filter-input').on('change', performFiltering);
+    addEventListeners();
 
     /**
      * Perform filtering
@@ -40,33 +37,34 @@ $(document).ready(function() {
 
         $response = JSON.parse($response);
 
-        var $queryString = $response.query_string;
+        appendQueryStringToUrl($response.query_string);
 
-        if ($globalBaseUrl.indexOf('?') > -1) {
-            window.history.pushState([], '', $globalBaseUrl + '&' + $queryString);
-        } else {
-            window.history.pushState([], '', $globalBaseUrl + '?' + $queryString);
-        }
-
-        if (typeof $response.filters_template != 'undefined') {
-            $("#bradFilterContainer").replaceWith($response.filters_template);
-            $('.brad-checkbox-filter-input').on('change', performFiltering);
-            handleSlider();
-            handleInputArea();
-            updateUniform();
-        }
+        $("#bradFilterContainer").replaceWith($response.filters_template);
+        addEventListeners();
+        updateUniform();
 
         var $centerColumn = $('#center_column');
-        var $centerColumnClasses = $centerColumn.attr('class');
-        $('#bradResults').remove();
+        var $originalProductList = $centerColumn.find('.product_list');
+        var $originalTopPagination = $centerColumn.find('.top-pagination-content');
 
-        if (typeof $response.products_list != 'undefined' && $response.products_list) {
-            console.log($response.products_list);
-            $centerColumn.hide();
-            $centerColumn.after('<div id="bradResults" class="' + $centerColumnClasses + '">' + $response.products_list + '</div>');
-        } else {
-            $centerColumn.show();
+        var $topPaginationStyles = $originalTopPagination.attr('class');
+
+        $('#bradProductList').remove();
+        $('#bradTopPagination').remove();
+
+        if ($response.reset_original_layout) {
+            $originalProductList.show();
+            $originalTopPagination.show();
+            return;
         }
+
+        $originalProductList.hide();
+        $originalTopPagination.hide();
+
+        $originalProductList.after('<div id="bradProductList">' + $response.products_list + '</div>');
+        $originalTopPagination.after('<div class="' + $topPaginationStyles + '" id="bradTopPagination">' + $response.top_pagination + '</div>');
+
+        listenPagination();
     }
     
     /**
@@ -184,8 +182,43 @@ $(document).ready(function() {
         return $selectedFilters;
     }
 
-    function debug(msg) {
-        console.log(msg);
+    /**
+     * Append query string to url
+     */
+    function appendQueryStringToUrl($queryString)
+    {
+        if ($globalBaseUrl.indexOf('?') > -1) {
+            window.history.pushState([], '', $globalBaseUrl + '&' + $queryString);
+        } else {
+            window.history.pushState([], '', $globalBaseUrl + '?' + $queryString);
+        }
+    }
+
+    /**
+     * Added event listeners to brad pagination buttons
+     */
+    function listenPagination()
+    {
+        var $bradTopPagination = $('#bradTopPagination');
+
+        $bradTopPagination.find('a').unbind();
+        $bradTopPagination.find('a').on('click', function($event) {
+            $event.preventDefault();
+
+            var $url = $event.currentTarget.href;
+            var $page = $url.match(new RegExp('p' + "=(.*?)($|\&)", "i"))[1];
+            console.log($page);
+        });
+    }
+
+    /**
+     * Add event listeners to filter form and inputs
+     */
+    function addEventListeners()
+    {
+        $('.brad-checkbox-filter-input').on('change', performFiltering);
+        handleSlider();
+        handleInputArea();
     }
 });
 

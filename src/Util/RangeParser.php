@@ -14,7 +14,7 @@ class RangeParser
      *
      * @param float $minValue
      * @param float $maxValue
-     * @param int $n
+     * @param int $n Number of ranges
      *
      * @return array
      */

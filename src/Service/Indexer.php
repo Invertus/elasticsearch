@@ -76,6 +76,7 @@ class Indexer
      * @var Validator
      */
     private $validator;
+
     /**
      * @var LoggerInterface
      */
@@ -88,16 +89,15 @@ class Indexer
      * @param Core_Foundation_Database_EntityManager $em
      * @param Core_Business_ConfigurationInterface $configuration
      * @param DocumentBuilder $documentBuilder
-     * @param Validator $validator
      * @param LoggerInterface $logger
      */
-    public function __construct(ElasticsearchIndexer $elasticserachIndexer, Core_Foundation_Database_EntityManager $em, Core_Business_ConfigurationInterface $configuration, DocumentBuilder $documentBuilder, Validator $validator, LoggerInterface $logger)
+    public function __construct(ElasticsearchIndexer $elasticserachIndexer, $em, $configuration, DocumentBuilder $documentBuilder, LoggerInterface $logger)
     {
         $this->elasticsearchIndexer = $elasticserachIndexer;
         $this->em = $em;
         $this->configuration = $configuration;
         $this->documentBuilder = $documentBuilder;
-        $this->validator = $validator;
+        $this->validator = new Validator();
         $this->logger = $logger;
     }
 

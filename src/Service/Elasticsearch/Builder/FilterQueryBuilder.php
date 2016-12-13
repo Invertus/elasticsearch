@@ -1,6 +1,7 @@
 <?php
 
 namespace Invertus\Brad\Service\Elasticsearch\Builder;
+
 use Context;
 
 /**
@@ -8,7 +9,7 @@ use Context;
  *
  * @package Invertus\Brad\Service\Elasticsearch\Builder
  */
-class FilterQueryBuilder
+class FilterQueryBuilder extends AbstractQueryBuilder
 {
     /**
      * Build filters query by given data
@@ -26,7 +27,17 @@ class FilterQueryBuilder
             return $query;
         }
 
-        //@todo: add limit & order by
+        if (isset($data['order_by']) && isset($data['order_way'])) {
+            $query['sort'] = $this->buildOrderQuery($data['order_by'], $data['order_way']);
+        }
+
+        if (isset($data['from'])) {
+            $query['from'] = (int) $data['from'];
+        }
+
+        if (isset($data['size'])) {
+            $query['size'] = (int) $data['size'];
+        }
 
         return $query;
     }

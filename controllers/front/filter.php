@@ -1,6 +1,7 @@
 <?php
 
 use Invertus\Brad\Config\Setting;
+use Invertus\Brad\Controller\AbstractBradModuleFrontController;
 use Invertus\Brad\Service\UrlParser;
 
 /**
@@ -14,10 +15,7 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
             $this->redirectToNotFoundPage();
         }
 
-        /** @var Core_Business_ConfigurationInterface $configuration */
-        $configuration = $this->get('configuration');
-
-        $isFiltersEnabled = (bool) $configuration->get(Setting::ENABLE_FILTERS);
+        $isFiltersEnabled = (bool) Configuration::get(Setting::ENABLE_FILTERS);
         if (!$isFiltersEnabled) {
             die(json_encode([]));
         }
@@ -41,22 +39,33 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
     {
         $urlParser = new UrlParser();
         $urlParser->parse($_GET);
-        $selectedFilters = $urlParser->getSelectedFilters();
 
-        /** @var \Invertus\Brad\Service\Filter $filter */
-        $filter = $this->get('filter');
-        $products = $filter->filterProducts($selectedFilters);
-        $products = $this->formatProducts($products);   //@todo: move
+        $selectedFilters = $urlParser->getSelectedFilters();
+        $p               = $urlParser->getPage();
+        $n               = $urlParser->getSize();
+        $orderWay        = $urlParser->getOrderWay();
+        $orderBy         = $urlParser->getOrderBy();
+
+        /** @var \Invertus\Brad\Service\FilterService $filterService */
+        $filterService = $this->get('filter_service');
+
+        $products = $filterService->filterProducts($selectedFilters, $p, $n, $orderWay, $orderBy);
+        $productsCount = $filterService->countProducts($selectedFilters);
+
+        $products = $this->formatProducts($products);
+        $this->addColorsToProductList($products);
 
         /** @var \Invertus\Brad\Service\Builder\TemplateBuilder $templateBuilder */
         $templateBuilder = $this->get('template_builder');
-        $filtersTemplate = $templateBuilder->buildFiltersTemplate($selectedFilters);
-        $productsList = $templateBuilder->buildResultsTemplate($products);
+        $bottomPaginationTemplate = $templateBuilder->renderPaginationTemplate($productsCount);
+        $topPaginationTemplate = preg_replace('/(_bottom)/i', '', $bottomPaginationTemplate);
 
         die(json_encode([
-            'query_string' => $urlParser->getQueryString(),
-            'filters_template' => $filtersTemplate,
-            'products_list' => $productsList,
+            'query_string'          => $urlParser->getQueryString(),
+            'filters_template'      => $templateBuilder->renderFiltersTemplate($selectedFilters),
+            'products_list'         => $templateBuilder->renderProductsTemplate($products, $productsCount),
+            'top_pagination'        => $topPaginationTemplate,
+            'reset_original_layout' => empty($selectedFilters) ? true : false,
         ]));
     }
 }

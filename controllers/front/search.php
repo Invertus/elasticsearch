@@ -19,6 +19,9 @@
 
 use Invertus\Brad\Config\Sort;
 use Invertus\Brad\Config\Setting;
+use Invertus\Brad\Controller\AbstractBradModuleFrontController;
+use Invertus\Brad\Service\Elasticsearch\Builder\SearchQueryBuilder;
+use Invertus\Brad\Service\UrlParser;
 use Invertus\Brad\Util\Arrays;
 
 /**
@@ -27,26 +30,11 @@ use Invertus\Brad\Util\Arrays;
 class BradSearchModuleFrontController extends AbstractBradModuleFrontController
 {
     /**
-     * @var Core_Business_ConfigurationInterface $configuration
-     */
-    private $configuration;
-
-    /**
-     * BradSearchModuleFrontController constructor.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->configuration = $this->get('configuration');
-    }
-
-    /**
      * Check if elasticsearch connection is available & index exists
      */
     public function init()
     {
-        $isSearchEnabled = (bool) $this->configuration->get(Setting::ENABLE_SEARCH);
+        $isSearchEnabled = (bool) Configuration::get(Setting::ENABLE_SEARCH);
         if (!$isSearchEnabled) {
             if ($this->isXmlHttpRequest()) {
                 die(json_encode(['instant_results' => false, 'dynamic_results' => false]));
@@ -101,42 +89,26 @@ class BradSearchModuleFrontController extends AbstractBradModuleFrontController
      */
     public function postProcess()
     {
-        $originalSearchQuery = Tools::getValue('search_query', '');
+        $urlParser = new UrlParser();
+
+        $page     = $urlParser->getPage();
+        $size     = $urlParser->getSize();
+        $orderWay = $urlParser->getOrderWay();
+        $orderBy  = $urlParser->getOrderBy();
+        $originalSearchQuery = $urlParser->getSearchQuery();
         $searchQuery = Tools::replaceAccentedChars(urldecode($originalSearchQuery));
 
-        $orderBy = Tools::getValue('orderby', Sort::BY_RELEVANCE);
-        $orderWay = Tools::getValue('orderway', Sort::WAY_DESC);
-        $page = (int) Tools::getValue('p');
-        $size = (int) Tools::getValue('n');
+        /** @var \Invertus\Brad\Service\SearchService $searchService */
+        $searchService = $this->get('search_service');
 
-        if (0 >= $page) {
-            $page = 1;
-        }
-
-        if (0 >= $size) {
-            $size = isset($this->context->cookie->nb_item_per_page) ?
-                (int) $this->context->cookie->nb_item_per_page :
-                (int) $this->configuration->get('PS_PRODUCTS_PER_PAGE');
-        }
-
-        $from = (int) ($size * ($page - 1));
-
-        /** @var \Invertus\Brad\Service\Elasticsearch\Builder\SearchQueryBuilder $searchQueryBuilder */
-        $searchQueryBuilder = $this->get('elasticsearch.builder.search_query_builder');
-        $productsQuery = $searchQueryBuilder->buildProductsQuery($searchQuery, $from, $size, $orderBy, $orderWay);
-
-        /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchSearch $elasticsearchSearch */
-        $elasticsearchSearch = $this->get('elasticsearch.search');
-        $products = $elasticsearchSearch->searchProducts($productsQuery, $this->context->shop->id);
+        $products = $searchService->searchProducts($searchQuery, $page, $size, $orderBy, $orderWay);
+        $productsCount = $searchService->countProducts($searchQuery);
 
         $formattedProducts = $this->formatProducts($products);
 
         if ($this->isXmlHttpRequest()) {
             die($this->renderAjaxResponse($formattedProducts, $originalSearchQuery));
         }
-
-        $productsCountQuery = $searchQueryBuilder->buildProductsQuery($searchQuery);
-        $productsCount = (int) $elasticsearchSearch->countProducts($productsCountQuery, $this->context->shop->id);
 
         $this->p = $page;
         $this->n = $size;
@@ -199,7 +171,7 @@ class BradSearchModuleFrontController extends AbstractBradModuleFrontController
      */
     private function renderInstantSearchResults(array $products, $originalSearchQuery)
     {
-        $isInstantSearchResultsEnabled = (bool) $this->configuration->get(Setting::INSTANT_SEARCH);
+        $isInstantSearchResultsEnabled = (bool) Configuration::get(Setting::INSTANT_SEARCH);
 
         if (!$isInstantSearchResultsEnabled) {
             return false;
@@ -207,7 +179,7 @@ class BradSearchModuleFrontController extends AbstractBradModuleFrontController
 
         $bradTemplatesDir = $this->get('brad_templates_dir');
 
-        $numberOfInstantSearchResults = (int) $this->configuration->get(Setting::INSTANT_SEARCH_RESULTS_COUNT);
+        $numberOfInstantSearchResults = (int) Configuration::get(Setting::INSTANT_SEARCH_RESULTS_COUNT);
         $instantSearchResults = Arrays::getFirstElements($products, $numberOfInstantSearchResults);
 
         $imageType = ImageType::getFormatedName('small');
@@ -236,7 +208,7 @@ class BradSearchModuleFrontController extends AbstractBradModuleFrontController
      */
     private function renderDynamicSearchResults(array $products, $originalSearchQuery)
     {
-        $isDynamicSearchResultsEnabled = (bool) $this->configuration->get(Setting::DISPLAY_DYNAMIC_SEARCH_RESULTS);
+        $isDynamicSearchResultsEnabled = (bool) Configuration::get(Setting::DISPLAY_DYNAMIC_SEARCH_RESULTS);
 
         if (!$isDynamicSearchResultsEnabled) {
             return false;

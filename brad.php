@@ -42,7 +42,9 @@ class Brad extends Module
     const FRONT_BRAD_SEARCH_CONTROLLER = 'search';
     const FRONT_BRAD_FILTER_CONTROLLER = 'filter';
 
-    /** @var \Invertus\Brad\Container\Container */
+    /**
+     * @var \Invertus\Brad\Container\Container
+     */
     private $container;
 
     /**
@@ -209,7 +211,7 @@ class Brad extends Module
     }
 
     /**
-     * Display search box if enabled
+     * Display search box if search is enabled and Elasticsearch service is accessible
      *
      * @return string
      */
@@ -219,15 +221,12 @@ class Brad extends Module
             return '';
         }
 
-        /** @var Core_Business_ConfigurationInterface $configuration */
-        $configuration = $this->container->get('configuration');
-
-        $isSearchEnabled = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_SEARCH);
+        $isSearchEnabled = (bool) Configuration::get(\Invertus\Brad\Config\Setting::ENABLE_SEARCH);
         if (!$isSearchEnabled) {
             return '';
         }
 
-        $isFriendlyUrlEnabled = (bool) $configuration->get('PS_REWRITING_SETTINGS');
+        $isFriendlyUrlEnabled = (bool) Configuration::get('PS_REWRITING_SETTINGS');
         $bradSearchUrl = $this->context->link->getModuleLink($this->name, self::FRONT_BRAD_SEARCH_CONTROLLER);
 
         $this->context->smarty->assign([
@@ -248,37 +247,24 @@ class Brad extends Module
             return '';
         }
 
+        $isFiltersEnalbed = (bool) Configuration::get(\Invertus\Brad\Config\Setting::ENABLE_FILTERS);
+
         $availableControllers = ['category'];
         $currentController = Tools::getValue('controller');
 
-        if (!in_array($currentController, $availableControllers)) {
+        if (!in_array($currentController, $availableControllers) || !$isFiltersEnalbed) {
             return '';
         }
 
-        /** @var Core_Business_ConfigurationInterface $configuration */
-        $configuration = $this->container->get('configuration');
-
-        $isFiltersEnalbed = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_FILTERS);
-        if (!$isFiltersEnalbed) {
-            return '';
-        }
-
-        /** @var \Invertus\Brad\Service\UrlParser $urlParser */
-        $urlParser = $this->container->get('url_parser');
-        $urlParser->parse();
-
+        $urlParser = new \Invertus\Brad\Service\UrlParser();
+        $urlParser->parse($_GET);
         $selectedFilters = $urlParser->getSelectedFilters();
-
-        /** @var \Invertus\Brad\Service\Builder\FilterBuilder $filterBuilder */
-        $filterBuilder = $this->container->get('filter_builder');
-        $filterBuilder->build($selectedFilters);
-
-        $filters = $filterBuilder->getBuiltFilters();
 
         /** @var \Invertus\Brad\Service\Builder\TemplateBuilder $templateBuilder */
         $templateBuilder = $this->container->get('template_builder');
+        $filtersTemplate = $templateBuilder->renderFiltersTemplate($selectedFilters);
 
-        return $templateBuilder->buildFiltersTemplate($filters);
+        return $filtersTemplate;
     }
 
     /**

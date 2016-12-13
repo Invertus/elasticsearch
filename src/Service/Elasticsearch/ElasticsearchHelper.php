@@ -31,12 +31,11 @@ class ElasticsearchHelper
      * ElasticsearchHelper constructor.
      *
      * @param ElasticsearchManager $elasticsearchManager
-     * @param Context $context
      */
-    public function __construct(ElasticsearchManager $elasticsearchManager, Context $context)
+    public function __construct(ElasticsearchManager $elasticsearchManager)
     {
         $this->elasticsearchManager = $elasticsearchManager;
-        $this->context = $context;
+        $this->context = Context::getContext();
     }
 
     /**

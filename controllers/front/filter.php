@@ -40,6 +40,7 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
         $urlParser = new UrlParser();
         $urlParser->parse($_GET);
 
+        $queryString     = $urlParser->getQueryString();
         $selectedFilters = $urlParser->getSelectedFilters();
         $p               = $urlParser->getPage();
         $n               = $urlParser->getSize();
@@ -60,12 +61,15 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
         $bottomPaginationTemplate = $templateBuilder->renderPaginationTemplate($productsCount);
         $topPaginationTemplate = preg_replace('/(_bottom)/i', '', $bottomPaginationTemplate);
 
+        $filtersBlockTemplate = $templateBuilder->renderFiltersTemplate($selectedFilters, $p, $n, $orderWay, $orderBy);
+
         die(json_encode([
-            'query_string'          => $urlParser->getQueryString(),
-            'filters_template'      => $templateBuilder->renderFiltersTemplate($selectedFilters),
+            'query_string'          => $queryString,
+            'filters_template'      => $filtersBlockTemplate,
             'products_list'         => $templateBuilder->renderProductsTemplate($products, $productsCount),
             'top_pagination'        => $topPaginationTemplate,
-            'reset_original_layout' => empty($selectedFilters) ? true : false,
+            'bottom_pagination'     => $bottomPaginationTemplate,
+            'reset_original_layout' => empty($selectedFilters) && empty($queryString) ?: false,
         ]));
     }
 }

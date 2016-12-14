@@ -48,14 +48,23 @@ class TemplateBuilder
      *
      * @param array $selectedFilters
      *
+     * @param int $p
+     * @param int $n
+     * @param string $orderWay
+     * @param string $orderBy
+     *
      * @return string
      */
-    public function renderFiltersTemplate(array $selectedFilters)
+    public function renderFiltersTemplate(array $selectedFilters, $p, $n, $orderWay, $orderBy)
     {
         $this->filterBuilder->build($selectedFilters);
 
         $this->context->smarty->assign([
             'filters' => $this->filterBuilder->getBuiltFilters(),
+            'p' => $p,
+            'n' => $n,
+            'orderby' => $orderBy,
+            'orderway' => $orderWay,
         ]);
 
         return $this->context->smarty->fetch($this->bradViewsDir.'front/filter-template.tpl');

@@ -260,9 +260,14 @@ class Brad extends Module
         $urlParser->parse($_GET);
         $selectedFilters = $urlParser->getSelectedFilters();
 
+        $orderWay = $urlParser->getOrderWay();
+        $orderBy  = $urlParser->getOrderBy();
+        $page     = $urlParser->getPage();
+        $n        = $urlParser->getSize();
+
         /** @var \Invertus\Brad\Service\Builder\TemplateBuilder $templateBuilder */
         $templateBuilder = $this->container->get('template_builder');
-        $filtersTemplate = $templateBuilder->renderFiltersTemplate($selectedFilters);
+        $filtersTemplate = $templateBuilder->renderFiltersTemplate($selectedFilters, $page, $n, $orderWay, $orderBy);
 
         return $filtersTemplate;
     }

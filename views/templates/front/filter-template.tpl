@@ -84,6 +84,11 @@
                 </div>
                 {/foreach}
             </div>
+
+            <input type="hidden" name="orderby" value="{$orderby|escape:'htmlall':'UTF-8'}">
+            <input type="hidden" name="orderway" value="{$orderway|escape:'htmlall':'UTF-8'}">
+            <input type="hidden" name="p" value="{$p|escape:'htmlall':'UTF-8'}">
+            <input type="hidden" name="n" value="{$n|escape:'htmlall':'UTF-8'}">
         </form>
     </div>
 </div>

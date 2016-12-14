@@ -55,10 +55,6 @@ class FilterService
      */
     public function filterProducts(array $selectedFilters, $page, $size, $orderBy, $orderWay)
     {
-        if (empty($selectedFilters)) {
-            return [];
-        }
-
         $from = (int) ($size * ($page - 1));
 
         $data = [];

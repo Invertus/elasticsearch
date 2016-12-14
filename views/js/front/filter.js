@@ -2,6 +2,7 @@ $(document).ready(function() {
 
     var $sendingRequest = false;
 
+    performFiltering();
     addEventListeners();
 
     /**
@@ -10,7 +11,6 @@ $(document).ready(function() {
     function performFiltering()
     {
         var $selectedFilters = getSelectedFilters();
-        $selectedFilters['id_category'] = $globalIdCategory;
 
         if ($sendingRequest) {
             if (typeof $xhr == 'object') {
@@ -36,35 +36,41 @@ $(document).ready(function() {
         $sendingRequest = false;
 
         $response = JSON.parse($response);
-
+        console.log($response);
         appendQueryStringToUrl($response.query_string);
 
         $("#bradFilterContainer").replaceWith($response.filters_template);
-        addEventListeners();
         updateUniform();
 
         var $centerColumn = $('#center_column');
         var $originalProductList = $centerColumn.find('.product_list');
         var $originalTopPagination = $centerColumn.find('.top-pagination-content');
+        var $originalBottomPagination = $centerColumn.find('.bottom-pagination-content');
 
         var $topPaginationStyles = $originalTopPagination.attr('class');
+        var $bottomPaginationStyles = $originalBottomPagination.attr('class');
 
         $('#bradProductList').remove();
         $('#bradTopPagination').remove();
+        $('#bradBottomPagination').remove();
 
         if ($response.reset_original_layout) {
             $originalProductList.show();
+            $originalTopPagination.show();
             $originalTopPagination.show();
             return;
         }
 
         $originalProductList.hide();
         $originalTopPagination.hide();
+        $originalBottomPagination.hide();
 
         $originalProductList.after('<div id="bradProductList">' + $response.products_list + '</div>');
         $originalTopPagination.after('<div class="' + $topPaginationStyles + '" id="bradTopPagination">' + $response.top_pagination + '</div>');
+        $originalBottomPagination.after('<div class="' + $bottomPaginationStyles + '" id="bradBottomPagination">' + $response.bottom_pagination + '</div>');
 
-        listenPagination();
+        scrollToProductList();
+        addEventListeners();
     }
     
     /**
@@ -179,6 +185,14 @@ $(document).ready(function() {
             }
         });
 
+        var $bradFilterForm = $('#bradFilterForm');
+
+        $selectedFilters['id_category'] = $globalIdCategory;
+        $selectedFilters['orderway'] = $bradFilterForm.find('input[name="orderway"]').val();
+        $selectedFilters['orderby'] = $bradFilterForm.find('input[name="orderby"]').val();
+        $selectedFilters['p'] = $bradFilterForm.find('input[name="p"]').val();
+        $selectedFilters['n'] = $bradFilterForm.find('input[name="n"]').val();
+
         return $selectedFilters;
     }
 
@@ -197,17 +211,19 @@ $(document).ready(function() {
     /**
      * Added event listeners to brad pagination buttons
      */
-    function listenPagination()
+    function listenPaginationClick()
     {
-        var $bradTopPagination = $('#bradTopPagination');
+        var $bradTopPagination = $('#center_column');
 
-        $bradTopPagination.find('a').unbind();
-        $bradTopPagination.find('a').on('click', function($event) {
+        $bradTopPagination.find('.top-pagination-content a, .bottom-pagination-content a').unbind();
+        $bradTopPagination.find('.top-pagination-content a, .bottom-pagination-content a').on('click', function($event) {
             $event.preventDefault();
+            var $page = $(this).find('span').text();
+            //var $url = $event.currentTarget.href;
+            //var $page = $url.match(new RegExp('p' + "=(.*?)($|\&)", "i"))[1];
 
-            var $url = $event.currentTarget.href;
-            var $page = $url.match(new RegExp('p' + "=(.*?)($|\&)", "i"))[1];
-            console.log($page);
+            $('#bradFilterForm').find('input[name="p"]').val($page);
+            performFiltering();
         });
     }
 
@@ -216,9 +232,25 @@ $(document).ready(function() {
      */
     function addEventListeners()
     {
-        $('.brad-checkbox-filter-input').on('change', performFiltering);
+        $('.brad-checkbox-filter-input').on('change', function() {
+
+            $('#bradFilterForm').find('input[name="p"]').val(1);
+
+            performFiltering();
+        });
         handleSlider();
         handleInputArea();
+        listenPaginationClick();
+    }
+
+    /**
+     * Scroll to center column
+     */
+    function scrollToProductList()
+    {
+        $('body').animate({
+            scrollTop: $('#productsSortForm').offset().top
+        }, 100);
     }
 });
 

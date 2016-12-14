@@ -123,7 +123,11 @@ class FilterQueryBuilder extends AbstractQueryBuilder
             }
         }
 
-        $query['query']['bool']['should'] = $this->getQueryFromSearchValues($searchValues);
+        if (!empty($searchValues)) {
+            $query['query']['bool']['should'] = $this->getQueryFromSearchValues($searchValues);
+        } else {
+            $query['query']['match_all'] = [];
+        }
 
         return $query;
     }

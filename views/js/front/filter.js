@@ -4,7 +4,7 @@ $(document).ready(function() {
 
     performFiltering();
     addEventListeners();
-    listenSortingClick();
+    listenSortingAndProductPerPageChange();
 
     /**
      * Perform filtering
@@ -231,7 +231,7 @@ $(document).ready(function() {
     /**
      * Add custom event listener to sorting
      */
-    function listenSortingClick()
+    function listenSortingAndProductPerPageChange()
     {
         var $sortingForm = $('#productsSortForm');
 
@@ -239,7 +239,6 @@ $(document).ready(function() {
             $event.preventDefault();
             $event.stopPropagation();
 
-            console.log('changed');
             var $selectedValue = $(this).find('select').val();
             $selectedValue = $selectedValue.split(':');
 
@@ -247,6 +246,23 @@ $(document).ready(function() {
             $bradFilterForm.find('input[name="orderby"]').val($selectedValue[0]);
             $bradFilterForm.find('input[name="orderway"]').val($selectedValue[1]);
 
+            $$bradFilterForm.find('input[name="p"]').val(1);
+            performFiltering();
+
+            return false;
+        });
+
+        var $productsNumberForm = $('#nb_item');
+        $productsNumberForm.on('change', function ($event) {
+            $event.preventDefault();
+            $event.stopPropagation();
+
+            var $selectedValue = $(this).val();
+
+            var $bradFilterForm = $('#bradFilterForm');
+            $bradFilterForm.find('input[name="n"]').val($selectedValue);
+
+            $bradFilterForm.find('input[name="p"]').val(1);
             performFiltering();
 
             return false;

@@ -1,16 +1,20 @@
 $(document).ready(function() {
 
     var $sendingRequest = false;
+    var $scrollToList = false;
 
-    performFiltering();
+    // Dont scroll on page load
+    performFiltering($scrollToList);
     addEventListeners();
     listenSortingAndProductPerPageChange();
 
     /**
      * Perform filtering
      */
-    function performFiltering()
+    function performFiltering($scrollToList)
     {
+        $scrollToList = (typeof $scrollToList === 'undefined') ? true : $scrollToList;
+
         var $selectedFilters = getSelectedFilters();
 
         if ($sendingRequest) {
@@ -23,7 +27,13 @@ $(document).ready(function() {
 
         var $xhr = $.ajax($globalBradFilterUrl, {
             data: $selectedFilters,
-            success: handleFilteringResponse
+            success: function ($response) {
+                handleFilteringResponse($response);
+
+                if ($scrollToList) {
+                    scrollToProductList();
+                }
+            }
         });
     }
 
@@ -54,6 +64,7 @@ $(document).ready(function() {
         $('#bradProductList').remove();
         $('#bradTopPagination').remove();
         $('#bradBottomPagination').remove();
+        $('#bradSelectedFilters').remove();
 
         if ($response.reset_original_layout) {
             $originalProductList.show();
@@ -69,8 +80,8 @@ $(document).ready(function() {
         $originalProductList.after('<div id="bradProductList">' + $response.products_list + '</div>');
         $originalTopPagination.after('<div class="' + $topPaginationStyles + '" id="bradTopPagination">' + $response.top_pagination + '</div>');
         $originalBottomPagination.after('<div class="' + $bottomPaginationStyles + '" id="bradBottomPagination">' + $response.bottom_pagination + '</div>');
+        $originalTopPagination.before('<div id="bradSelectedFilters">' + $response.selected_filters + '</div>');
 
-        scrollToProductList();
         addEventListeners();
     }
     
@@ -246,7 +257,7 @@ $(document).ready(function() {
             $bradFilterForm.find('input[name="orderby"]').val($selectedValue[0]);
             $bradFilterForm.find('input[name="orderway"]').val($selectedValue[1]);
 
-            $$bradFilterForm.find('input[name="p"]').val(1);
+            $bradFilterForm.find('input[name="p"]').val(1);
             performFiltering();
 
             return false;

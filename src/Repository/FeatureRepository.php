@@ -59,6 +59,12 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
      */
     public function findNames($idLang, $idShop)
     {
+        static $features;
+
+        if ($features) {
+            return $features;
+        }
+
         $sql = '
             SELECT fl.`id_feature`, fl.`name`
             FROM `'.$this->getPrefix().'feature_lang` fl
@@ -73,8 +79,6 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
         if (!is_array($results) || !$results) {
             return [];
         }
-
-        $features = [];
 
         foreach ($results as $result) {
             $features[$result['id_feature']] = $result['name'];
@@ -92,6 +96,12 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
      */
     public function findFeaturesValues($idLang)
     {
+        static $featureValues;
+
+        if ($featureValues) {
+            return $featureValues;
+        }
+
         $sql = '
             SELECT fv.`id_feature`, fvl.`id_feature_value`, fvl.`value`
             FROM `'.$this->getPrefix().'feature_value_lang` fvl
@@ -106,12 +116,10 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
             return [];
         }
 
-        $featureValues = [];
-
         foreach ($results as $result) {
             $featureValues[$result['id_feature']][] = [
                 'name' => $result['value'],
-                'id_feature_value' => $result['id_feature_value']
+                'id_feature_value' => $result['id_feature_value'],
             ];
         }
 

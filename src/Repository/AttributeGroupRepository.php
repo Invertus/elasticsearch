@@ -59,6 +59,12 @@ class AttributeGroupRepository extends \Core_Foundation_Database_EntityRepositor
      */
     public function findNames($idLang, $idShop)
     {
+        static $attributeGroups;
+
+        if ($attributeGroups) {
+            return $attributeGroups;
+        }
+
         $sql = '
             SELECT agl.`id_attribute_group`, agl.`public_name` as `name`
             FROM `'.$this->getPrefix().'attribute_group_lang` agl
@@ -73,8 +79,6 @@ class AttributeGroupRepository extends \Core_Foundation_Database_EntityRepositor
         if (!is_array($results) || !$results) {
             return [];
         }
-
-        $attributeGroups = [];
 
         foreach ($results as $result) {
             $attributeGroups[$result['id_attribute_group']] = $result['name'];
@@ -93,6 +97,12 @@ class AttributeGroupRepository extends \Core_Foundation_Database_EntityRepositor
      */
     public function findAttributesGroupsValues($idLang, $idShop)
     {
+        static $attributeGroupsValues;
+
+        if ($attributeGroupsValues) {
+            return $attributeGroupsValues;
+        }
+
         $sql = '
             SELECT a.`id_attribute_group`, a.`id_attribute`, a.`color`, al.`name`
             FROM `'.$this->getPrefix().'attribute` a
@@ -109,8 +119,6 @@ class AttributeGroupRepository extends \Core_Foundation_Database_EntityRepositor
         if (!is_array($results) || !$results) {
             return [];
         }
-
-        $attributeGroupsValues = [];
 
         foreach ($results as $result) {
             $attributeGroupsValues[$result['id_attribute_group']][] = [

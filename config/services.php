@@ -95,7 +95,7 @@ return [
 
     'template_builder' => [
         'class' => 'Invertus\Brad\Service\Builder\TemplateBuilder',
-        'arguments' => ['brad_templates_dir', 'filter_builder'],
+        'arguments' => ['brad_templates_dir', 'filter_builder', 'em'],
     ],
 
     'filter_builder' => [

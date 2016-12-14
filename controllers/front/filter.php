@@ -62,6 +62,7 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
         $topPaginationTemplate = preg_replace('/(_bottom)/i', '', $bottomPaginationTemplate);
 
         $filtersBlockTemplate = $templateBuilder->renderFiltersTemplate($selectedFilters, $p, $n, $orderWay, $orderBy);
+        $selectedFiltersTemplate = $templateBuilder->renderSelectedFilters($selectedFilters);
 
         die(json_encode([
             'query_string'          => $queryString,
@@ -70,6 +71,7 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
             'top_pagination'        => $topPaginationTemplate,
             'bottom_pagination'     => $bottomPaginationTemplate,
             'reset_original_layout' => empty($selectedFilters) && empty($queryString) ?: false,
+            'selected_filters'      => $selectedFiltersTemplate,
         ]));
     }
 }

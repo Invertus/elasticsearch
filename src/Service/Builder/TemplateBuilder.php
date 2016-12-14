@@ -6,6 +6,7 @@ use Configuration;
 use Context;
 use Image;
 use ImageType;
+use Module;
 use Tools;
 
 /**
@@ -15,6 +16,8 @@ use Tools;
  */
 class TemplateBuilder
 {
+    const FILENAME = 'TemplateBuilder';
+
     /**
      * @var Context
      */
@@ -31,16 +34,23 @@ class TemplateBuilder
     private $filterBuilder;
 
     /**
+     * @var \Core_Foundation_Database_EntityManager
+     */
+    private $em;
+
+    /**
      * TemplateBuilder constructor.
      *
      * @param string $bradViewsDir
      * @param FilterBuilder $filterBuilder
+     * @param $em
      */
-    public function __construct($bradViewsDir, FilterBuilder $filterBuilder)
+    public function __construct($bradViewsDir, FilterBuilder $filterBuilder, $em)
     {
         $this->context = Context::getContext();
         $this->bradViewsDir = $bradViewsDir;
         $this->filterBuilder = $filterBuilder;
+        $this->em = $em;
     }
 
     /**
@@ -153,5 +163,59 @@ class TemplateBuilder
         ]);
 
         return $this->context->smarty->fetch(_PS_THEME_DIR_.'pagination.tpl');
+    }
+
+    /**
+     * Render selected filters
+     *
+     * @param array $selectedFilters
+     *
+     * @return string
+     */
+    public function renderSelectedFilters($selectedFilters)
+    {
+        if (empty($selectedFilters)) {
+            return '';
+        }
+
+        $idShop = $this->context->shop->id;
+        $idLang = $this->context->language->id;
+
+        $attributeGroupRep = $this->em->getRepository('BradAttributeGroup');
+        $featuresRep = $this->em->getRepository('BradFeature');
+
+        $featuresNames = $featuresRep->findNames($idLang, $idShop);
+        $featuresValues = $featuresRep->findFeaturesValues($idLang);
+        $attribtueGroupsNames = $attributeGroupRep->findNames($idLang, $idShop);
+        $attribtueGroupsValuesNames = $attributeGroupRep->findAttributesGroupsValues($idLang, $idShop);
+
+        $formattedSelectedFilters = [];
+
+        foreach ($selectedFilters as $key => $selectedValues) {
+            if (0 === strpos($key, 'attribute_group')) {
+                if (!isset($formattedSelectedFilters[$key]['name'])) {
+                    $idAttribtueGroup = end(explode('_', $key));
+                    $formattedSelectedFilters[$key]['name'] = $attribtueGroupsNames[$idAttribtueGroup];
+                }
+
+                foreach ($selectedValues as $selectedValue) {
+
+                    $value = is_array($selectedValue)
+                        ? sprintf('%s:%s', $selectedValue['min_value'], $selectedValue['max_value'])
+                        : $selectedValue;
+
+                    $formattedSelectedFilters[$key]['values'][] = [
+                        'filter' => $key,
+                        'filter_value' => $value,
+                    ];
+                }
+            }
+        }
+
+        $this->context->smarty->assign([
+            'selected_filters' => $formattedSelectedFilters,
+        ]);
+
+        return $this->context->smarty->fetch($this->bradViewsDir.'front/selected-filters.tpl');
     }
 }

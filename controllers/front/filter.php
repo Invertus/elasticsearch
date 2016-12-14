@@ -50,7 +50,7 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
         /** @var \Invertus\Brad\Service\FilterService $filterService */
         $filterService = $this->get('filter_service');
 
-        $products = $filterService->filterProducts($selectedFilters, $p, $n, $orderWay, $orderBy);
+        $products = $filterService->filterProducts($selectedFilters, $p, $n, $orderBy, $orderWay);
         $productsCount = $filterService->countProducts($selectedFilters);
 
         $products = $this->formatProducts($products);

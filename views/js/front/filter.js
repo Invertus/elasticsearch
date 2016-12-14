@@ -4,6 +4,7 @@ $(document).ready(function() {
 
     performFiltering();
     addEventListeners();
+    listenSortingClick();
 
     /**
      * Perform filtering
@@ -36,7 +37,7 @@ $(document).ready(function() {
         $sendingRequest = false;
 
         $response = JSON.parse($response);
-        console.log($response);
+
         appendQueryStringToUrl($response.query_string);
 
         $("#bradFilterContainer").replaceWith($response.filters_template);
@@ -224,6 +225,31 @@ $(document).ready(function() {
 
             $('#bradFilterForm').find('input[name="p"]').val($page);
             performFiltering();
+        });
+    }
+
+    /**
+     * Add custom event listener to sorting
+     */
+    function listenSortingClick()
+    {
+        var $sortingForm = $('#productsSortForm');
+
+        $sortingForm.on('change', function ($event) {
+            $event.preventDefault();
+            $event.stopPropagation();
+
+            console.log('changed');
+            var $selectedValue = $(this).find('select').val();
+            $selectedValue = $selectedValue.split(':');
+
+            var $bradFilterForm = $('#bradFilterForm');
+            $bradFilterForm.find('input[name="orderby"]').val($selectedValue[0]);
+            $bradFilterForm.find('input[name="orderway"]').val($selectedValue[1]);
+
+            performFiltering();
+
+            return false;
         });
     }
 

@@ -18,6 +18,12 @@
  */
 
 return [
+    /*
+     |-----------------------------------------------
+     | Module installer services
+     |-----------------------------------------------
+     */
+
     'db_installer' => [
         'class' => 'Invertus\Brad\Install\DbInstaller',
         'arguments' => ['db', 'brad_dir'],
@@ -27,6 +33,12 @@ return [
         'class' => 'Invertus\Brad\Install\Installer',
         'arguments' => ['module', 'db_installer'],
     ],
+
+    /*
+     |-----------------------------------------------
+     | Elasticsearch services
+     |-----------------------------------------------
+     */
 
     'elasticsearch.manager' => [
         'class' => 'Invertus\Brad\Service\Elasticsearch\ElasticsearchManager',
@@ -52,6 +64,26 @@ return [
         ],
     ],
 
+    'elasticsearch.search' => [
+        'class' => 'Invertus\Brad\Service\Elasticsearch\ElasticsearchSearch',
+        'arguments' => ['elasticsearch.manager'],
+    ],
+
+    'elasticsearch.helper' => [
+        'class' => 'Invertus\Brad\Service\Elasticsearch\ElasticsearchHelper',
+        'arguments' => ['elasticsearch.manager'],
+    ],
+
+    /*
+     |-----------------------------------------------
+     | Elasticsearch builder services
+     |-----------------------------------------------
+     */
+
+    'elasticsearch.builder.filter_query_builder' => [
+        'class' => 'Invertus\Brad\Service\Elasticsearch\Builder\FilterQueryBuilder',
+    ],
+
     'elasticsearch.builder.document_builder' => [
         'class' => 'Invertus\Brad\Service\Elasticsearch\Builder\DocumentBuilder',
         'arguments' => ['context.link', 'context.shop', 'em', 'configuration'],
@@ -61,6 +93,12 @@ return [
         'class' => 'Invertus\Brad\Service\Elasticsearch\Builder\IndexBuilder',
         'arguments' => ['configuration', 'em'],
     ],
+
+    /*
+     |-----------------------------------------------
+     | Services
+     |-----------------------------------------------
+     */
 
     'indexer' => [
         'class' => 'Invertus\Brad\Service\Indexer',
@@ -73,10 +111,21 @@ return [
         ],
     ],
 
-    'elasticsearch.search' => [
-        'class' => 'Invertus\Brad\Service\Elasticsearch\ElasticsearchSearch',
-        'arguments' => ['elasticsearch.manager'],
+    'filter_service' => [
+        'class' => 'Invertus\Brad\Service\FilterService',
+        'arguments' => ['elasticsearch.builder.filter_query_builder', 'elasticsearch.search'],
     ],
+
+    'search_service' => [
+        'class' => 'Invertus\Brad\Service\SearchService',
+        'arguments' => ['elasticsearch.search'],
+    ],
+
+    /*
+     |-----------------------------------------------
+     | CronJob services
+     |-----------------------------------------------
+     */
 
     'task_runner' => [
         'class' => 'Invertus\Brad\Cron\TaskRunner',
@@ -88,37 +137,30 @@ return [
         'arguments' => ['elasticsearch.manager', 'indexer'],
     ],
 
+    /*
+     |-----------------------------------------------
+     | Logger service
+     |-----------------------------------------------
+     */
+
     'logger' => [
         'class' => 'Invertus\Brad\Logger\Logger',
         'arguments' => ['brad_log_dir'],
     ],
 
-    'template_builder' => [
-        'class' => 'Invertus\Brad\Service\Builder\TemplateBuilder',
-        'arguments' => ['brad_templates_dir', 'filter_builder', 'em'],
+    /*
+     |-----------------------------------------------
+     | Templating services
+     |-----------------------------------------------
+     */
+
+    'templating' => [
+        'class' => 'Invertus\Brad\Template\Templating',
+        'arguments' => ['brad_templates_dir', 'filter_block_templating', 'em'],
     ],
 
-    'filter_builder' => [
-        'class' => 'Invertus\Brad\Service\Builder\FilterBuilder',
+    'filter_block_templating' => [
+        'class' => 'Invertus\Brad\Template\FilterBlockTemplating',
         'arguments' => ['em', 'elasticsearch.helper'],
-    ],
-
-    'filter_service' => [
-        'class' => 'Invertus\Brad\Service\FilterService',
-        'arguments' => ['elasticsearch.builder.filter_query_builder', 'elasticsearch.search'],
-    ],
-
-    'search_service' => [
-        'class' => 'Invertus\Brad\Service\SearchService',
-        'arguments' => ['elasticsearch.search'],
-    ],
-
-    'elasticsearch.helper' => [
-        'class' => 'Invertus\Brad\Service\Elasticsearch\ElasticsearchHelper',
-        'arguments' => ['elasticsearch.manager'],
-    ],
-
-    'elasticsearch.builder.filter_query_builder' => [
-        'class' => 'Invertus\Brad\Service\Elasticsearch\Builder\FilterQueryBuilder',
     ],
 ];

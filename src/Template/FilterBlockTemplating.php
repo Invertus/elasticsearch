@@ -1,6 +1,6 @@
 <?php
 
-namespace Invertus\Brad\Service\Builder;
+namespace Invertus\Brad\Template;
 
 use BradFilter;
 use BradProduct;
@@ -17,11 +17,11 @@ use Invertus\Brad\Util\RangeParser;
 use Tools;
 
 /**
- * Class FilterBuilder
+ * Class FilterBlockTemplating
  *
- * @package Invertus\Brad\Service\Builder
+ * @package Invertus\Brad\Template
  */
-class FilterBuilder
+class FilterBlockTemplating
 {
     /**
      * @var Context
@@ -450,7 +450,7 @@ class FilterBuilder
         $rangesTypeFilters = [BradFilter::FILTER_TYPE_PRICE, BradFilter::FILTER_TYPE_WEIGHT];
 
         if ((in_array($filterType, $rangesTypeFilters) &&
-            !in_array($filterStyle, [BradFilter::FILTER_STYLE_SLIDER, BradFilter::FILTER_STYLE_INPUT])) ||
+                !in_array($filterStyle, [BradFilter::FILTER_STYLE_SLIDER, BradFilter::FILTER_STYLE_INPUT])) ||
             BradFilter::FILTER_STYLE_LIST_OF_VALUES == $filterStyle
         ) {
             foreach ($filter['criterias'] as &$criteria) {

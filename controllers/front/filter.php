@@ -56,21 +56,20 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
         $products = $this->formatProducts($products);
         $this->addColorsToProductList($products);
 
-        /** @var \Invertus\Brad\Service\Builder\TemplateBuilder $templateBuilder */
-        $templateBuilder = $this->get('template_builder');
-        $bottomPaginationTemplate = $templateBuilder->renderPaginationTemplate($productsCount);
+        /** @var \Invertus\Brad\Template\Templating $templating */
+        $templating = $this->get('templating');
+        $bottomPaginationTemplate = $templating->renderPaginationTemplate($productsCount);
         $topPaginationTemplate = preg_replace('/(_bottom)/i', '', $bottomPaginationTemplate);
 
-        $filtersBlockTemplate = $templateBuilder->renderFiltersTemplate($selectedFilters, $p, $n, $orderWay, $orderBy);
-        $selectedFiltersTemplate = $templateBuilder->renderSelectedFilters($selectedFilters);
+        $filtersBlockTemplate = $templating->renderFiltersBlockTemplate($selectedFilters, $p, $n, $orderWay, $orderBy);
+        $selectedFiltersTemplate = $templating->renderSelectedFilters($selectedFilters);
 
         die(json_encode([
             'query_string'          => $queryString,
             'filters_template'      => $filtersBlockTemplate,
-            'products_list'         => $templateBuilder->renderProductsTemplate($products, $productsCount),
+            'products_list'         => $templating->renderProductsTemplate($products, $productsCount),
             'top_pagination'        => $topPaginationTemplate,
             'bottom_pagination'     => $bottomPaginationTemplate,
-            'reset_original_layout' => empty($selectedFilters) && empty($queryString) ?: false,
             'selected_filters'      => $selectedFiltersTemplate,
         ]));
     }

@@ -174,7 +174,7 @@ class Brad extends Module
 
         $isFiltersEnalbed = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_FILTERS);
 
-        if ($isFiltersEnalbed) {
+        if ($this->isFilterAvailableInController() && $isFiltersEnalbed) {
             $jsUri = $this->container->get('brad_js_uri');
             $this->context->controller->addJqueryUI('ui.slider');
             $this->context->controller->addJS($jsUri.'front/filter.js');
@@ -249,10 +249,7 @@ class Brad extends Module
 
         $isFiltersEnalbed = (bool) Configuration::get(\Invertus\Brad\Config\Setting::ENABLE_FILTERS);
 
-        $availableControllers = ['category'];
-        $currentController = Tools::getValue('controller');
-
-        if (!in_array($currentController, $availableControllers) || !$isFiltersEnalbed) {
+        if (!$this->isFilterAvailableInController() || !$isFiltersEnalbed) {
             return '';
         }
 
@@ -265,9 +262,9 @@ class Brad extends Module
         $page     = $urlParser->getPage();
         $n        = $urlParser->getSize();
 
-        /** @var \Invertus\Brad\Service\Builder\TemplateBuilder $templateBuilder */
-        $templateBuilder = $this->container->get('template_builder');
-        $filtersTemplate = $templateBuilder->renderFiltersTemplate($selectedFilters, $page, $n, $orderWay, $orderBy);
+        /** @var \Invertus\Brad\Template\Templating $templating */
+        $templating = $this->container->get('templating');
+        $filtersTemplate = $templating->renderFiltersBlockTemplate($selectedFilters, $page, $n, $orderWay, $orderBy);
 
         return $filtersTemplate;
     }
@@ -380,6 +377,17 @@ class Brad extends Module
         }
 
         return true;
+    }
+
+    /**
+     * Check if filtering is available in controller
+     */
+    private function isFilterAvailableInController()
+    {
+        $availableControllers = ['category'];
+        $currentController = Tools::getValue('controller');
+
+        return in_array($currentController, $availableControllers);
     }
 
     /**

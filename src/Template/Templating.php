@@ -1,20 +1,19 @@
 <?php
 
-namespace Invertus\Brad\Service\Builder;
+namespace Invertus\Brad\Template;
 
 use Configuration;
 use Context;
 use Image;
 use ImageType;
-use Module;
 use Tools;
 
 /**
- * Class TemplateBuilder
+ * Class Templating
  *
- * @package Invertus\Brad\Service\Builder
+ * @package Invertus\Brad\Template
  */
-class TemplateBuilder
+class Templating
 {
     const FILENAME = 'TemplateBuilder';
 
@@ -29,9 +28,9 @@ class TemplateBuilder
     private $bradViewsDir;
 
     /**
-     * @var FilterBuilder
+     * @var FilterBlockTemplating
      */
-    private $filterBuilder;
+    private $filterBlockTemplating;
 
     /**
      * @var \Core_Foundation_Database_EntityManager
@@ -42,14 +41,14 @@ class TemplateBuilder
      * TemplateBuilder constructor.
      *
      * @param string $bradViewsDir
-     * @param FilterBuilder $filterBuilder
+     * @param FilterBlockTemplating $filterBlockTemplating
      * @param $em
      */
-    public function __construct($bradViewsDir, FilterBuilder $filterBuilder, $em)
+    public function __construct($bradViewsDir, FilterBlockTemplating $filterBlockTemplating, $em)
     {
         $this->context = Context::getContext();
         $this->bradViewsDir = $bradViewsDir;
-        $this->filterBuilder = $filterBuilder;
+        $this->filterBlockTemplating = $filterBlockTemplating;
         $this->em = $em;
     }
 
@@ -65,12 +64,12 @@ class TemplateBuilder
      *
      * @return string
      */
-    public function renderFiltersTemplate(array $selectedFilters, $p, $n, $orderWay, $orderBy)
+    public function renderFiltersBlockTemplate(array $selectedFilters, $p, $n, $orderWay, $orderBy)
     {
-        $this->filterBuilder->build($selectedFilters);
+        $this->filterBlockTemplating->build($selectedFilters);
 
         $this->context->smarty->assign([
-            'filters' => $this->filterBuilder->getBuiltFilters(),
+            'filters' => $this->filterBlockTemplating->getBuiltFilters(),
             'p' => $p,
             'n' => $n,
             'orderby' => $orderBy,

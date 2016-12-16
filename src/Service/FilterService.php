@@ -2,6 +2,7 @@
 
 namespace Invertus\Brad\Service;
 
+use Configuration;
 use Context;
 use Invertus\Brad\Service\Elasticsearch\Builder\FilterQueryBuilder;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchSearch;
@@ -45,17 +46,21 @@ class FilterService
      * Perform filtering
      *
      * @param array $selectedFilters
-     *
-     * @param $page
-     * @param $size
-     * @param $orderBy
-     * @param $orderWay
+     * @param int $page
+     * @param int $size
+     * @param string $orderBy
+     * @param string $orderWay
+     * @param int|null $idParentCategory
      *
      * @return array
      */
-    public function filterProducts(array $selectedFilters, $page, $size, $orderBy, $orderWay)
+    public function filterProducts(array $selectedFilters, $page, $size, $orderBy, $orderWay, $idParentCategory = null)
     {
         $from = (int) ($size * ($page - 1));
+
+        if (null === $idParentCategory) {
+            $idParentCategory = (int) Configuration::get('PS_HOME_CATEGORY');
+        }
 
         $data = [];
         $data['selected_filters'] = $selectedFilters;
@@ -63,6 +68,7 @@ class FilterService
         $data['size'] = $size;
         $data['order_by'] = $orderBy;
         $data['order_way'] = $orderWay;
+        $data['id_parent_category'] = (int) $idParentCategory;
 
         $productsFilterQuery = $this->filterQueryBuilder->buildFilterQuery($data);
 

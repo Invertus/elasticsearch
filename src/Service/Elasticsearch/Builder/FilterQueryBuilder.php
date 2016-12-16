@@ -21,7 +21,7 @@ class FilterQueryBuilder extends AbstractQueryBuilder
      */
     public function buildFilterQuery(array $data, $countOnly = false)
     {
-        $query = $this->getProductQueryBySelectedFilters($data['selected_filters']);
+        $query = $this->getProductQueryBySelectedFilters($data['selected_filters'], $data['id_parent_category']);
 
         if ($countOnly) {
             return $query;
@@ -56,10 +56,11 @@ class FilterQueryBuilder extends AbstractQueryBuilder
      * Get search values by selected filters
      *
      * @param array $selectedFilters
+     * @param int $idParentCategory
      *
      * @return array
      */
-    protected function getProductQueryBySelectedFilters(array $selectedFilters)
+    protected function getProductQueryBySelectedFilters(array $selectedFilters, $idParentCategory)
     {
         $searchValues = [];
 
@@ -123,9 +124,13 @@ class FilterQueryBuilder extends AbstractQueryBuilder
             }
         }
 
+        $categoriesQuery = $this->getQueryFromCategories($idParentCategory);
+
         if (!empty($searchValues)) {
             $query['query']['bool']['must'] = $this->getQueryFromSearchValues($searchValues);
+            $query['query']['bool']['must'][] = $categoriesQuery;
         } else {
+            //@todo: get all products from sub categories only
             $query['query']['match_all'] = [];
         }
 
@@ -215,5 +220,13 @@ class FilterQueryBuilder extends AbstractQueryBuilder
         }
 
         return $query;
+    }
+
+    /**
+     * @param int $idParentCategory
+     */
+    private function getQueryFromCategories($idParentCategory)
+    {
+        //@todo: implement subcategories query
     }
 }

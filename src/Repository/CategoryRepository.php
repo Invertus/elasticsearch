@@ -67,6 +67,12 @@ class CategoryRepository extends \Core_Foundation_Database_EntityRepository
      */
     public function findChildCategories(Category $category, $idLang, $idShop)
     {
+        static $categories;
+
+        if ($categories) {
+            return $categories;
+        }
+
         $sql = '
             SELECT c.`id_category`, cl.`name`
             FROM `'.$this->getPrefix().'category` c
@@ -80,12 +86,12 @@ class CategoryRepository extends \Core_Foundation_Database_EntityRepository
                 AND c.`nright` <= '.(int)$category->nright.'
         ';
 
-        $results = $this->db->select($sql);
+        $categories = $this->db->select($sql);
 
-        if (!is_array($results) || !$results) {
+        if (!is_array($categories) || !$categories) {
             return [];
         }
 
-        return $results;
+        return $categories;
     }
 }

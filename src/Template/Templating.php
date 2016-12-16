@@ -25,7 +25,7 @@ class Templating
     /**
      * @var string
      */
-    private $bradViewsDir;
+    private $bradTemplatesDir;
 
     /**
      * @var FilterBlockTemplating
@@ -40,14 +40,14 @@ class Templating
     /**
      * TemplateBuilder constructor.
      *
-     * @param string $bradViewsDir
+     * @param string $bradTemplates
      * @param FilterBlockTemplating $filterBlockTemplating
      * @param $em
      */
-    public function __construct($bradViewsDir, FilterBlockTemplating $filterBlockTemplating, $em)
+    public function __construct($bradTemplates, FilterBlockTemplating $filterBlockTemplating, $em)
     {
         $this->context = Context::getContext();
-        $this->bradViewsDir = $bradViewsDir;
+        $this->bradTemplatesDir = $bradTemplates;
         $this->filterBlockTemplating = $filterBlockTemplating;
         $this->em = $em;
     }
@@ -76,7 +76,7 @@ class Templating
             'orderway' => $orderWay,
         ]);
 
-        return $this->context->smarty->fetch($this->bradViewsDir.'front/filter-template.tpl');
+        return $this->context->smarty->fetch($this->bradTemplatesDir.'front/filter-template.tpl');
     }
 
     /**
@@ -90,7 +90,7 @@ class Templating
     public function renderProductsTemplate(array $products, $productsCount)
     {
         if (empty($products)) {
-            return $this->context->smarty->fetch($this->bradViewsDir.'front/no-products-found.tpl');
+            return $this->context->smarty->fetch($this->bradTemplatesDir.'front/no-products-found.tpl');
         }
 
         $frontController = Context::getContext()->controller;
@@ -101,8 +101,6 @@ class Templating
             'search_products' => $products,
             'nbProducts' => (int) $productsCount,
             'homeSize' => Image::getSize(ImageType::getFormatedName('home')),
-            'current_url' => '',
-            'request' => '',
         ]);
 
         $renderedList = $this->context->smarty->fetch(_PS_THEME_DIR_.'product-list.tpl');
@@ -114,31 +112,23 @@ class Templating
      * Render pagination template
      *
      * @param int $productsCount
+     * @param int $page
+     * @param int $n
      *
      * @return string
      */
-    public function renderPaginationTemplate($productsCount)
+    public function renderPaginationTemplate($productsCount, $page, $n)
     {
-        $p = (int) Tools::getValue('p');
-        $n = (int) Tools::getValue('n');
         $range = 2;
 
-        if ($n < 1) {
-            $n = (int) Configuration::get('PS_PRODUCTS_PER_PAGE');
-        }
-
-        if ($p < 1) {
-            $p = 1;
-        }
-
-        if ($p > ($productsCount / $n)) {
-            $p = ceil($productsCount / $n);
+        if ($page > ($productsCount / $n)) {
+            $page = ceil($productsCount / $n);
         }
 
         $pagesCount = ceil($productsCount / $n);
 
-        $start = $p - $range;
-        $stop = $p + $range;
+        $start = $page - $range;
+        $stop = $page + $range;
 
         if ($start < 1) {
             $start = 1;
@@ -151,7 +141,7 @@ class Templating
         $this->context->smarty->assign([
             'nb_products' => $productsCount,
             'pages_nb' => $pagesCount,
-            'p' => $p,
+            'p' => $page,
             'n' => $n,
             'range' => $range,
             'start' => $start,
@@ -173,6 +163,9 @@ class Templating
      */
     public function renderSelectedFilters($selectedFilters)
     {
+        //@todo: finish implementing selected filters
+        return '';
+
         if (empty($selectedFilters)) {
             return '';
         }
@@ -215,6 +208,6 @@ class Templating
             'selected_filters' => $formattedSelectedFilters,
         ]);
 
-        return $this->context->smarty->fetch($this->bradViewsDir.'front/selected-filters.tpl');
+        return $this->context->smarty->fetch($this->bradTemplatesDir.'front/selected-filters.tpl');
     }
 }

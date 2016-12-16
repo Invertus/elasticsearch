@@ -202,8 +202,9 @@ class UrlParser
         $defaults['orderway'] = Sort::WAY_ASC;
         $defaults['p'] = 1;
         $defaults['n'] = (int) Configuration::get('PS_PRODUCTS_PER_PAGE');
+        $defaultKeys = array_keys($defaults);
 
-        if ($value == $defaults[$key]) {
+        if (in_array($key, $defaultKeys) && $value == $defaults[$key]) {
             return;
         }
 

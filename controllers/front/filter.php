@@ -58,19 +58,19 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
 
         /** @var \Invertus\Brad\Template\Templating $templating */
         $templating = $this->get('templating');
-        $bottomPaginationTemplate = $templating->renderPaginationTemplate($productsCount);
+        $bottomPaginationTemplate = $templating->renderPaginationTemplate($productsCount, $p, $n);
         $topPaginationTemplate = preg_replace('/(_bottom)/i', '', $bottomPaginationTemplate);
 
         $filtersBlockTemplate = $templating->renderFiltersBlockTemplate($selectedFilters, $p, $n, $orderWay, $orderBy);
         $selectedFiltersTemplate = $templating->renderSelectedFilters($selectedFilters);
 
         die(json_encode([
-            'query_string'          => $queryString,
-            'filters_template'      => $filtersBlockTemplate,
-            'products_list'         => $templating->renderProductsTemplate($products, $productsCount),
-            'top_pagination'        => $topPaginationTemplate,
-            'bottom_pagination'     => $bottomPaginationTemplate,
-            'selected_filters'      => $selectedFiltersTemplate,
+            'query_string'               => $queryString,
+            'filters_block_template'     => $filtersBlockTemplate,
+            'products_list_template'     => $templating->renderProductsTemplate($products, $productsCount),
+            'top_pagination_template'    => $topPaginationTemplate,
+            'bottom_pagination_template' => $bottomPaginationTemplate,
+            'selected_filters_template'  => $selectedFiltersTemplate,
         ]));
     }
 }

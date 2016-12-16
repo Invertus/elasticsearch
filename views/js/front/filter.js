@@ -44,12 +44,12 @@ $(document).ready(function() {
     function handleFilteringResponse($response)
     {
         $sendingRequest = false;
-
+        console.log($response);
         $response = JSON.parse($response);
 
         appendQueryStringToUrl($response.query_string);
 
-        $("#bradFilterContainer").replaceWith($response.filters_template);
+        $("#bradFilterContainer").replaceWith($response.filters_block_template);
         updateUniform();
 
         var $centerColumn = $('#center_column');
@@ -73,9 +73,9 @@ $(document).ready(function() {
         $originalTopPagination.empty();
         $originalBottomPagination.empty();
 
-        $originalProductList.after('<div id="bradProductList">' + $response.products_list + '</div>');
-        $originalTopPagination.after('<div class="' + $topPaginationStyles + '" id="bradTopPagination">' + $response.top_pagination + '</div>');
-        $originalBottomPagination.after('<div class="' + $bottomPaginationStyles + '" id="bradBottomPagination">' + $response.bottom_pagination + '</div>');
+        $originalProductList.after('<div id="bradProductList">' + $response.products_list_template + '</div>');
+        $originalTopPagination.after('<div class="' + $topPaginationStyles + '" id="bradTopPagination">' + $response.top_pagination_template + '</div>');
+        $originalBottomPagination.after('<div class="' + $bottomPaginationStyles + '" id="bradBottomPagination">' + $response.bottom_pagination_template + '</div>');
         $originalTopPagination.before('<div id="bradSelectedFilters">' + $response.selected_filters + '</div>');
 
         addEventListeners();

@@ -1,5 +1,6 @@
 $(document).ready(function() {
 
+    var $xhr;
     var $sendingRequest = false;
     var $scrollToList = false;
 
@@ -18,14 +19,12 @@ $(document).ready(function() {
         var $selectedFilters = getSelectedFilters();
 
         if ($sendingRequest) {
-            if (typeof $xhr == 'object') {
-                $xhr.abort();
-            }
+            $xhr.abort();
         }
 
         $sendingRequest = true;
 
-        var $xhr = $.ajax($globalBradFilterUrl, {
+        $xhr = $.ajax($globalBradFilterUrl, {
             data: $selectedFilters,
             success: function ($response) {
                 handleFilteringResponse($response);
@@ -61,21 +60,18 @@ $(document).ready(function() {
         var $topPaginationStyles = $originalTopPagination.attr('class');
         var $bottomPaginationStyles = $originalBottomPagination.attr('class');
 
+        // Remove previously inserted products, filters & etc
         $('#bradProductList').remove();
         $('#bradTopPagination').remove();
         $('#bradBottomPagination').remove();
         $('#bradSelectedFilters').remove();
 
-        if ($response.reset_original_layout) {
-            $originalProductList.show();
-            $originalTopPagination.show();
-            $originalTopPagination.show();
-            return;
-        }
-
-        $originalProductList.hide();
-        $originalTopPagination.hide();
-        $originalBottomPagination.hide();
+        // Remove default content but keep containers
+        //@todo: insert into default containers brad elements
+        $originalProductList.empty();
+        $originalTopPagination.empty();
+        $originalTopPagination.empty();
+        $originalBottomPagination.empty();
 
         $originalProductList.after('<div id="bradProductList">' + $response.products_list + '</div>');
         $originalTopPagination.after('<div class="' + $topPaginationStyles + '" id="bradTopPagination">' + $response.top_pagination + '</div>');
@@ -213,6 +209,12 @@ $(document).ready(function() {
      */
     function appendQueryStringToUrl($queryString)
     {
+        window.history.pushState([], '', $globalBaseUrl);
+
+        if (!$queryString) {
+            return;
+        }
+
         if ($globalBaseUrl.indexOf('?') > -1) {
             window.history.pushState([], '', $globalBaseUrl + '&' + $queryString);
         } else {

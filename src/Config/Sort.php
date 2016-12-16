@@ -24,7 +24,7 @@ class Sort
     const BY_NAME = 'name';
     const BY_PRICE = 'price';
     const BY_QUANTITY = 'quantity';
-    const BY_RELEVANCE = 'relevance';
+    const BY_RELEVANCE = 'position';
     const BY_REFERENCE = 'reference';
 
     const WAY_DESC = 'desc';

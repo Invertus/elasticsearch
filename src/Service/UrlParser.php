@@ -126,7 +126,7 @@ class UrlParser
     {
         $orderBy = Tools::getValue('orderby');
 
-        $availableOrderBy = [Sort::BY_NAME, Sort::BY_PRICE, Sort::BY_QUANTITY, Sort::BY_REFERENCE];
+        $availableOrderBy = [Sort::BY_NAME, Sort::BY_PRICE, Sort::BY_QUANTITY, Sort::BY_REFERENCE, Sort::BY_RELEVANCE];
 
         if (!in_array($orderBy, $availableOrderBy)) {
             $orderBy = Sort::BY_RELEVANCE;
@@ -147,7 +147,7 @@ class UrlParser
         $ways = [Sort::WAY_ASC, Sort::WAY_DESC];
 
         if (!in_array($orderWay, $ways)) {
-            $orderWay = Sort::WAY_DESC;
+            $orderWay = Sort::WAY_ASC;
         }
 
         return $orderWay;
@@ -198,6 +198,15 @@ class UrlParser
      */
     protected function addQueryStringParam($key, $value)
     {
+        $defaults['orderby'] = Sort::BY_RELEVANCE;
+        $defaults['orderway'] = Sort::WAY_ASC;
+        $defaults['p'] = 1;
+        $defaults['n'] = (int) Configuration::get('PS_PRODUCTS_PER_PAGE');
+
+        if ($value == $defaults[$key]) {
+            return;
+        }
+
         if (empty($this->queryString)) {
             $this->queryString = sprintf('%s=%s', $key, $value);
             return;

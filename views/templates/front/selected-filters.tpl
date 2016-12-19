@@ -1,37 +1,24 @@
 <div id="bradSelectedFilters">
 
-    <strong>Selected filters</strong>
+    <strong>{l s='Selected filters' mod='brad'}:</strong> <br>
 
-    <ul class="list-unstyled">
-        {*{foreach $selected_filters as $key => $values}*}
-        {*<li>*}
-        {*<strong>Price: </strong>*}
-        {*<ul class="list-inline">*}
-        {*<li><a href="#"><i class="icon-times" aria-hidden="true"></i> 100$ - 200$</a></li>*}
-        {*<li><a href="#"><i class="icon-times" aria-hidden="true"></i> 200$ - 300$</a></li>*}
-        {*</ul>*}
-        {*</li>*}
-        {*{/foreach}*}
+    <ul >
+        {foreach $formatted_selected_filters as $key => $filter}
         <li>
             <ul class="list-inline">
-                <li><strong>Price: </strong></li>
-                <li><a data-filter="feature_1" data-value="15" href="#"><i class="icon-times" aria-hidden="true"></i> 100$ - 200$</a></li>
-                <li><a data-filter="feature_1" data-value="15" href="#"><i class="icon-times" aria-hidden="true"></i> 200$ - 300$</a></li>
+                <li>
+                    <strong>{$filter.name|escape:'htmlall':'UTF-8'}:</strong>
+                </li>
+                {foreach $filter.values as $value}
+                    <li>
+                        <a href="#" data-filter="{$value.filter|escape:'htmlall':'UTF-8'}" data-value="{$value.filter_value|escape:'htmlall':'UTF-8'}" class="brad-selected-filter">
+                            <i class="icon-times" aria-hidden="true"></i>
+                            {$value.display_value|escape:'htmlall':'UTF-8'}
+                        </a>
+                    </li>
+                {/foreach}
             </ul>
         </li>
-        <li>
-            <ul class="list-inline">
-                <li><strong>Price: </strong></li>
-                <li><a data-filter="feature_1" data-value="15" href="#"><i class="icon-times" aria-hidden="true"></i> 100$ - 200$</a></li>
-                <li><a data-filter="feature_1" data-value="15" href="#"><i class="icon-times" aria-hidden="true"></i> 200$ - 300$</a></li>
-            </ul>
-        </li>
-        <li>
-            <ul class="list-inline">
-                <li><strong>Price: </strong></li>
-                <li><a data-filter="feature_1" data-value="15" href="#"><i class="icon-times" aria-hidden="true"></i> 100$ - 200$</a></li>
-                <li><a data-filter="feature_1" data-value="15" href="#"><i class="icon-times" aria-hidden="true"></i> 200$ - 300$</a></li>
-            </ul>
-        </li>
+        {/foreach}
     </ul>
 </div>

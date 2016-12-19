@@ -121,7 +121,7 @@ class AttributeGroupRepository extends \Core_Foundation_Database_EntityRepositor
         }
 
         foreach ($results as $result) {
-            $attributeGroupsValues[$result['id_attribute_group']][] = [
+            $attributeGroupsValues[$result['id_attribute_group']][$result['id_attribute']] = [
                 'id_attribute' => $result['id_attribute'],
                 'name' => $result['name'],
                 'color' => $result['color'],

@@ -6,6 +6,8 @@ use Configuration;
 use Context;
 use Image;
 use ImageType;
+use Manufacturer;
+use Module;
 use Tools;
 
 /**
@@ -15,7 +17,7 @@ use Tools;
  */
 class Templating
 {
-    const FILENAME = 'TemplateBuilder';
+    const FILENAME = 'Templating';
 
     /**
      * @var Context
@@ -163,49 +165,36 @@ class Templating
      */
     public function renderSelectedFilters($selectedFilters)
     {
-        //@todo: finish implementing selected filters
-        return '';
-
         if (empty($selectedFilters)) {
             return '';
         }
 
-        $idShop = $this->context->shop->id;
-        $idLang = $this->context->language->id;
-
-        $attributeGroupRep = $this->em->getRepository('BradAttributeGroup');
-        $featuresRep = $this->em->getRepository('BradFeature');
-
-        $featuresNames = $featuresRep->findNames($idLang, $idShop);
-        $featuresValues = $featuresRep->findFeaturesValues($idLang);
-        $attribtueGroupsNames = $attributeGroupRep->findNames($idLang, $idShop);
-        $attribtueGroupsValuesNames = $attributeGroupRep->findAttributesGroupsValues($idLang, $idShop);
-
         $formattedSelectedFilters = [];
 
         foreach ($selectedFilters as $key => $selectedValues) {
-            if (0 === strpos($key, 'attribute_group')) {
-                if (!isset($formattedSelectedFilters[$key]['name'])) {
-                    $idAttribtueGroup = end(explode('_', $key));
-                    $formattedSelectedFilters[$key]['name'] = $attribtueGroupsNames[$idAttribtueGroup];
-                }
-
-                foreach ($selectedValues as $selectedValue) {
-
-                    $value = is_array($selectedValue)
-                        ? sprintf('%s:%s', $selectedValue['min_value'], $selectedValue['max_value'])
-                        : $selectedValue;
-
-                    $formattedSelectedFilters[$key]['values'][] = [
-                        'filter' => $key,
-                        'filter_value' => $value,
-                    ];
-                }
+            if (!isset($formattedSelectedFilters[$key]['name'])) {
+                $formattedSelectedFilters[$key]['name'] = $this->getTranslation($key);
             }
+
+            foreach ($selectedValues as $selectedValue) {
+
+                $value = is_array($selectedValue)
+                    ? sprintf('%s:%s', $selectedValue['min_value'], $selectedValue['max_value'])
+                    : $selectedValue;
+
+                $displayValue = $this->getValueDisplay($key, $selectedValue);
+
+                $formattedSelectedFilters[$key]['values'][] = [
+                    'filter' => $key,
+                    'filter_value' => $value,
+                    'display_value' => $displayValue,
+                ];
+            }
+
         }
 
         $this->context->smarty->assign([
-            'selected_filters' => $formattedSelectedFilters,
+            'formatted_selected_filters' => $formattedSelectedFilters,
         ]);
 
         return $this->context->smarty->fetch($this->bradTemplatesDir.'front/selected-filters.tpl');
@@ -225,5 +214,94 @@ class Templating
         ]);
 
         return $this->context->smarty->fetch(_PS_THEME_DIR_.'category-count.tpl');
+    }
+
+    /**
+     * Get filter translation
+     *
+     * @param string $key
+     *
+     * @return string
+     */
+    protected function getTranslation($key)
+    {
+        /** @var \Brad $brad */
+        $brad = Module::getInstanceByName('brad');
+
+        $staticTranslations = [
+            'price' => $brad->l('Price', self::FILENAME),
+            'manufacturer' => $brad->l('Manufacturer', self::FILENAME),
+            'quantity' => $brad->l('Quantity', self::FILENAME),
+            'category' => $brad->l('Category', self::FILENAME),
+            'weight' => $brad->l('Weight', self::FILENAME),
+        ];
+
+        if (isset($staticTranslations[$key])) {
+            return $staticTranslations[$key];
+        }
+
+        $idShop = $this->context->shop->id;
+        $idLang = $this->context->language->id;
+
+        $featuresRep = $this->em->getRepository('BradFeature');
+        $attributeGroupRep = $this->em->getRepository('BradAttributeGroup');
+
+        $featuresNames = $featuresRep->findNames($idLang, $idShop);
+        $attribtueGroupsNames = $attributeGroupRep->findNames($idLang, $idShop);
+
+        if (0 === strpos($key, 'feature')) {
+            $idFeature = explode('_', $key)[1];
+            return $featuresNames[$idFeature];
+        }
+
+        if (0 === strpos($key, 'attribute_group')) {
+            $idAttributeGroup = explode('_', $key)[2];
+            return $attribtueGroupsNames[$idAttributeGroup];
+        }
+
+        return $brad->l('Unknown', self::FILENAME);
+    }
+
+    /**
+     * Get value to be displayed
+     *
+     * @param string $key
+     * @param mixed $value
+     *
+     * @return string
+     */
+    protected function getValueDisplay($key, $value)
+    {
+        $brad = Module::getInstanceByName('brad');
+        $idShop = $this->context->shop->id;
+        $idLang = $this->context->language->id;
+
+        if ('price' == $key) {
+            $minPrice = Tools::displayPrice($value['min_value']);
+            $maxPrice = Tools::displayPrice($value['max_value']);
+            return sprintf('%s - %s', $minPrice, $maxPrice);
+        } elseif ('manufacturer' == $key) {
+            return Manufacturer::getNameById($value);
+        } elseif ('quantity' == $key) {
+            return $value ? $brad->l('In Stock', self::FILENAME) : $brad->l('Out of stock', self::FILENAME);
+        } elseif ('category' == $key) {
+            $categoryRep = $this->em->getRepository('BradCategory');
+            $categoriesNames = $categoryRep->findAllNames($idLang, $idShop);
+            return $categoriesNames[$value];
+        } elseif ('weight' == $key) {
+            return sprintf('%s - %s', $value['min_value'], $value['max_value']);
+        } elseif (0 === strpos($key, 'feature')) {
+            $featuresRep = $this->em->getRepository('BradFeature');
+            $featuresValues = $featuresRep->findFeaturesValues($idLang);
+            $idFeature = explode('_', $key)[1];
+            return $featuresValues[$idFeature][$value]['name'];
+        } elseif (0 === strpos($key, 'attribute_group')) {
+            $attributeGroupRep = $this->em->getRepository('BradAttributeGroup');
+            $attribtueGroupsValuesNames = $attributeGroupRep->findAttributesGroupsValues($idLang, $idShop);
+            $idAttributeGroup = explode('_', $key)[2];
+            return $attribtueGroupsValuesNames[$idAttributeGroup][$value]['name'];
+        }
+
+        return $brad->l('Unknown value', self::FILENAME);
     }
 }

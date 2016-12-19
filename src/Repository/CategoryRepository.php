@@ -19,6 +19,7 @@
 
 namespace Invertus\Brad\Repository;
 use Category;
+use Db;
 
 /**
  * Class CategoryRepository
@@ -91,6 +92,44 @@ class CategoryRepository extends \Core_Foundation_Database_EntityRepository
 
         if (!is_array($categories) || !$categories) {
             return [];
+        }
+
+        return $categories;
+    }
+
+    /**
+     * Find all categories names
+     *
+     * @param int $idLang
+     * @param int $idShop
+     *
+     * @return array
+     */
+    public function findAllNames($idLang, $idShop)
+    {
+        static $categories;
+
+        if ($categories) {
+            return $categories;
+        }
+
+        $sql = '
+            SELECT c.`id_category`, cl.`name`
+            FROM `'.$this->getPrefix().'category` c
+            LEFT JOIN `'.$this->getPrefix().'category_lang` cl
+                ON cl.`id_category` = c.`id_category`
+            LEFT JOIN `'.$this->getPrefix().'category_shop` cs
+                ON cs.`id_category` = c.`id_category`
+            WHERE cs.`id_shop` = '.(int)$idShop.'
+                AND cl.`id_lang` = '.(int)$idLang.'
+        ';
+
+        $db = Db::getInstance();
+
+        $result = $db->query($sql);
+
+        while ($row = $db->nextRow($result)) {
+            $categories[$row['id_category']] = $row['name'];
         }
 
         return $categories;

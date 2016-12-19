@@ -4,6 +4,17 @@ $(document).ready(function() {
     var $sendingRequest = false;
     var $scrollToList = false;
 
+    var $centerColumn = $('#center_column');
+    var $originalProductList = $centerColumn.find('.product_list');
+    var $originalTopPagination = $centerColumn.find('.top-pagination-content');
+    var $originalBottomPagination = $centerColumn.find('.bottom-pagination-content');
+    var $originalHeadingCounter = $centerColumn.find('.heading-counter');
+
+    $originalProductList.empty();
+    $originalTopPagination.empty();
+    $originalTopPagination.empty();
+    $originalBottomPagination.empty();
+
     // Dont scroll on page load
     performFiltering($scrollToList);
     addEventListeners();
@@ -52,33 +63,16 @@ $(document).ready(function() {
         $("#bradFilterContainer").replaceWith($response.filters_block_template);
         updateUniform();
 
-        var $centerColumn = $('#center_column');
-        var $originalProductList = $centerColumn.find('.product_list');
-        var $originalTopPagination = $centerColumn.find('.top-pagination-content');
-        var $originalBottomPagination = $centerColumn.find('.bottom-pagination-content');
-        var $originalHeadingCounter = $centerColumn.find('.heading-counter');
-
         var $topPaginationStyles = $originalTopPagination.attr('class');
-        var $bottomPaginationStyles = $originalBottomPagination.attr('class');
 
-        // Remove previously inserted products, filters & etc
-        $('#bradProductList').remove();
-        $('#bradTopPagination').remove();
-        $('#bradBottomPagination').remove();
+        // Remove previously inserted html
         $('#bradSelectedFilters').remove();
 
-        // Remove default content but keep containers
-        //@todo: insert into default containers brad elements
-        $originalProductList.empty();
-        $originalTopPagination.empty();
-        $originalTopPagination.empty();
-        $originalBottomPagination.empty();
-
-        $originalProductList.after('<div id="bradProductList">' + $response.products_list_template + '</div>');
-        $originalTopPagination.after('<div class="' + $topPaginationStyles + '" id="bradTopPagination">' + $response.top_pagination_template + '</div>');
-        $originalBottomPagination.after('<div class="' + $bottomPaginationStyles + '" id="bradBottomPagination">' + $response.bottom_pagination_template + '</div>');
-        $originalTopPagination.before('<div id="bradSelectedFilters">' + $response.selected_filters + '</div>');
-        $originalHeadingCounter.replaceWith($response.category_count_template);
+        $originalProductList.html('<div id="bradProductList">' + $response.products_list_template + '</div>');
+        $originalTopPagination.html('<div class="' + $topPaginationStyles + '" id="bradTopPagination">' + $response.top_pagination_template + '</div>');
+        $originalBottomPagination.html('<div id="bradBottomPagination">' + $response.bottom_pagination_template + '</div>');
+        $originalTopPagination.before('<div id="bradSelectedFilters">' + $response.selected_filters_template + '</div>');
+        $originalHeadingCounter.html($response.category_count_template);
 
         addEventListeners();
     }
@@ -291,6 +285,26 @@ $(document).ready(function() {
     }
 
     /**
+     * Listen when user clicks on selected filter removal link
+     */
+    function listenSelectedFilterRemove()
+    {
+        var $centerColumn = $('#center_column');
+
+        $centerColumn.find('.brad-selected-filter').on('click', function($e) {
+            $e.preventDefault();
+
+            var $filter = $(this).data('filter');
+            var $filterValue = $(this).data('value');
+
+            var $filterBlockInput = $('input[name="' + $filter + '"][value="' + $filterValue + '"]');
+            $filterBlockInput.attr('checked', false);
+
+            performFiltering();
+        });
+    }
+
+    /**
      * Add event listeners to filter form and inputs
      */
     function addEventListeners()
@@ -304,6 +318,7 @@ $(document).ready(function() {
         handleSlider();
         handleInputArea();
         listenPaginationClick();
+        listenSelectedFilterRemove();
     }
 
     /**

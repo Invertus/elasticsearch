@@ -117,7 +117,7 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
         }
 
         foreach ($results as $result) {
-            $featureValues[$result['id_feature']][] = [
+            $featureValues[$result['id_feature']][$result['id_feature_value']] = [
                 'name' => $result['value'],
                 'id_feature_value' => $result['id_feature_value'],
             ];

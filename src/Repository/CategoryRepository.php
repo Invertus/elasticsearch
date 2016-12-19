@@ -82,8 +82,9 @@ class CategoryRepository extends \Core_Foundation_Database_EntityRepository
                 ON cs.`id_category` = c.`id_category`
             WHERE cs.`id_shop` = '.(int)$idShop.'
                 AND cl.`id_lang` = '.(int)$idLang.'
-                AND c.`nleft` >= '.(int)$category->nleft.'
-                AND c.`nright` <= '.(int)$category->nright.'
+                AND c.`nleft` > '.(int)$category->nleft.'
+                AND c.`nright` < '.(int)$category->nright.'
+                AND c.`active` = 1
         ';
 
         $categories = $this->db->select($sql);

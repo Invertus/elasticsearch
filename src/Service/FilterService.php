@@ -50,17 +50,13 @@ class FilterService
      * @param int $size
      * @param string $orderBy
      * @param string $orderWay
-     * @param int|null $idParentCategory
+     * @param int|null $idCategory
      *
      * @return array
      */
-    public function filterProducts(array $selectedFilters, $page, $size, $orderBy, $orderWay, $idParentCategory = null)
+    public function filterProducts(array $selectedFilters, $page, $size, $orderBy, $orderWay, $idCategory)
     {
         $from = (int) ($size * ($page - 1));
-
-        if (null === $idParentCategory) {
-            $idParentCategory = (int) Configuration::get('PS_HOME_CATEGORY');
-        }
 
         $data = [];
         $data['selected_filters'] = $selectedFilters;
@@ -68,7 +64,7 @@ class FilterService
         $data['size'] = $size;
         $data['order_by'] = $orderBy;
         $data['order_way'] = $orderWay;
-        $data['id_parent_category'] = (int) $idParentCategory;
+        $data['id_category'] = (int) $idCategory;
 
         $productsFilterQuery = $this->filterQueryBuilder->buildFilterQuery($data);
 
@@ -85,10 +81,11 @@ class FilterService
      *
      * @return int
      */
-    public function countProducts(array $selectedFilters)
+    public function countProducts(array $selectedFilters, $idCategory)
     {
         $data = [];
         $data['selected_filters'] = $selectedFilters;
+        $data['id_category'] = (int) $idCategory;
 
         $count = true;
         $productsFilterQuery = $this->filterQueryBuilder->buildFilterQuery($data, $count);

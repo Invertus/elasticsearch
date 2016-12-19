@@ -44,7 +44,7 @@ $(document).ready(function() {
     function handleFilteringResponse($response)
     {
         $sendingRequest = false;
-        console.log($response);
+
         $response = JSON.parse($response);
 
         appendQueryStringToUrl($response.query_string);
@@ -56,6 +56,7 @@ $(document).ready(function() {
         var $originalProductList = $centerColumn.find('.product_list');
         var $originalTopPagination = $centerColumn.find('.top-pagination-content');
         var $originalBottomPagination = $centerColumn.find('.bottom-pagination-content');
+        var $originalHeadingCounter = $centerColumn.find('.heading-counter');
 
         var $topPaginationStyles = $originalTopPagination.attr('class');
         var $bottomPaginationStyles = $originalBottomPagination.attr('class');
@@ -77,6 +78,7 @@ $(document).ready(function() {
         $originalTopPagination.after('<div class="' + $topPaginationStyles + '" id="bradTopPagination">' + $response.top_pagination_template + '</div>');
         $originalBottomPagination.after('<div class="' + $bottomPaginationStyles + '" id="bradBottomPagination">' + $response.bottom_pagination_template + '</div>');
         $originalTopPagination.before('<div id="bradSelectedFilters">' + $response.selected_filters + '</div>');
+        $originalHeadingCounter.replaceWith($response.category_count_template);
 
         addEventListeners();
     }

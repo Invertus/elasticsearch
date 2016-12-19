@@ -42,6 +42,7 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
 
         $queryString     = $urlParser->getQueryString();
         $selectedFilters = $urlParser->getSelectedFilters();
+        $idCategory      = $urlParser->getIdCategory();
         $p               = $urlParser->getPage();
         $n               = $urlParser->getSize();
         $orderWay        = $urlParser->getOrderWay();
@@ -50,8 +51,8 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
         /** @var \Invertus\Brad\Service\FilterService $filterService */
         $filterService = $this->get('filter_service');
 
-        $products = $filterService->filterProducts($selectedFilters, $p, $n, $orderBy, $orderWay);
-        $productsCount = $filterService->countProducts($selectedFilters);
+        $products = $filterService->filterProducts($selectedFilters, $p, $n, $orderBy, $orderWay, $idCategory);
+        $productsCount = $filterService->countProducts($selectedFilters, $idCategory);
 
         $products = $this->formatProducts($products);
         $this->addColorsToProductList($products);
@@ -63,14 +64,17 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
 
         $filtersBlockTemplate = $templating->renderFiltersBlockTemplate($selectedFilters, $p, $n, $orderWay, $orderBy);
         $selectedFiltersTemplate = $templating->renderSelectedFilters($selectedFilters);
+        $productListTemplate = $templating->renderProductsTemplate($products, $productsCount);
+        $categoryCountTemplate = $templating->renderCategoryCountTemplate($productsCount);
 
         die(json_encode([
             'query_string'               => $queryString,
             'filters_block_template'     => $filtersBlockTemplate,
-            'products_list_template'     => $templating->renderProductsTemplate($products, $productsCount),
+            'products_list_template'     => $productListTemplate,
             'top_pagination_template'    => $topPaginationTemplate,
             'bottom_pagination_template' => $bottomPaginationTemplate,
             'selected_filters_template'  => $selectedFiltersTemplate,
+            'category_count_template'    => $categoryCountTemplate,
         ]));
     }
 }

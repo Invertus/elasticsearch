@@ -166,6 +166,22 @@ class UrlParser
     }
 
     /**
+     * Get current category ID
+     *
+     * @return int
+     */
+    public function getIdCategory()
+    {
+        $idCategory = (int) Tools::getValue('id_category');
+
+        if (!is_int($idCategory) || !$idCategory) {
+            $idCategory = (int) Configuration::get('PS_HOME_CATEGORY');
+        }
+
+        return $idCategory;
+    }
+
+    /**
      * Get available filters
      *
      * @param string $filterName

@@ -210,4 +210,20 @@ class Templating
 
         return $this->context->smarty->fetch($this->bradTemplatesDir.'front/selected-filters.tpl');
     }
+
+    /**
+     * Render category count template
+     *
+     * @param int $productsCount
+     *
+     * @return string
+     */
+    public function renderCategoryCountTemplate($productsCount)
+    {
+        $this->context->smarty->assign([
+            'nb_products' => (int) $productsCount,
+        ]);
+
+        return $this->context->smarty->fetch(_PS_THEME_DIR_.'category-count.tpl');
+    }
 }

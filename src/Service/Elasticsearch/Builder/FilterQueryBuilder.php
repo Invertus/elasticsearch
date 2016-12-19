@@ -2,7 +2,10 @@
 
 namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
+use Category;
 use Context;
+use Invertus\Brad\Repository\CategoryRepository;
+use Module;
 
 /**
  * Class FilterQueryBuilder
@@ -21,7 +24,7 @@ class FilterQueryBuilder extends AbstractQueryBuilder
      */
     public function buildFilterQuery(array $data, $countOnly = false)
     {
-        $query = $this->getProductQueryBySelectedFilters($data['selected_filters'], $data['id_parent_category']);
+        $query = $this->getProductQueryBySelectedFilters($data['selected_filters'], $data['id_category']);
 
         if ($countOnly) {
             return $query;
@@ -56,11 +59,11 @@ class FilterQueryBuilder extends AbstractQueryBuilder
      * Get search values by selected filters
      *
      * @param array $selectedFilters
-     * @param int $idParentCategory
+     * @param int $idCategory
      *
      * @return array
      */
-    protected function getProductQueryBySelectedFilters(array $selectedFilters, $idParentCategory)
+    protected function getProductQueryBySelectedFilters(array $selectedFilters, $idCategory)
     {
         $searchValues = [];
 
@@ -121,17 +124,26 @@ class FilterQueryBuilder extends AbstractQueryBuilder
                         }
                     }
                 }
+            } elseif ('category' == $filterName) {
+                if (is_array($filterValues)) {
+                    foreach ($filterValues as $filterValue) {
+                        $searchValues['categories'][] = [
+                            'term' => [
+                                'categories' => $filterValue,
+                            ],
+                        ];
+                    }
+                }
             }
         }
 
-        $categoriesQuery = $this->getQueryFromCategories($idParentCategory);
+        $categoriesQuery = $this->getQueryFromCategories($idCategory);
 
         if (!empty($searchValues)) {
             $query['query']['bool']['must'] = $this->getQueryFromSearchValues($searchValues);
             $query['query']['bool']['must'][] = $categoriesQuery;
         } else {
-            //@todo: get all products from sub categories only
-            $query['query']['match_all'] = [];
+            $query['query'] = $categoriesQuery;
         }
 
         return $query;
@@ -216,6 +228,12 @@ class FilterQueryBuilder extends AbstractQueryBuilder
                 }
 
                 $query[] = $quantityQuery;
+            } elseif ('categories' == $key) {
+                $query[] = [
+                    'bool' => [
+                        'should' => $values,
+                    ],
+                ];
             }
         }
 
@@ -223,10 +241,47 @@ class FilterQueryBuilder extends AbstractQueryBuilder
     }
 
     /**
-     * @param int $idParentCategory
+     * Get subcategories query
+     *
+     * @param int $idCategory
+     *
+     * @return array
      */
-    private function getQueryFromCategories($idParentCategory)
+    private function getQueryFromCategories($idCategory)
     {
-        //@todo: implement subcategories query
+        $context = Context::getContext();
+        $idLang = $context->language->id;
+        $idShop = $context->shop->id;
+
+        /** @var \Brad $brad */
+        $brad = Module::getInstanceByName('brad');
+        /** @var \Core_Foundation_Database_EntityManager $em */
+        $em = $brad->getContainer()->get('em');
+        /** @var CategoryRepository $categoryRepository */
+        $categoryRepository = $em->getRepository('BradCategory');
+
+        $category = new Category($idCategory);
+
+        $subCategories = $categoryRepository->findChildCategories($category, $idLang, $idShop);
+
+        if (empty($subCategories)) {
+            return [];
+        }
+
+        $query = [
+            'bool' => [
+                'should' => [
+                    'terms' => [
+                        'categories' => [],
+                    ],
+                ],
+            ],
+        ];
+
+        foreach ($subCategories as $subCategory) {
+            $query['bool']['should']['terms']['categories'][] = (int) $subCategory['id_category'];
+        }
+
+        return $query;
     }
 }

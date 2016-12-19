@@ -234,9 +234,15 @@ $(document).ready(function() {
         $bradTopPagination.find('.top-pagination-content a, .bottom-pagination-content a').unbind();
         $bradTopPagination.find('.top-pagination-content a, .bottom-pagination-content a').on('click', function($event) {
             $event.preventDefault();
-            var $page = $(this).find('span').text();
-            //var $url = $event.currentTarget.href;
-            //var $page = $url.match(new RegExp('p' + "=(.*?)($|\&)", "i"))[1];
+
+            var $url = $event.currentTarget.href;
+            var $data = $url.match(new RegExp("p=(.*?)($|\&)", "i"));
+
+            var $page = 1;
+
+            if ($data) {
+                $page = $data[1];
+            }
 
             $('#bradFilterForm').find('input[name="p"]').val($page);
             performFiltering();

@@ -148,7 +148,7 @@ class Templating
             'stop' => $stop,
             'paginationId' => 'bottom',
             'products_per_page' => (int) Configuration::get('PS_PRODUCTS_PER_PAGE'),
-            'current_url' => '',
+            'current_url' => 'pagination',
         ]);
 
         return $this->context->smarty->fetch(_PS_THEME_DIR_.'pagination.tpl');

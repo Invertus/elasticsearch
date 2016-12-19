@@ -66,6 +66,7 @@ class FilterQueryBuilder extends AbstractQueryBuilder
     protected function getProductQueryBySelectedFilters(array $selectedFilters, $idCategory)
     {
         $searchValues = [];
+        $skipCategoriesQuery = false;
 
         foreach ($selectedFilters as $filterName => $filterValues) {
             if (0 === strpos($filterName, 'feature')) {
@@ -134,6 +135,10 @@ class FilterQueryBuilder extends AbstractQueryBuilder
                         ];
                     }
                 }
+
+                if (!empty($searchValues['categories'])) {
+                    $skipCategoriesQuery = true;
+                }
             }
         }
 
@@ -141,7 +146,9 @@ class FilterQueryBuilder extends AbstractQueryBuilder
 
         if (!empty($searchValues)) {
             $query['query']['bool']['must'] = $this->getQueryFromSearchValues($searchValues);
-            $query['query']['bool']['must'][] = $categoriesQuery;
+            if (!$skipCategoriesQuery) {
+                $query['query']['bool']['must'][] = $categoriesQuery;
+            }
         } else {
             $query['query'] = $categoriesQuery;
         }

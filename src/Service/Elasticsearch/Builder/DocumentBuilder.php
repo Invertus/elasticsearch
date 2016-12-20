@@ -101,30 +101,31 @@ class DocumentBuilder
     public function buildProductBody(Product $product)
     {
         $body = [];
-        $body['id_product'] = $product->id;
-        $body['id_supplier'] = $product->id_supplier;
-        $body['id_manufacturer'] = $product->id_manufacturer;
-        $body['manufacturer_name'] = Manufacturer::getNameById($product->id_manufacturer);
-        $body['id_category_default'] = $product->id_category_default;
-        $body['on_sale'] = $product->on_sale;
-        $body['ean13'] = $product->ean13;
-        $body['reference'] = $product->reference;
-        $body['upc'] = $product->upc;
-        $body['price'] = $product->price;
-        $body['show_price'] = $product->show_price;
-        $body['quantity'] = $product->quantity;
-        $body['customizable'] = $product->customizable;
-        $body['minimal_quantity'] = $product->minimal_quantity;
-        $body['available_for_order'] = $product->available_for_order;
-        $body['condition'] = $product->condition;
-        $body['weight'] = $product->weight;
-        $body['out_of_stock'] = $product->out_of_stock;
-        $body['is_virtual'] = $product->is_virtual;
-        $body['on_sale'] = $product->on_sale;
-        $body['id_image'] = Product::getCover($product->id)['id_image'];
+        $body['id_product']             = $product->id;
+        $body['id_supplier']            = $product->id_supplier;
+        $body['id_manufacturer']        = $product->id_manufacturer;
+        $body['manufacturer_name']      = Manufacturer::getNameById($product->id_manufacturer);
+        $body['id_category_default']    = $product->id_category_default;
+        $body['on_sale']                = $product->on_sale;
+        $body['ean13']                  = $product->ean13;
+        $body['reference']              = $product->reference;
+        $body['upc']                    = $product->upc;
+        $body['price']                  = $product->price;
+        $body['show_price']             = $product->show_price;
+        $body['quantity']               = $product->quantity;
+        $body['customizable']           = $product->customizable;
+        $body['minimal_quantity']       = $product->minimal_quantity;
+        $body['available_for_order']    = $product->available_for_order;
+        $body['condition']              = $product->condition;
+        $body['weight']                 = $product->weight;
+        $body['out_of_stock']           = $product->out_of_stock;
+        $body['is_virtual']             = $product->is_virtual;
+        $body['on_sale']                = $product->on_sale;
+        $body['id_image']               = Product::getCover($product->id)['id_image'];
         $body['id_combination_default'] = $product->getDefaultIdProductAttribute();
-        $body['categories'] = $product->getCategories();
-        $body['total_quantity'] = StockAvailable::getQuantityAvailableByProduct($product->id);
+        $body['categories']             = $product->getCategories();
+        $body['total_quantity']         = StockAvailable::getQuantityAvailableByProduct($product->id);
+        $body['in_stock']               = $this->isInStock($product);
 
         $defaultCategory = new Category($product->id_category_default);
 
@@ -137,7 +138,7 @@ class DocumentBuilder
             $body['default_category_name_lang_'.$idLang] = $defaultCategory->name[$idLang];
         }
 
-        $features = $product->getFeatures();
+        $features   = $product->getFeatures();
         $attributes = Product::getAttributesInformationsByProduct($product->id);
 
         if ($features) {
@@ -160,7 +161,7 @@ class DocumentBuilder
 
                 foreach ($attributeObj->name as $idLang => $name) {
                     $body['attribute_'.$attributeObj->id.'_lang_'.$idLang] = $name;
-                    $body['attribute_keywords_lang_'.$idLang][] = $name;
+                    $body['attribute_keywords_lang_'.$idLang][]            = $name;
                 }
 
                 $body['attribute_group_' . $attribute['id_attribute_group']][] = $attributeObj->id;
@@ -249,8 +250,24 @@ class DocumentBuilder
     {
         $idShop = (int) $this->shop->id;
 
-        self::$countriesIds = $this->em->getRepository('BradCountry')->findAllIdsByShopId($idShop);
+        self::$countriesIds  = $this->em->getRepository('BradCountry')->findAllIdsByShopId($idShop);
         self::$currenciesIds = $this->em->getRepository('BradCurrency')->findAllIdsByShopId($idShop);
-        self::$groupsIds = $this->em->getRepository('BradGroup')->findAllIdsByShopId($idShop);
+        self::$groupsIds     = $this->em->getRepository('BradGroup')->findAllIdsByShopId($idShop);
+    }
+
+    /**
+     * Check if product is in stock
+     *
+     * @param Product $product
+     *
+     * @return bool
+     */
+    private function isInStock(Product $product)
+    {
+        $totalQuantity = StockAvailable::getQuantityAvailableByProduct($product->id);
+
+//        return ($product->available_for_order && $totalQuantity > 0) ||
+//
+//        );
     }
 }

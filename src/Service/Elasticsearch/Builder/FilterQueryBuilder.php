@@ -4,8 +4,14 @@ namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
 use Category;
 use Context;
+use Invertus\Brad\DataType\FilterData;
 use Invertus\Brad\Repository\CategoryRepository;
 use Module;
+use ONGR\ElasticsearchDSL\BuilderInterface;
+use ONGR\ElasticsearchDSL\Query\BoolQuery;
+use ONGR\ElasticsearchDSL\Query\RangeQuery;
+use ONGR\ElasticsearchDSL\Query\TermQuery;
+use ONGR\ElasticsearchDSL\Search;
 
 /**
  * Class FilterQueryBuilder
@@ -17,32 +23,31 @@ class FilterQueryBuilder extends AbstractQueryBuilder
     /**
      * Build filters query by given data
      *
-     * @param array $data
-     * @param $countOnly
+     * @param FilterData $filterData
+     * @param bool $countQuery
      *
      * @return array
      */
-    public function buildFilterQuery(array $data, $countOnly = false)
+    public function buildFilterQuery(FilterData $filterData, $countQuery = false)
     {
-        $query = $this->getProductQueryBySelectedFilters($data['selected_filters'], $data['id_category']);
+        $query = $this->getProductQueryBySelectedFilters(
+            $filterData->getSelectedFilters(),
+            $filterData->getIdCategory()
+        );
 
-        if ($countOnly) {
-            return $query;
+        if ($countQuery) {
+            return $query->toArray();
         }
 
-        if (isset($data['order_by']) && isset($data['order_way'])) {
-            $query['sort'] = $this->buildOrderQuery($data['order_by'], $data['order_way']);
-        }
+        $orderBy  = $filterData->getOrderBy();
+        $orderWay = $filterData->getOrderWay();
+        $sort     = $this->buildOrderQuery($orderBy, $orderWay);
 
-        if (isset($data['from'])) {
-            $query['from'] = (int) $data['from'];
-        }
+        $query->addSort($sort);
+        $query->setFrom($filterData->getFrom());
+        $query->setSize($filterData->getSize());
 
-        if (isset($data['size'])) {
-            $query['size'] = (int) $data['size'];
-        }
-
-        return $query;
+        return $query->toArray();
     }
 
     /**
@@ -61,190 +66,63 @@ class FilterQueryBuilder extends AbstractQueryBuilder
      * @param array $selectedFilters
      * @param int $idCategory
      *
-     * @return array
+     * @return Search
      */
     protected function getProductQueryBySelectedFilters(array $selectedFilters, $idCategory)
     {
-        $searchValues = [];
-        $skipCategoriesQuery = false;
+        $context       = Context::getContext();
+        $searchQuery   = new Search();
+        $boolMustQuery = new BoolQuery();
 
-        foreach ($selectedFilters as $filterName => $filterValues) {
-            if (0 === strpos($filterName, 'feature')) {
-                foreach ($filterValues as $filterValue) {
-                    $searchValues['feature'][] = [
-                        'term' => [
-                            $filterName => $filterValue,
-                        ],
-                    ];
-                }
-            } elseif (0 === strpos($filterName, 'attribute_group')) {
-                foreach ($filterValues as $filterValue) {
-                    $searchValues['attribute_group'][] = [
-                        'term' => [
-                            $filterName => $filterValue,
-                        ],
-                    ];
-                }
-            } elseif ('price' == $filterName) {
-                if (is_array($filterValues)) {
-                    foreach ($filterValues as $value) {
-                        $searchValues['price'][] = [
-                            'gte' => $value['min_value'],
-                            'lte' => $value['max_value'],
-                        ];
-                    }
-                }
-            } elseif ('manufacturer' == $filterName) {
-                foreach ($filterValues as $filterValue) {
-                    $searchValues['manufacturer'][] = [
-                        'term' => [
-                            'id_manufacturer' => $filterValue,
-                        ],
-                    ];
-                }
-            } elseif ('weight' == $filterName) {
-                if (is_array($filterValues)) {
-                    foreach ($filterValues as $value) {
-                        $searchValues['weight'][] = [
-                            'gte' => $value['min_value'],
-                            'lte' => $value['max_value'],
-                        ];
-                    }
-                }
-            } elseif ('quantity' == $filterName) {
-                if (is_array($filterValues)) {
-                    foreach ($filterValues as $value) {
-                        if ($value) {
-                            $searchValues['quantity'][] = [
-                                'gt' => 0,
-                            ];
-                        } else {
-                            $searchValues['quantity'][] = [
-                                'lte' => 0,
-                            ];
-                        }
-                    }
-                }
-            } elseif ('category' == $filterName) {
-                if (is_array($filterValues)) {
-                    foreach ($filterValues as $filterValue) {
-                        $searchValues['categories'][] = [
-                            'term' => [
-                                'categories' => $filterValue,
-                            ],
-                        ];
-                    }
-                }
+        $includeCategoriesIntoQuery = true;
+
+        foreach ($selectedFilters as $name => $values) {
+            if (0 === strpos($name, 'feature') || 0 === strpos($name, 'attribute_group')) {
+                $boolShouldTermQuery = $this->getBoolShouldTermQuery($name, $values);
+                $boolMustQuery->add($boolShouldTermQuery);
+            } elseif ('price' == $name) {
+                $idGroup    = $context->customer->id_default_group;
+                $idCurrency = $context->currency->id;
+                $idCountry  = $context->country->id;
+                $fieldName  = sprintf('price_group_%s_country_%s_currency_%s', $idGroup, $idCountry, $idCurrency);
+                $boolShouldRangeQuery = $this->getBoolShouldRangeQuery($fieldName, $values);
+                $boolMustQuery->add($boolShouldRangeQuery);
+            } elseif ('manufacturer' == $name) {
+                $fieldName = 'id_manufacturer';
+                $boolShouldTermQuery = $this->getBoolShouldTermQuery($fieldName, $values);
+                $boolMustQuery->add($boolShouldTermQuery);
+            } elseif ('weight' == $name) {
+                $boolShouldTermQuery = $this->getBoolShouldTermQuery($name, $values);
+                $boolMustQuery->add($boolShouldTermQuery);
+            } elseif ('quantity' == $name) {
+                //@todo: index new field with stock
+            } elseif ('category' == $name) {
+                $fieldName = 'categories';
+                $boolShouldTermQuery = $this->getBoolShouldTermQuery($fieldName, $values);
+                $boolMustQuery->add($boolShouldTermQuery);
 
                 if (!empty($searchValues['categories'])) {
-                    $skipCategoriesQuery = true;
+                    $includeCategoriesIntoQuery = false;
                 }
             }
         }
 
-        $categoriesQuery = $this->getQueryFromCategories($idCategory);
+        $boolShouldCategoriesQuery = $this->getQueryFromCategories($idCategory);
+        $boolMustCategoriesQuery   = new BoolQuery();
 
-        if (!empty($searchValues)) {
-            $query['query']['bool']['must'] = $this->getQueryFromSearchValues($searchValues);
-            if (!$skipCategoriesQuery) {
-                $query['query']['bool']['must'][] = $categoriesQuery;
-            }
-        } else {
-            $query['query'] = $categoriesQuery;
+        if ($boolShouldCategoriesQuery instanceof BuilderInterface) {
+            $boolMustCategoriesQuery->add($boolShouldCategoriesQuery);
         }
 
-        return $query;
-    }
-
-    /**
-     * @param array $searchValues
-     *
-     * @return array
-     */
-    protected function getQueryFromSearchValues(array $searchValues)
-    {
-        $context = Context::getContext();
-        $query = [];
-
-        foreach ($searchValues as $key => $values) {
-            if (in_array($key, ['manufacturer'])) {
-                $query[] = [
-                    'bool' => [
-                        'should' => $values,
-                    ],
-                ];
-            } elseif (in_array($key, ['price', 'weight'])) {
-
-                if ('price' == $key) {
-                    $idGroup = $context->customer->id_default_group;
-                    $idCurrency = $context->currency->id;
-                    $idCountry = $context->country->id;
-                    $fieldName = sprintf('price_group_%s_country_%s_currency_%s', $idGroup, $idCountry, $idCurrency);
-                } else {
-                    $fieldName = $key;
-                }
-
-                $priceQuery['bool']['should'] = [];
-
-                foreach ($values as $value) {
-                    $priceQuery['bool']['should'][] = [
-                        [
-                            'bool' => [
-                                'must' => [
-                                    [
-                                        'range' => [
-                                            $fieldName => $value,
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ];
-                }
-
-                $query[] = $priceQuery;
-            } elseif ('feature' == $key) {
-                $query[] = [
-                    'bool' => [
-                        'should' => $values,
-                    ],
-                ];
-            } elseif ('attribute_group' == $key) {
-                $query[] = [
-                    'bool' => [
-                        'should' => $values,
-                    ],
-                ];
-            } elseif ('quantity' == $key) {
-                $quantityQuery['bool']['should'] = [];
-
-                foreach ($values as $value) {
-                    $quantityQuery['bool']['should'][] = [
-                        [
-                            'bool' => [
-                                'must' => [
-                                    [
-                                        'range' => [
-                                            'total_quantity' => $value,
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ];
-                }
-
-                $query[] = $quantityQuery;
-            } elseif ('categories' == $key) {
-                $query[] = [
-                    'bool' => [
-                        'should' => $values,
-                    ],
-                ];
-            }
+        if (!empty($boolMustQuery->getQueries())) {
+            $searchQuery->addQuery($boolMustQuery);
         }
 
-        return $query;
+        if (!$includeCategoriesIntoQuery) {
+            $searchQuery->addQuery($boolMustCategoriesQuery, BoolQuery::MUST);
+        }
+
+        return $searchQuery;
     }
 
     /**
@@ -252,9 +130,9 @@ class FilterQueryBuilder extends AbstractQueryBuilder
      *
      * @param int $idCategory
      *
-     * @return array
+     * @return BoolQuery|null
      */
-    private function getQueryFromCategories($idCategory)
+    protected function getQueryFromCategories($idCategory)
     {
         $context = Context::getContext();
         $idLang = $context->language->id;
@@ -272,23 +150,61 @@ class FilterQueryBuilder extends AbstractQueryBuilder
         $subCategories = $categoryRepository->findChildCategories($category, $idLang, $idShop);
 
         if (empty($subCategories)) {
-            return [];
+            return null;
         }
 
-        $query = [
-            'bool' => [
-                'should' => [
-                    'terms' => [
-                        'categories' => [],
-                    ],
-                ],
-            ],
-        ];
+        $values = array_map(function($subCategory) {
+            return (int) $subCategory['id_category'];
+        }, $subCategories);
 
-        foreach ($subCategories as $subCategory) {
-            $query['bool']['should']['terms']['categories'][] = (int) $subCategory['id_category'];
+        $fieldName = 'categories';
+        $boolShouldTermQuery = $this->getBoolShouldTermQuery($fieldName, $values);
+
+        return $boolShouldTermQuery;
+    }
+
+    /**
+     * Get bool should query with terms query inside
+     *
+     * @param string $fieldName
+     * @param array $values
+     *
+     * @return BoolQuery
+     */
+    protected function getBoolShouldTermQuery($fieldName, array $values)
+    {
+        $boolShouldQuery = new BoolQuery();
+
+        foreach ($values as $value) {
+            $termQuery = new TermQuery($fieldName, $value);
+            $boolShouldQuery->add($termQuery, BoolQuery::SHOULD);
         }
 
-        return $query;
+        return $boolShouldQuery;
+    }
+
+    /**
+     * Get bool should query with ranges inside
+     *
+     * @param string $fieldName
+     * @param array $values
+     *
+     * @return BoolQuery
+     */
+    protected function getBoolShouldRangeQuery($fieldName, array $values)
+    {
+        $boolShouldQuery = new BoolQuery();
+
+        foreach ($values as $value) {
+            $params = [
+                'gt'  => $value['min_value'],
+                'lte' => $value['max_value'],
+            ];
+
+            $rangeQuery = new RangeQuery($fieldName, $params);
+            $boolShouldQuery->add($rangeQuery, BoolQuery::SHOULD);
+        }
+
+        return $boolShouldQuery;
     }
 }

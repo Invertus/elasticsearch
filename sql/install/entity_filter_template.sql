@@ -23,3 +23,5 @@ CREATE TABLE IF NOT EXISTS `PREFIX_brad_filter_template_filter` (
   `id_brad_filter` INT(11) UNSIGNED NOT NULL,
   `position` INT(11) UNSIGNED NOT NULL
 ) ENGINE=ENGINE_TYPE DEFAULT CHARSET=utf8;
+
+# @todo primary keys

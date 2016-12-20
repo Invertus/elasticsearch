@@ -52,6 +52,7 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
     /**
      * Find feature name
      *
+     * @todo select only specific features
      * @param int $idLang
      * @param int $idShop
      *
@@ -90,6 +91,7 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
     /**
      * Find all feature values
      *
+     * @todo select only specific
      * @param int $idLang
      *
      * @return array
@@ -129,6 +131,7 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
     /**
      * Find max feature value
      *
+     * @todo get min/max values from elastic
      * @param int $idFeature
      * @param int $idShop
      *

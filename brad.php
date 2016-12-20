@@ -174,7 +174,7 @@ class Brad extends Module
 
         $isFiltersEnalbed = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_FILTERS);
 
-        if ($this->isFilterAvailableInController() && $isFiltersEnalbed) {
+        if ($isFiltersEnalbed && $this->isFilterAvailableInController()) {
             $jsUri = $this->container->get('brad_js_uri');
             $this->context->controller->addJqueryUI('ui.slider');
             $this->context->controller->addJS($jsUri.'front/filter.js');

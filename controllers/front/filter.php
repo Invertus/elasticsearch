@@ -2,6 +2,7 @@
 
 use Invertus\Brad\Config\Setting;
 use Invertus\Brad\Controller\AbstractBradModuleFrontController;
+use Invertus\Brad\DataType\FilterData;
 use Invertus\Brad\Service\UrlParser;
 
 /**
@@ -51,8 +52,16 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
         /** @var \Invertus\Brad\Service\FilterService $filterService */
         $filterService = $this->get('filter_service');
 
-        $products = $filterService->filterProducts($selectedFilters, $p, $n, $orderBy, $orderWay, $idCategory);
-        $productsCount = $filterService->countProducts($selectedFilters, $idCategory);
+        $filterData = new FilterData();
+        $filterData->setSize($n);
+        $filterData->setPage($p);
+        $filterData->setOrderWay($orderWay);
+        $filterData->setOrderBy($orderBy);
+        $filterData->setIdCategory($idCategory);
+        $filterData->setSelectedFilters($selectedFilters);
+
+        $products = $filterService->filterProducts($filterData);
+        $productsCount = $filterService->countProducts($filterData);
 
         $products = $this->formatProducts($products);
         $this->addColorsToProductList($products);

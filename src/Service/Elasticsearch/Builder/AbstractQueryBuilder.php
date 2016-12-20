@@ -21,6 +21,7 @@ namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
 use Context;
 use Invertus\Brad\Config\Sort;
+use ONGR\ElasticsearchDSL\Sort\FieldSort;
 
 /**
  * Class AbstractQueryBuilder
@@ -35,7 +36,7 @@ abstract class AbstractQueryBuilder
      * @param string $orderBy
      * @param string $orderWay
      *
-     * @return array
+     * @return FieldSort
      */
     protected function buildOrderQuery($orderBy, $orderWay)
     {
@@ -68,12 +69,8 @@ abstract class AbstractQueryBuilder
 
         $orderWay = in_array($orderWay, [Sort::WAY_DESC, Sort::WAY_ASC]) ? $orderWay : Sort::WAY_DESC;
 
-        return [
-            [
-                $fieldNameToSortBy => [
-                    'order' => $orderWay,
-                ],
-            ]
-        ];
+        $sort = new FieldSort($fieldNameToSortBy, $orderWay);
+
+        return $sort;
     }
 }

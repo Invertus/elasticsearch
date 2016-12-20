@@ -4,8 +4,11 @@ namespace Invertus\Brad\Service;
 
 use Configuration;
 use Context;
+use Invertus\Brad\DataType\FilterData;
+use Invertus\Brad\Repository\FilterRepository;
 use Invertus\Brad\Service\Elasticsearch\Builder\FilterQueryBuilder;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchSearch;
+use Module;
 
 /**
  * Class Filter
@@ -45,28 +48,13 @@ class FilterService
     /**
      * Perform filtering
      *
-     * @param array $selectedFilters
-     * @param int $page
-     * @param int $size
-     * @param string $orderBy
-     * @param string $orderWay
-     * @param int|null $idCategory
+     * @param FilterData $filterData
      *
      * @return array
      */
-    public function filterProducts(array $selectedFilters, $page, $size, $orderBy, $orderWay, $idCategory)
+    public function filterProducts(FilterData $filterData)
     {
-        $from = (int) ($size * ($page - 1));
-
-        $data = [];
-        $data['selected_filters'] = $selectedFilters;
-        $data['from'] = $from;
-        $data['size'] = $size;
-        $data['order_by'] = $orderBy;
-        $data['order_way'] = $orderWay;
-        $data['id_category'] = (int) $idCategory;
-
-        $productsFilterQuery = $this->filterQueryBuilder->buildFilterQuery($data);
+        $productsFilterQuery = $this->filterQueryBuilder->buildFilterQuery($filterData);
 
         $idShop  = (int) $this->context->shop->id;
         $products = $this->elasticsearchSearch->searchProducts($productsFilterQuery, $idShop);
@@ -77,21 +65,36 @@ class FilterService
     /**
      * Count products by filters
      *
-     * @param array $selectedFilters
+     * @param FilterData $filterData
      *
      * @return int
      */
-    public function countProducts(array $selectedFilters, $idCategory)
+    public function countProducts(FilterData $filterData)
     {
-        $data = [];
-        $data['selected_filters'] = $selectedFilters;
-        $data['id_category'] = (int) $idCategory;
-
-        $count = true;
-        $productsFilterQuery = $this->filterQueryBuilder->buildFilterQuery($data, $count);
+        $countQuery = true;
+        $productsFilterQuery = $this->filterQueryBuilder->buildFilterQuery($filterData, $countQuery);
 
         $productsCount = $this->elasticsearchSearch->countProducts($productsFilterQuery, $this->context->shop->id);
 
         return $productsCount;
+    }
+
+    /**
+     * Get products aggregations
+     *
+     * @param FilterData $filterData
+     *
+     * @return array
+     */
+    public function aggregateProducts(FilterData $filterData)
+    {
+        /** @var \Brad $brad */
+        $brad = Module::getInstanceByName('brad');
+        /** @var \Core_Foundation_Database_EntityManager $em */
+        $em = $brad->getContainer()->get('em');
+        /** @var FilterRepository $filtersRepository */
+        $filtersRepository = $em->getRepository('BradFilter');
+
+        $filters = $filtersRepository->findAllByShopId($this->context->shop->id);
     }
 }

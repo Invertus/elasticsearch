@@ -174,7 +174,6 @@ class Indexer
         $bulkRequestSize = (int) $this->configuration->get(Setting::BULK_REQUEST_SIZE_ADVANCED);
 
         $lastProductsIdsKey = Arrays::getLastKey($productsIds);
-        $bulkProductIds = [];
 
         foreach ($productsIds as $productIdKey => $idProduct) {
 

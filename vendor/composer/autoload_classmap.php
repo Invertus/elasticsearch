@@ -7,7 +7,6 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'AbstractAdminBradModuleController' => $baseDir . '/controllers/admin/AbstractAdminBradModuleController.php',
-    'AbstractBradModuleFrontController' => $baseDir . '/controllers/front/AbstractBradModuleFrontController.php',
     'AdminBradAdvancedSettingController' => $baseDir . '/controllers/admin/AdminBradAdvancedSettingController.php',
     'AdminBradFilterController' => $baseDir . '/controllers/admin/AdminBradFilterController.php',
     'AdminBradFilterTemplateController' => $baseDir . '/controllers/admin/AdminBradFilterTemplateController.php',
@@ -20,6 +19,7 @@ return array(
     'BradCurrency' => $baseDir . '/src/Entity/BradCurrency.php',
     'BradFeature' => $baseDir . '/src/Entity/BradFeature.php',
     'BradFilter' => $baseDir . '/src/Entity/BradFilter.php',
+    'BradFilterModuleFrontController' => $baseDir . '/controllers/front/filter.php',
     'BradFilterTemplate' => $baseDir . '/src/Entity/BradFilterTemplate.php',
     'BradGroup' => $baseDir . '/src/Entity/BradGroup.php',
     'BradManufacturer' => $baseDir . '/src/Entity/BradManufacturer.php',

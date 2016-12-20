@@ -3,6 +3,7 @@
 namespace Invertus\Brad\Service;
 
 use Context;
+use Invertus\Brad\DataType\SearchData;
 use Invertus\Brad\Service\Elasticsearch\Builder\SearchQueryBuilder;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchSearch;
 
@@ -28,6 +29,11 @@ class SearchService
      */
     private $context;
 
+    /**
+     * SearchService constructor.
+     *
+     * @param ElasticsearchSearch $elasticsearchSearch
+     */
     public function __construct(ElasticsearchSearch $elasticsearchSearch)
     {
         $this->elasticsearchSearch = $elasticsearchSearch;
@@ -38,19 +44,13 @@ class SearchService
     /**
      * Search for products
      *
-     * @param string $searchQuery
-     * @param int $page
-     * @param int $size
-     * @param string $orderBy
-     * @param string $orderWay
+     * @param SearchData $searchData
      *
      * @return array
      */
-    public function searchProducts($searchQuery, $page, $size, $orderBy, $orderWay)
+    public function searchProducts(SearchData $searchData)
     {
-        $from = (int) ($size * ($page - 1));
-
-        $productsQuery = $this->searchQueryBuilder->buildProductsQuery($searchQuery, $from, $size, $orderBy, $orderWay);
+        $productsQuery = $this->searchQueryBuilder->buildProductsQuery($searchData);
 
         $idShop = (int) $this->context->shop->id;
         $products = $this->elasticsearchSearch->searchProducts($productsQuery, $idShop);
@@ -61,15 +61,16 @@ class SearchService
     /**
      * Count products by search query
      *
-     * @param string $searchQuery
+     * @param SearchData $searchData
      *
      * @return int
      */
-    public function countProducts($searchQuery)
+    public function countProducts(SearchData $searchData)
     {
         $idShop = (int) $this->context->shop->id;
+        $countQuery = true;
 
-        $productsCountQuery = $this->searchQueryBuilder->buildProductsQuery($searchQuery);
+        $productsCountQuery = $this->searchQueryBuilder->buildProductsQuery($searchData, $countQuery);
         $productsCount = (int) $this->elasticsearchSearch->countProducts($productsCountQuery, $idShop);
 
         return $productsCount;

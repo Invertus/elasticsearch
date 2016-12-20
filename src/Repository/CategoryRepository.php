@@ -31,6 +31,7 @@ class CategoryRepository extends \Core_Foundation_Database_EntityRepository
     /**
      * Find all categories ids by given shop id
      *
+     * @todo check if active
      * @param int $idShop
      *
      * @return array
@@ -60,6 +61,7 @@ class CategoryRepository extends \Core_Foundation_Database_EntityRepository
     /**
      * Find child categories
      *
+     * @todo join with category_group
      * @param Category $category
      * @param int $idLang
      * @param int $idShop
@@ -99,7 +101,8 @@ class CategoryRepository extends \Core_Foundation_Database_EntityRepository
 
     /**
      * Find all categories names
-     *
+     * @todo join with category_group
+     * @todo find only specific categories names
      * @param int $idLang
      * @param int $idShop
      *

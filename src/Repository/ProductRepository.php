@@ -29,6 +29,7 @@ class ProductRepository extends \Core_Foundation_Database_EntityRepository
     /**
      * Find all products ids by given sop id
      *
+     * @todo `active` and `visibility`
      * @param int $idShop
      *
      * @return array
@@ -54,6 +55,7 @@ class ProductRepository extends \Core_Foundation_Database_EntityRepository
     /**
      * Find min product weight
      *
+     * @todo remove?
      * @param int $idShop
      *
      * @return float
@@ -80,6 +82,7 @@ class ProductRepository extends \Core_Foundation_Database_EntityRepository
     /**
      * Find max product weight
      *
+     * @todo remove?
      * @param int $idShop
      *
      * @return float
@@ -106,6 +109,7 @@ class ProductRepository extends \Core_Foundation_Database_EntityRepository
     /**
      * Find all products weights
      *
+     * @todo remove?
      * @param int $idShop
      *
      * @return array|float[]

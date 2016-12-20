@@ -18,6 +18,12 @@ class FilterRepository extends \Core_Foundation_Database_EntityRepository
      */
     public function findAllByShopId($idShop)
     {
+        static $filters;
+
+        if ($filters) {
+            return $filters;
+        }
+
         $sql = '
             SELECT bf.`id_brad_filter`, bf.`name`, bf.`filter_type`, bf.`filter_style`, bf.`id_key`
             FROM `'.$this->getPrefix().'brad_filter` bf
@@ -26,13 +32,13 @@ class FilterRepository extends \Core_Foundation_Database_EntityRepository
             WHERE bfs.`id_shop` = '.(int)$idShop.'    
         ';
 
-        $results = $this->db->select($sql);
+        $filters = $this->db->select($sql);
 
-        if (!is_array($results) || empty($results)) {
+        if (!is_array($filters) || empty($filters)) {
             return [];
         }
 
-        return $results;
+        return $filters;
     }
 
     /**

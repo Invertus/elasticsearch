@@ -20,6 +20,7 @@
 use Invertus\Brad\Config\Sort;
 use Invertus\Brad\Config\Setting;
 use Invertus\Brad\Controller\AbstractBradModuleFrontController;
+use Invertus\Brad\DataType\SearchData;
 use Invertus\Brad\Service\Elasticsearch\Builder\SearchQueryBuilder;
 use Invertus\Brad\Service\UrlParser;
 use Invertus\Brad\Util\Arrays;
@@ -91,18 +92,25 @@ class BradSearchModuleFrontController extends AbstractBradModuleFrontController
     {
         $urlParser = new UrlParser();
 
-        $page     = $urlParser->getPage();
-        $size     = $urlParser->getSize();
-        $orderWay = $urlParser->getOrderWay();
-        $orderBy  = $urlParser->getOrderBy();
+        $page                = $urlParser->getPage();
+        $size                = $urlParser->getSize();
+        $orderWay            = $urlParser->getOrderWay();
+        $orderBy             = $urlParser->getOrderBy();
         $originalSearchQuery = $urlParser->getSearchQuery();
-        $searchQuery = Tools::replaceAccentedChars(urldecode($originalSearchQuery));
+        $searchQuery         = Tools::replaceAccentedChars(urldecode($originalSearchQuery));
 
         /** @var \Invertus\Brad\Service\SearchService $searchService */
         $searchService = $this->get('search_service');
 
-        $products = $searchService->searchProducts($searchQuery, $page, $size, $orderBy, $orderWay);
-        $productsCount = $searchService->countProducts($searchQuery);
+        $searchData = new SearchData();
+        $searchData->setSize($size);
+        $searchData->setPage($page);
+        $searchData->setOrderWay($orderWay);
+        $searchData->setOrderBy($orderBy);
+        $searchData->setSearchQuery($searchQuery);
+
+        $products = $searchService->searchProducts($searchData);
+        $productsCount = $searchService->countProducts($searchData);
 
         $formattedProducts = $this->formatProducts($products);
 
@@ -125,11 +133,11 @@ class BradSearchModuleFrontController extends AbstractBradModuleFrontController
 
         $this->context->smarty->assign([
             'search_products' => $formattedProducts,
-            'nbProducts' => $productsCount,
-            'search_query' => $originalSearchQuery,
-            'homeSize' => Image::getSize(ImageType::getFormatedName('home')),
-            'current_url' => $currentUrl,
-            'request' => $currentUrl,
+            'nbProducts'      => $productsCount,
+            'search_query'    => $originalSearchQuery,
+            'homeSize'        => Image::getSize(ImageType::getFormatedName('home')),
+            'current_url'     => $currentUrl,
+            'request'         => $currentUrl,
         ]);
 
         $this->pagination($productsCount);

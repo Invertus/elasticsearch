@@ -59,7 +59,7 @@ class Container
 
     /**
      * Build container
-     *
+     * @todo remove me
      * @param Brad $module
      *
      * @return Container

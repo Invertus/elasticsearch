@@ -2,6 +2,8 @@
 
 namespace Invertus\Brad\Repository;
 use BradFilter;
+use Invertus\Brad\Converter\NameConverter;
+use Invertus\Brad\DataType\FilterStruct;
 
 /**
  * Class FilterTemplateRepository
@@ -79,7 +81,7 @@ class FilterTemplateRepository extends \Core_Foundation_Database_EntityRepositor
      * @param int $idCategory
      * @param int $idShop
      *
-     * @return array
+     * @return array|FilterStruct[]
      */
     public function findTemplateFilters($idCategory, $idShop)
     {
@@ -106,6 +108,21 @@ class FilterTemplateRepository extends \Core_Foundation_Database_EntityRepositor
             return [];
         }
 
-        return $results;
+        $formattedFilters = [];
+
+        foreach ($results as $result) {
+            $filterStruct = new FilterStruct();
+            $filterStruct->setFilterType($result['filter_type']);
+            $filterStruct->setFilterStyle($result['filter_style']);
+            $filterStruct->setIdKey($result['id_key']);
+            $filterStruct->setIdFilter($result['id_brad_filter']);
+
+            $inputName = NameConverter::getInputFieldName($filterStruct);
+            $filterStruct->setInputName($inputName);
+
+            $formattedFilters[] = $filterStruct;
+        }
+
+        return $formattedFilters;
     }
 }

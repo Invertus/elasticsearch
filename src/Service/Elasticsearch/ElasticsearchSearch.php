@@ -48,10 +48,11 @@ class ElasticsearchSearch
      *
      * @param array $query
      * @param int $idShop
+     * @param bool $aggregations
      *
      * @return array Array of products
      */
-    public function searchProducts(array $query, $idShop)
+    public function searchProducts(array $query, $idShop, $aggregations = false)
     {
         $params = [];
         $params['index'] = $this->manager->getIndexPrefix().$idShop;
@@ -64,6 +65,10 @@ class ElasticsearchSearch
             $response = $client->search($params);
         } catch (Exception $e) {
             return [];
+        }
+
+        if ($aggregations) {
+            return $response['aggregations'];
         }
 
         return $response['hits']['hits'];

@@ -28,8 +28,8 @@ class RangeParser
             $max = $minValue + ($i + 1) * $delta;
 
             $ranges[] = [
-                'min_range' => $min,
-                'max_range' => $max,
+                'min_value' => $min,
+                'max_value' => $max,
             ];
         }
 

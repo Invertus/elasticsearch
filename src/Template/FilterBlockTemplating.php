@@ -6,6 +6,7 @@ use BradFilter;
 use BradProduct;
 use Category;
 use Context;
+use Invertus\Brad\DataType\FilterStruct;
 use Invertus\Brad\Repository\AttributeGroupRepository;
 use Invertus\Brad\Repository\CategoryRepository;
 use Invertus\Brad\Repository\FeatureRepository;
@@ -34,7 +35,7 @@ class FilterBlockTemplating
     private $em;
 
     /**
-     * @var array
+     * @var array|FilterStruct[]
      */
     private $builtFilters = [];
 
@@ -60,11 +61,10 @@ class FilterBlockTemplating
      * Build filters
      *
      * @param array $selectedFilters
+     * @param int $idCategory
      */
-    public function build(array $selectedFilters)
+    public function build(array $selectedFilters, $idCategory)
     {
-        $idCategory = (int) Tools::getValue('id_category');
-
         /** @var FilterTemplateRepository $filterTemplateRepository */
         $filterTemplateRepository = $this->em->getRepository('BradFilterTemplate');
         $filters = $filterTemplateRepository->findTemplateFilters($idCategory, $this->context->shop->id);
@@ -75,37 +75,57 @@ class FilterBlockTemplating
 
         $selectedFiltersInputNames = array_keys($selectedFilters);
 
-        foreach ($filters as $filter) {
-            $filterType = (int) $filter['filter_type'];
-            switch ($filterType) {
+        foreach ($filters as &$filter) {
+            switch ($filter->getFilterType()) {
                 case BradFilter::FILTER_TYPE_ATTRIBUTE_GROUP:
-                    $filter['criterias'] = $this->getAttributeGroupCriterias($filter);
+                    $criterias = $this->getAttributeGroupCriterias($filter);
+                    $filter->setCriterias($criterias);
+                    $filter->setCriteriaNameKey('name');
+                    $filter->setCriteriaValueKey('id_attribute');
                     break;
                 case BradFilter::FILTER_TYPE_FEATURE:
-                    $filter['criterias'] = $this->getFeatureCriterias($filter);
+                    $criterias = $this->getFeatureCriterias($filter);
+                    $filter->setCriterias($criterias);
+                    $filter->setCriteriaNameKey('name');
+                    $filter->setCriteriaValueKey('id_feature_value');
                     break;
                 case BradFilter::FILTER_TYPE_PRICE:
-                    $filter['criterias'] = $this->getPriceCriterias($filter);
+                    $criterias = $this->getPriceCriterias($filter);
+                    $filter->setCriterias($criterias);
+                    $filter->setCriteriaNameKey('name');
+                    $filter->setCriteriaValueKey('value');
                     break;
                 case BradFilter::FILTER_TYPE_MANUFACTURER:
-                    $filter['criterias'] = $this->getManufacturerCriterias($filter);
+                    $criterias = $this->getManufacturerCriterias();
+                    $filter->setCriterias($criterias);
+                    $filter->setCriteriaNameKey('name');
+                    $filter->setCriteriaValueKey('id_manufacturer');
                     break;
                 case BradFilter::FILTER_TYPE_QUANTITY:
-                    $filter['criterias'] = $this->getQuantityCriterias($filter);
+                    $criterias = $this->getQuantityCriterias();
+                    $filter->setCriterias($criterias);
+                    $filter->setCriteriaNameKey('name');
+                    $filter->setCriteriaValueKey('value');
                     break;
                 case BradFilter::FILTER_TYPE_WEIGHT:
-                    $filter['criterias'] = $this->getWeightCriterias($filter);
+                    $criterias = $this->getWeightCriterias($filter);
+                    $filter->setCriterias($criterias);
+                    $filter->setCriteriaNameKey('name');
+                    $filter->setCriteriaValueKey('value');
                     break;
                 case BradFilter::FILTER_TYPE_CATEGORY:
-                    $filter['criterias'] = $this->getCategoryCriterias($filter);
+                    $criterias = $this->getCategoryCriterias($idCategory);
+                    $filter->setCriterias($criterias);
+                    $filter->setCriteriaNameKey('name');
+                    $filter->setCriteriaValueKey('id_category');
                     break;
             }
 
-            if (in_array($filter['input_name'], $selectedFiltersInputNames)) {
-                $this->addSelectedValues($filter, $selectedFilters[$filter['input_name']]);
+            if (in_array($filter->getInputName(), $selectedFiltersInputNames)) {
+                $this->addSelectedValues($filter, $selectedFilters[$filter->getInputName()]);
             }
 
-            $this->builtFilters[$filter['input_name']] = $filter;
+            $this->builtFilters[$filter->getInputName()] = $filter;
         }
 
         $this->setFiltersNames();
@@ -118,7 +138,9 @@ class FilterBlockTemplating
      */
     public function getBuiltFilters()
     {
-        return $this->builtFilters;
+        return array_map(function($filter) {
+            return (array) $filter;
+        }, $this->builtFilters);
     }
 
     /**
@@ -137,62 +159,45 @@ class FilterBlockTemplating
 
         $filterTypeTranslations = BradFilter::getFilterTypeTranslations();
 
+        $name = '';
         foreach ($this->builtFilters as &$filter) {
-            $filterType = (int) $filter['filter_type'];
+            $filterType = $filter->getFilterType();
             switch ($filterType) {
                 case BradFilter::FILTER_TYPE_PRICE:
                 case BradFilter::FILTER_TYPE_CATEGORY:
                 case BradFilter::FILTER_TYPE_QUANTITY:
                 case BradFilter::FILTER_TYPE_WEIGHT:
                 case BradFilter::FILTER_TYPE_MANUFACTURER:
-                    $filter['name'] = $filterTypeTranslations[$filterType];
+                    $name = $filterTypeTranslations[$filterType];
                     break;
                 case BradFilter::FILTER_TYPE_FEATURE:
-                    $filter['name'] = $featuresNames[$filter['id_key']];
+                    $name = $featuresNames[$filter->getIdKey()];
                     break;
                 case BradFilter::FILTER_TYPE_ATTRIBUTE_GROUP:
-                    $filter['name'] = $attributeGroupsNames[$filter['id_key']];
+                    $name = $attributeGroupsNames[$filter->getIdKey()];
                     break;
             }
+
+            $filter->setName($name);
         }
     }
 
     /**
      * Get feature criterias
      *
-     * @param array $filterData
+     * @param FilterStruct $filter
      *
      * @return array
      */
-    private function getFeatureCriterias(array &$filterData)
+    private function getFeatureCriterias(FilterStruct $filter)
     {
-        $filterData['input_name'] = 'feature_'.$filterData['id_key'];
-        $filterStyle = (int) $filterData;
-
         /** @var FeatureRepository $featureRepository */
         $featureRepository = $this->em->getRepository('BradFeature');
-        $featureCriterias = [];
 
-        if (in_array($filterStyle, [BradFilter::FILTER_STYLE_INPUT, BradFilter::FILTER_STYLE_SLIDER])) {
-            $idFeature = (int) $filterData['id_key'];
-            $minWeight = $featureRepository->findMinFeatureValue($idFeature, $this->context->shop->id);
-            $maxWeight = $featureRepository->findMaxFeatureValue($idFeature, $this->context->shop->id);;
+        $featuresValues = $featureRepository->findFeaturesValues($this->context->language->id);
 
-            $featureCriterias = ['min_value' => $minWeight, 'max_value' => $maxWeight];
-        } elseif (BradFilter::FILTER_STYLE_LIST_OF_VALUES == $filterStyle) {
-            /** @var FilterRepository $filterRepository */
-            $filterRepository = $this->em->getRepository('BradFilter');
-            $criterias = $filterRepository->findAllCriterias();
-
-            $featureCriterias = $criterias[$filterData['id_brad_filter']];
-        } elseif (BradFilter::FILTER_STYLE_CHECKBOX == $filterStyle) {
-            $featuresValues = $featureRepository->findFeaturesValues($this->context->language->id);
-
-            $featureCriterias =  $featuresValues[$filterData['id_key']];
-
-            $filterData['criteria_name'] = 'name';
-            $filterData['criteria_value'] = 'id_feature_value';
-        }
+        $idFeature = $filter->getIdKey();
+        $featureCriterias =  $featuresValues[$idFeature];
 
         return $featureCriterias;
     }
@@ -200,42 +205,19 @@ class FilterBlockTemplating
     /**
      * Get attribute group criterias
      *
-     * @param array $filterData
+     * @param FilterStruct $filter
      *
      * @return array
      */
-    private function getAttributeGroupCriterias(array &$filterData)
+    private function getAttributeGroupCriterias(FilterStruct $filter)
     {
-        $filterData['input_name'] = 'attribute_group_'.$filterData['id_key'];
-
         /** @var AttributeGroupRepository $attributeGroupRepository */
         $attributeGroupRepository = $this->em->getRepository('BradAttributeGroup');
 
-        $idLang = $this->context->language->id;
-        $idShop = $this->context->shop->id;
-        $idAttributeGroup = (int) $filterData['id_key'];
-        $filterStyle = (int) $filterData['filter_style'];
-        $attributeGroupCriterias = [];
+        $idAttributeGroup = (int) $filter->getIdKey();
+        $attributeGroupsValues = $attributeGroupRepository->findAttributesGroupsValues($this->context->language->id, $this->context->shop->id);
 
-        if (in_array($filterStyle, [BradFilter::FILTER_STYLE_INPUT, BradFilter::FILTER_STYLE_SLIDER])) {
-            $minAttributeGroupValue = $attributeGroupRepository->findMinAttributeGroupValue($idAttributeGroup, $idLang, $idShop);
-            $maxAttributeGroupValue = $attributeGroupRepository->findMaxAttributeGroupValue($idAttributeGroup, $idLang, $idShop);
-
-            $attributeGroupCriterias = ['min_value' => $minAttributeGroupValue, 'max_value' => $maxAttributeGroupValue];
-        } elseif (BradFilter::FILTER_STYLE_CHECKBOX == $filterStyle) {
-            $attributeGroupsValues = $attributeGroupRepository->findAttributesGroupsValues($this->context->language->id, $this->context->shop->id);
-
-            $attributeGroupCriterias = $attributeGroupsValues[$idAttributeGroup];
-
-            $filterData['criteria_name'] = 'name';
-            $filterData['criteria_value'] = 'id_attribute';
-        } elseif (BradFilter::FILTER_STYLE_LIST_OF_VALUES) {
-            /** @var FilterRepository $filterRepository */
-            $filterRepository = $this->em->getRepository('BradFilter');
-            $criterias = $filterRepository->findAllCriterias();
-
-            $attributeGroupCriterias = $criterias[$filterData['id_brad_filter']];
-        }
+        $attributeGroupCriterias = $attributeGroupsValues[$idAttributeGroup];
 
         return $attributeGroupCriterias;
     }
@@ -243,60 +225,52 @@ class FilterBlockTemplating
     /**
      * Get price filter
      *
-     * @param array $filterData
+     * @param FilterStruct $filter
      *
      * @return array
      */
-    private function getPriceCriterias(array &$filterData)
+    private function getPriceCriterias(FilterStruct $filter)
     {
-        $filterData['input_name'] = 'price';
-        $filterStyle = (int) $filterData['filter_style'];
+        $filterStyle = $filter->getFilterStyle();
         $pricesCriterias = [];
 
         if (in_array($filterStyle, [BradFilter::FILTER_STYLE_INPUT, BradFilter::FILTER_STYLE_SLIDER])) {
             $maxPrice = $this->esHelper->getAggregatedProductPrice(ElasticsearchHelper::AGGS_MAX);
             $minPrice = $this->esHelper->getAggregatedProductPrice(ElasticsearchHelper::AGGS_MIN);
 
-            $pricesCriterias = ['max_value' => round($maxPrice, 2), 'min_value' => round($minPrice, 2)];
-        } elseif (BradFilter::FILTER_STYLE_CHECKBOX == $filterStyle) {
+            $pricesCriterias[] = [
+                'name'  => '',
+                'value' => sprintf('%s:%s', round($minPrice, 2), round($maxPrice, 2)),
+            ];
+
+            return $pricesCriterias;
+        }
+
+        $ranges = [];
+
+        if (BradFilter::FILTER_STYLE_CHECKBOX == $filterStyle) {
             $maxPrice = $this->esHelper->getAggregatedProductPrice(ElasticsearchHelper::AGGS_MAX);
             $minPrice = $this->esHelper->getAggregatedProductPrice(ElasticsearchHelper::AGGS_MIN);
 
-            //@todo: add setting for hardcoded value
             $n = 10;
             $ranges = RangeParser::splitIntoRanges($minPrice, $maxPrice, $n);
-
-            foreach ($ranges as $range) {
-                $min = $range['min_range'];
-                $max = $range['max_range'];
-
-                $pricesCriterias[] = [
-                    'value' => sprintf('%s:%s', round($min, 2), round($max, 2)),
-                    'name' => sprintf('%s - %s', Tools::displayPrice($min), Tools::displayPrice($max)),
-                ];
-            }
-
-            $filterData['criteria_name'] = 'name';
-            $filterData['criteria_value'] = 'value';
         } elseif (BradFilter::FILTER_STYLE_LIST_OF_VALUES) {
             /** @var FilterRepository $filterRepository */
             $filterRepository = $this->em->getRepository('BradFilter');
             $criterias = $filterRepository->findAllCriterias();
 
-            $customCriterias = $criterias[$filterData['id_brad_filter']];
+            $idFilter = $filter->getIdFilter();
+            $ranges = $criterias[$idFilter];
+        }
 
-            foreach ($customCriterias as $customCriteria) {
-                $min = $customCriteria['min_value'];
-                $max = $customCriteria['max_value'];
+        foreach ($ranges as $range) {
+            $min = $range['min_value'];
+            $max = $range['max_value'];
 
-                $pricesCriterias[] = [
-                    'value' => sprintf('%s:%s', round($min, 2), round($max, 2)),
-                    'name' => sprintf('%s - %s', Tools::displayPrice($min), Tools::displayPrice($max)),
-                ];
-            }
-
-            $filterData['criteria_name'] = 'name';
-            $filterData['criteria_value'] = 'value';
+            $pricesCriterias[] = [
+                'value' => sprintf('%s:%s', round($min, 2), round($max, 2)),
+                'name'  => sprintf('%s - %s', Tools::displayPrice($min), Tools::displayPrice($max)),
+            ];
         }
 
         return $pricesCriterias;
@@ -305,20 +279,13 @@ class FilterBlockTemplating
     /**
      * Get manufacturer filter criterias
      *
-     * @param array $filterData
-     *
      * @return array
      */
-    private function getManufacturerCriterias(array &$filterData)
+    private function getManufacturerCriterias()
     {
-        $filterData['input_name'] = 'manufacturer';
-
         /** @var ManufacturerRepository $manufacturerRepository */
         $manufacturerRepository = $this->em->getRepository('BradManufacturer');
         $manufacturers = $manufacturerRepository->findAllByShopId($this->context->shop->id);
-
-        $filterData['criteria_name'] = 'name';
-        $filterData['criteria_value'] = 'id_manufacturer';
 
         return $manufacturers;
     }
@@ -326,18 +293,11 @@ class FilterBlockTemplating
     /**
      * Get quantity criterias
      *
-     * @param array $filterData
-     *
      * @return array
      */
-    private function getQuantityCriterias(array &$filterData)
+    private function getQuantityCriterias()
     {
-        $filterData['input_name'] = 'quantity';
-
         $criterias = BradProduct::getStockCriterias();
-
-        $filterData['criteria_name'] = 'name';
-        $filterData['criteria_value'] = 'value';
 
         return $criterias;
     }
@@ -345,62 +305,51 @@ class FilterBlockTemplating
     /**
      * Get weight criterias
      *
-     * @param array $filterData
+     * @param FilterStruct $filter
      *
      * @return array
      */
-    private function getWeightCriterias(array &$filterData)
+    private function getWeightCriterias(FilterStruct $filter)
     {
-        $filterData['input_name'] = 'weight';
-        $filterStyle = (int) $filterData['filter_style'];
+        $filterStyle = (int) $filter->getFilterStyle();
         $weightCriterias = [];
 
         if (in_array($filterStyle, [BradFilter::FILTER_STYLE_INPUT, BradFilter::FILTER_STYLE_SLIDER])) {
             $minWeight = $this->esHelper->getAggregatedProductWeight(ElasticsearchHelper::AGGS_MIN);
             $maxWeight = $this->esHelper->getAggregatedProductWeight(ElasticsearchHelper::AGGS_MAX);
 
-            $weightCriterias = ['min_value' => $minWeight, 'max_value' => $maxWeight];
-        } elseif (BradFilter::FILTER_STYLE_LIST_OF_VALUES == $filterStyle) {
+            $weightCriterias[] = [
+                'value' => sprintf('%s:%s', $minWeight, $maxWeight),
+                'name' => '',
+            ];
+
+            return $weightCriterias;
+        }
+
+        $ranges = [];
+
+        if (BradFilter::FILTER_STYLE_LIST_OF_VALUES == $filterStyle) {
             /** @var FilterRepository $filterRepository */
             $filterRepository = $this->em->getRepository('BradFilter');
             $criterias = $filterRepository->findAllCriterias();
-
-            foreach ($criterias as $criteria) {
-                $min = $criteria['min_value'];
-                $max = $criteria['max_value'];
-
-                $pricesCriterias[] = [
-                    'value' => sprintf('%s:%s', $min, $max),
-                    'name' => sprintf('%s - %s', $min, $max),
-                ];
-            }
-
-            $filterData['criteria_name'] = 'name';
-            $filterData['criteria_value'] = 'value';
-
-            $weightCriterias = $criterias[$filterData['id_brad_filter']];
+            $ranges = $criterias[$filter->getIdFilter()];
         } elseif (BradFilter::FILTER_STYLE_CHECKBOX == $filterStyle) {
 
             $minWeight = $this->esHelper->getAggregatedProductWeight(ElasticsearchHelper::AGGS_MIN);
             $maxWeight = $this->esHelper->getAggregatedProductWeight(ElasticsearchHelper::AGGS_MAX);
 
-            $filterData['criteria_name'] = 'name';
-            $filterData['criteria_value'] = 'value';
-
-            //@todo: add setting for hardcoded value
             $n = 10;
-
             $ranges = RangeParser::splitIntoRanges($minWeight, $maxWeight, $n);
+        }
 
-            foreach ($ranges as $range) {
-                $min = $range['min_range'];
-                $max = $range['max_range'];
+        foreach ($ranges as $range) {
+            $min = $range['min_range'];
+            $max = $range['max_range'];
 
-                $weightCriterias[] = [
-                    'name' => sprintf('%s %s - %s %s', $min, $filterData['criteria_suffix'], $max,  $filterData['criteria_suffix']),
-                    'value' => sprintf('%s:%s', $min, $max),
-                ];
-            }
+            $weightCriterias[] = [
+                'name'  => sprintf('%s - %s', $min, $max),
+                'value' => sprintf('%s:%s', $min, $max),
+            ];
         }
 
         return $weightCriterias;
@@ -409,25 +358,20 @@ class FilterBlockTemplating
     /**
      * Get categories filter
      *
-     * @param array $filterData
+     * @param int $idCategory
      *
      * @return array
      */
-    private function getCategoryCriterias(array &$filterData)
+    private function getCategoryCriterias($idCategory)
     {
-        $filterData['input_name'] = 'category';
-
         $idShop = $this->context->shop->id;
         $idLang = $this->context->language->id;
-        $idCategory = (int) Tools::getValue('id_category');
+
         $category = new Category($idCategory);
 
         /** @var CategoryRepository $categoryRepository */
         $categoryRepository = $this->em->getRepository('BradCategory');
         $childCategories = $categoryRepository->findChildCategoriesNamesAndIds($category, $idLang, $idShop);
-
-        $filterData['criteria_name'] = 'name';
-        $filterData['criteria_value'] = 'id_category';
 
         return $childCategories;
     }
@@ -435,25 +379,27 @@ class FilterBlockTemplating
     /**
      * Add selected values to filter
      *
-     * @param array $filter
+     * @param FilterStruct $filter
      * @param array $selectedValues
      */
-    private function addSelectedValues(array &$filter, array $selectedValues)
+    private function addSelectedValues(FilterStruct &$filter, array $selectedValues)
     {
         if (empty($selectedValues)) {
             return;
         }
 
-        $filterType = (int) $filter['filter_type'];
-        $filterStyle = (int) $filter['filter_style'];
+        $filterType  = (int) $filter->getFilterType();
+        $filterStyle = (int) $filter->getFilterStyle();
 
         $rangesTypeFilters = [BradFilter::FILTER_TYPE_PRICE, BradFilter::FILTER_TYPE_WEIGHT];
+        $rangeStyles       = [BradFilter::FILTER_STYLE_SLIDER, BradFilter::FILTER_STYLE_INPUT];
 
-        if ((in_array($filterType, $rangesTypeFilters) &&
-                !in_array($filterStyle, [BradFilter::FILTER_STYLE_SLIDER, BradFilter::FILTER_STYLE_INPUT])) ||
+        if ((in_array($filterType, $rangesTypeFilters) && !in_array($filterStyle, $rangeStyles)) ||
             BradFilter::FILTER_STYLE_LIST_OF_VALUES == $filterStyle
         ) {
-            foreach ($filter['criterias'] as &$criteria) {
+            $criterias = $filter->getCriterias();
+
+            foreach ($criterias as &$criteria) {
                 foreach ($selectedValues as $selectedValue) {
                     $value = implode(':', [$selectedValue['min_value'], $selectedValue['max_value']]);
 
@@ -462,19 +408,26 @@ class FilterBlockTemplating
                     }
                 }
             }
+
+            $filter->setCriterias($criterias);
         }  elseif (BradFilter::FILTER_STYLE_CHECKBOX == $filterStyle) {
-            foreach ($filter['criterias'] as &$criteria) {
+            $criterias = $filter->getCriterias();
+            foreach ($criterias as &$criteria) {
                 foreach ($selectedValues as $selectedValue) {
-                    if ($selectedValue == $criteria[$filter['criteria_value']]) {
+                    if ($selectedValue == $criteria[$filter->getCriteriaValueKey()]) {
                         $criteria['checked'] = true;
                     }
                 }
             }
+            $filter->setCriterias($criterias);
         } elseif (BradFilter::FILTER_STYLE_INPUT == $filterStyle ||
             BradFilter::FILTER_STYLE_SLIDER == $filterStyle
         ) {
-            $filter['criterias']['selected_min_value'] = $selectedValues[0]['min_value'];
-            $filter['criterias']['selected_max_value'] = $selectedValues[0]['max_value'];
+            $criterias = $filter->getCriterias();
+            $criterias[0]['selected_min_value'] = $selectedValues[0]['min_value'];
+            $criterias[0]['selected_max_value'] = $selectedValues[0]['max_value'];
+
+            $filter->setCriterias($criterias);
         }
     }
 }

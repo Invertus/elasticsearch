@@ -121,7 +121,7 @@ class AdminBradFilterTemplateController extends AbstractAdminBradModuleControlle
     {
         /** @var \Invertus\Brad\Repository\FilterRepository $filterRepository */
         $filterRepository = $this->getRepository('BradFilter');
-        $availableTemplateFilters = $filterRepository->findAllByShopId($this->context->shop->id);
+        $availableTemplateFilters = $filterRepository->findAllFilters($this->context->shop->id);
         $selectedTemplateFilters = [];
 
         if (Validate::isLoadedObject($this->object)) {

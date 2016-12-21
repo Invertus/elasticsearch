@@ -192,10 +192,10 @@ $(document).ready(function() {
         var $bradFilterForm = $('#bradFilterForm');
 
         $selectedFilters['id_category'] = $globalIdCategory;
-        $selectedFilters['orderway'] = $bradFilterForm.find('input[name="orderway"]').val();
-        $selectedFilters['orderby'] = $bradFilterForm.find('input[name="orderby"]').val();
-        $selectedFilters['p'] = $bradFilterForm.find('input[name="p"]').val();
-        $selectedFilters['n'] = $bradFilterForm.find('input[name="n"]').val();
+        $selectedFilters['orderway']    = $bradFilterForm.find('input[name="orderway"]').val();
+        $selectedFilters['orderby']     = $bradFilterForm.find('input[name="orderby"]').val();
+        $selectedFilters['p']           = $bradFilterForm.find('input[name="p"]').val();
+        $selectedFilters['n']           = $bradFilterForm.find('input[name="n"]').val();
 
         return $selectedFilters;
     }

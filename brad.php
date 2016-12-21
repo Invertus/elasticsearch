@@ -17,6 +17,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+use Invertus\Brad\DataType\FilterData;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -244,14 +246,23 @@ class Brad extends Module
         $urlParser->parse($_GET);
         $selectedFilters = $urlParser->getSelectedFilters();
 
-        $orderWay = $urlParser->getOrderWay();
-        $orderBy  = $urlParser->getOrderBy();
-        $page     = $urlParser->getPage();
-        $n        = $urlParser->getSize();
+        $orderWay   = $urlParser->getOrderWay();
+        $orderBy    = $urlParser->getOrderBy();
+        $page       = $urlParser->getPage();
+        $n          = $urlParser->getSize();
+        $idCategory = $urlParser->getIdCategory();
+
+        $filterData = new FilterData();
+        $filterData->setSize($n);
+        $filterData->setPage($page);
+        $filterData->setOrderWay($orderWay);
+        $filterData->setOrderBy($orderBy);
+        $filterData->setIdCategory($idCategory);
+        $filterData->setSelectedFilters($selectedFilters);
 
         /** @var \Invertus\Brad\Template\Templating $templating */
         $templating = $this->container->get('templating');
-        $filtersTemplate = $templating->renderFiltersBlockTemplate($selectedFilters, $page, $n, $orderWay, $orderBy);
+        $filtersTemplate = $templating->renderFiltersBlockTemplate($filterData);
 
         return $filtersTemplate;
     }

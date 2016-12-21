@@ -4,6 +4,7 @@ namespace Invertus\Brad\Service;
 
 use Configuration;
 use Context;
+use Invertus\Brad\Config\Setting;
 use Invertus\Brad\DataType\FilterData;
 use Invertus\Brad\Repository\FilterRepository;
 use Invertus\Brad\Service\Elasticsearch\Builder\FilterQueryBuilder;
@@ -88,13 +89,25 @@ class FilterService
      */
     public function aggregateProducts(FilterData $filterData)
     {
+        $aggregateProducts = (bool) Configuration::get(Setting::DISPLAY_NUMBER_OF_MATCHING_PRODUCTS);
+        if (!$aggregateProducts) {
+            return [];
+        }
+
         /** @var \Brad $brad */
         $brad = Module::getInstanceByName('brad');
-        /** @var \Core_Foundation_Database_EntityManager $em */
-        $em = $brad->getContainer()->get('em');
-        /** @var FilterRepository $filtersRepository */
-        $filtersRepository = $em->getRepository('BradFilter');
 
-        $filters = $filtersRepository->findAllByShopId($this->context->shop->id);
+        /** @var FilterRepository $filtersRepository */
+        $filtersRepository = $brad->getContainer()->get('em')->getRepository('BradFilter');
+        $filters = $filtersRepository->findAllFilters($this->context->shop->id);
+
+        $aggregationsQuery = $this->filterQueryBuilder->buildAggregationsQuery($filterData, $filters);
+
+        $idShop = $this->context->shop->id;
+        $aggregations = $this->elasticsearchSearch->searchProducts($aggregationsQuery, $idShop, true);
+
+        foreach ($aggregations as $aggregation) {
+            //@todo: put aggregations into array with key input_name_:value
+        }
     }
 }

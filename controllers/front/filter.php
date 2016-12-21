@@ -60,8 +60,9 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
         $filterData->setIdCategory($idCategory);
         $filterData->setSelectedFilters($selectedFilters);
 
-        $products = $filterService->filterProducts($filterData);
-        $productsCount = $filterService->countProducts($filterData);
+        $products             = $filterService->filterProducts($filterData);
+        $productsCount        = $filterService->countProducts($filterData);
+        //$productsAggregations = $filterService->aggregateProducts($filterData);
 
         $products = $this->formatProducts($products);
         $this->addColorsToProductList($products);
@@ -71,10 +72,10 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
         $bottomPaginationTemplate = $templating->renderPaginationTemplate($productsCount, $p, $n);
         $topPaginationTemplate = preg_replace('/(_bottom)/i', '', $bottomPaginationTemplate);
 
-        $filtersBlockTemplate = $templating->renderFiltersBlockTemplate($selectedFilters, $p, $n, $orderWay, $orderBy);
+        $filtersBlockTemplate    = $templating->renderFiltersBlockTemplate($filterData);
         $selectedFiltersTemplate = $templating->renderSelectedFilters($selectedFilters);
-        $productListTemplate = $templating->renderProductsTemplate($products, $productsCount);
-        $categoryCountTemplate = $templating->renderCategoryCountTemplate($productsCount);
+        $productListTemplate     = $templating->renderProductsTemplate($products, $productsCount);
+        $categoryCountTemplate   = $templating->renderCategoryCountTemplate($productsCount);
 
         die(json_encode([
             'query_string'               => $queryString,

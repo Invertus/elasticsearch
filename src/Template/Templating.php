@@ -6,6 +6,7 @@ use Configuration;
 use Context;
 use Image;
 use ImageType;
+use Invertus\Brad\DataType\FilterData;
 use Manufacturer;
 use Module;
 use Tools;
@@ -57,25 +58,20 @@ class Templating
     /**
      * Build filters html template
      *
-     * @param array $selectedFilters
-     *
-     * @param int $p
-     * @param int $n
-     * @param string $orderWay
-     * @param string $orderBy
+     * @param FilterData $filterData
      *
      * @return string
      */
-    public function renderFiltersBlockTemplate(array $selectedFilters, $p, $n, $orderWay, $orderBy)
+    public function renderFiltersBlockTemplate(FilterData $filterData)
     {
-        $this->filterBlockTemplating->build($selectedFilters);
+        $this->filterBlockTemplating->build($filterData->getSelectedFilters(), $filterData->getIdCategory());
 
         $this->context->smarty->assign([
-            'filters' => $this->filterBlockTemplating->getBuiltFilters(),
-            'p' => $p,
-            'n' => $n,
-            'orderby' => $orderBy,
-            'orderway' => $orderWay,
+            'filters'  => $this->filterBlockTemplating->getBuiltFilters(),
+            'p'        => $filterData->getPage(),
+            'n'        => $filterData->getSize(),
+            'orderby'  => $filterData->getOrderBy(),
+            'orderway' => $filterData->getOrderWay(),
         ]);
 
         return $this->context->smarty->fetch($this->bradTemplatesDir.'front/filter-template.tpl');
@@ -99,10 +95,10 @@ class Templating
         $frontController->addColorsToProductList($products);
 
         $this->context->smarty->assign([
-            'products' => $products,
+            'products'        => $products,
             'search_products' => $products,
-            'nbProducts' => (int) $productsCount,
-            'homeSize' => Image::getSize(ImageType::getFormatedName('home')),
+            'nbProducts'      => (int) $productsCount,
+            'homeSize'        => Image::getSize(ImageType::getFormatedName('home')),
         ]);
 
         $renderedList = $this->context->smarty->fetch(_PS_THEME_DIR_.'product-list.tpl');
@@ -130,7 +126,7 @@ class Templating
         $pagesCount = ceil($productsCount / $n);
 
         $start = $page - $range;
-        $stop = $page + $range;
+        $stop  = $page + $range;
 
         if ($start < 1) {
             $start = 1;
@@ -141,16 +137,16 @@ class Templating
         }
 
         $this->context->smarty->assign([
-            'nb_products' => $productsCount,
-            'pages_nb' => $pagesCount,
-            'p' => $page,
-            'n' => $n,
-            'range' => $range,
-            'start' => $start,
-            'stop' => $stop,
-            'paginationId' => 'bottom',
+            'nb_products'       => $productsCount,
+            'pages_nb'          => $pagesCount,
+            'p'                 => $page,
+            'n'                 => $n,
+            'range'             => $range,
+            'start'             => $start,
+            'stop'              => $stop,
+            'paginationId'      => 'bottom',
             'products_per_page' => (int) Configuration::get('PS_PRODUCTS_PER_PAGE'),
-            'current_url' => 'pagination',
+            'current_url'       => 'pagination',
         ]);
 
         return $this->context->smarty->fetch(_PS_THEME_DIR_.'pagination.tpl');
@@ -185,8 +181,8 @@ class Templating
                 $displayValue = $this->getValueDisplay($key, $selectedValue);
 
                 $formattedSelectedFilters[$key]['values'][] = [
-                    'filter' => $key,
-                    'filter_value' => $value,
+                    'filter'        => $key,
+                    'filter_value'  => $value,
                     'display_value' => $displayValue,
                 ];
             }
@@ -229,11 +225,11 @@ class Templating
         $brad = Module::getInstanceByName('brad');
 
         $staticTranslations = [
-            'price' => $brad->l('Price', self::FILENAME),
+            'price'        => $brad->l('Price', self::FILENAME),
             'manufacturer' => $brad->l('Manufacturer', self::FILENAME),
-            'quantity' => $brad->l('Quantity', self::FILENAME),
-            'category' => $brad->l('Category', self::FILENAME),
-            'weight' => $brad->l('Weight', self::FILENAME),
+            'quantity'     => $brad->l('Quantity', self::FILENAME),
+            'category'     => $brad->l('Category', self::FILENAME),
+            'weight'       => $brad->l('Weight', self::FILENAME),
         ];
 
         if (isset($staticTranslations[$key])) {

@@ -5,9 +5,12 @@ namespace Invertus\Brad\Service\Elasticsearch\Builder;
 use Category;
 use Configuration;
 use Context;
+use Invertus\Brad\Converter\NameConverter;
 use Invertus\Brad\DataType\FilterData;
 use Invertus\Brad\Repository\CategoryRepository;
 use Module;
+use ONGR\ElasticsearchDSL\Aggregation\Bucketing\FilterAggregation;
+use ONGR\ElasticsearchDSL\Aggregation\Bucketing\TermsAggregation;
 use ONGR\ElasticsearchDSL\BuilderInterface;
 use ONGR\ElasticsearchDSL\Query\BoolQuery;
 use ONGR\ElasticsearchDSL\Query\RangeQuery;
@@ -54,11 +57,28 @@ class FilterQueryBuilder extends AbstractQueryBuilder
     /**
      * Build aggregations query
      *
-     * @param array $data
+     * @param FilterData $filterData
+     * @param array $filters
+     *
+     * @return array
      */
-    public function buildAggregationsQuery(array $data)
+    public function buildAggregationsQuery(FilterData $filterData, array $filters)
     {
+        $aggregationsQuery = new Search();
 
+        foreach ($filters as $filter) {
+
+            $fieldName = NameConverter::getElasticsearchFieldName($filter['input_name']);
+
+            $termsAggregation = new TermsAggregation('field', $fieldName);
+            $termFilter = new TermQuery('attribute_group_3', 8);
+            $filterAggregation = new FilterAggregation($fieldName, $termFilter);
+            $filterAggregation->addAggregation($termsAggregation);
+
+            $aggregationsQuery->addAggregation($filterAggregation);
+        }
+        //d($aggregationsQuery->toArray());
+        return $aggregationsQuery->toArray();
     }
 
     /**
@@ -166,7 +186,7 @@ class FilterQueryBuilder extends AbstractQueryBuilder
      */
     protected function getBoolShouldTermQuery($filterName, array $values)
     {
-        $fieldName = $this->getFieldName($filterName);
+        $fieldName = NameConverter::getElasticsearchFieldName($filterName);
 
         $boolShouldQuery = new BoolQuery();
 
@@ -188,11 +208,15 @@ class FilterQueryBuilder extends AbstractQueryBuilder
      */
     protected function getBoolShouldRangeQuery($filterName, array $values)
     {
-        $fieldName = $this->getFieldName($filterName);
+        $fieldName = $fieldName = NameConverter::getElasticsearchFieldName($filterName);
 
         $boolShouldQuery = new BoolQuery();
 
         foreach ($values as $value) {
+            if (empty($value)) {
+                continue;
+            }
+
             $params = [
                 'gt'  => $value['min_value'],
                 'lte' => $value['max_value'],

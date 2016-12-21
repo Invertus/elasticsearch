@@ -16,7 +16,7 @@ class FilterRepository extends \Core_Foundation_Database_EntityRepository
      *
      * @return array
      */
-    public function findAllByShopId($idShop)
+    public function findAllFilters($idShop)
     {
         static $filters;
 

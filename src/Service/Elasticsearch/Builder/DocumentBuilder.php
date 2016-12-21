@@ -20,7 +20,9 @@
 namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
 use Attribute;
+use BradProduct;
 use Category;
+use Configuration;
 use Core_Business_ConfigurationInterface;
 use Core_Foundation_Database_EntityManager;
 use Feature;
@@ -124,8 +126,11 @@ class DocumentBuilder
         $body['id_image']               = Product::getCover($product->id)['id_image'];
         $body['id_combination_default'] = $product->getDefaultIdProductAttribute();
         $body['categories']             = $product->getCategories();
-        $body['total_quantity']         = StockAvailable::getQuantityAvailableByProduct($product->id);
-        $body['in_stock']               = $this->isInStock($product);
+
+        $totalQuantity = StockAvailable::getQuantityAvailableByProduct($product->id);
+
+        $body['in_stock_when_global_oos_allow_orders'] = (int) (0 < $totalQuantity || BradProduct::DENY_ORDERS_WHEN_OOS != $product->out_of_stock);
+        $body['in_stock_when_global_oos_deny_orders']  = (int) (0 < $totalQuantity || BradProduct::ALLOW_ORDERS_WHEN_OOS == $product->out_of_stock);
 
         $defaultCategory = new Category($product->id_category_default);
 
@@ -253,21 +258,5 @@ class DocumentBuilder
         self::$countriesIds  = $this->em->getRepository('BradCountry')->findAllIdsByShopId($idShop);
         self::$currenciesIds = $this->em->getRepository('BradCurrency')->findAllIdsByShopId($idShop);
         self::$groupsIds     = $this->em->getRepository('BradGroup')->findAllIdsByShopId($idShop);
-    }
-
-    /**
-     * Check if product is in stock
-     *
-     * @param Product $product
-     *
-     * @return bool
-     */
-    private function isInStock(Product $product)
-    {
-        $totalQuantity = StockAvailable::getQuantityAvailableByProduct($product->id);
-
-//        return ($product->available_for_order && $totalQuantity > 0) ||
-//
-//        );
     }
 }

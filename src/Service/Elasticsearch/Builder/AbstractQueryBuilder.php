@@ -19,6 +19,7 @@
 
 namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
+use Configuration;
 use Context;
 use Invertus\Brad\Config\Sort;
 use ONGR\ElasticsearchDSL\Sort\FieldSort;
@@ -56,7 +57,15 @@ abstract class AbstractQueryBuilder
                     '_currency_'.(int)$context->currency->id;
                 break;
             case Sort::BY_QUANTITY:
-                $fieldNameToSortBy = 'total_quantity';
+                $orderOutOfStock = (bool) Configuration::get('PS_ORDER_OUT_OF_STOCK');
+                switch ($orderOutOfStock) {
+                    case true:
+                        $fieldNameToSortBy = 'in_stock_when_global_oos_allow_orders';
+                        break;
+                    case false:
+                        $fieldNameToSortBy = 'in_stock_when_global_oos_deny_orders';
+                        break;
+                }
                 break;
             case Sort::BY_REFERENCE:
                 $fieldNameToSortBy = 'reference.raw';

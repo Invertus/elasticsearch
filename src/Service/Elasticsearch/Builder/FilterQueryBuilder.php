@@ -3,6 +3,7 @@
 namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
 use Category;
+use Configuration;
 use Context;
 use Invertus\Brad\DataType\FilterData;
 use Invertus\Brad\Repository\CategoryRepository;
@@ -70,36 +71,30 @@ class FilterQueryBuilder extends AbstractQueryBuilder
      */
     protected function getProductQueryBySelectedFilters(array $selectedFilters, $idCategory)
     {
-        $context       = Context::getContext();
         $searchQuery   = new Search();
-        $boolMustQuery = new BoolQuery();
+        $boolMustFilterQuery = new BoolQuery();
 
         $includeCategoriesIntoQuery = true;
 
         foreach ($selectedFilters as $name => $values) {
             if (0 === strpos($name, 'feature') || 0 === strpos($name, 'attribute_group')) {
                 $boolShouldTermQuery = $this->getBoolShouldTermQuery($name, $values);
-                $boolMustQuery->add($boolShouldTermQuery);
+                $boolMustFilterQuery->add($boolShouldTermQuery);
             } elseif ('price' == $name) {
-                $idGroup    = $context->customer->id_default_group;
-                $idCurrency = $context->currency->id;
-                $idCountry  = $context->country->id;
-                $fieldName  = sprintf('price_group_%s_country_%s_currency_%s', $idGroup, $idCountry, $idCurrency);
-                $boolShouldRangeQuery = $this->getBoolShouldRangeQuery($fieldName, $values);
-                $boolMustQuery->add($boolShouldRangeQuery);
+                $boolShouldRangeQuery = $this->getBoolShouldRangeQuery($name, $values);
+                $boolMustFilterQuery->add($boolShouldRangeQuery);
             } elseif ('manufacturer' == $name) {
-                $fieldName = 'id_manufacturer';
-                $boolShouldTermQuery = $this->getBoolShouldTermQuery($fieldName, $values);
-                $boolMustQuery->add($boolShouldTermQuery);
-            } elseif ('weight' == $name) {
                 $boolShouldTermQuery = $this->getBoolShouldTermQuery($name, $values);
-                $boolMustQuery->add($boolShouldTermQuery);
+                $boolMustFilterQuery->add($boolShouldTermQuery);
+            } elseif ('weight' == $name) {
+                $boolShouldTermQuery = $this->getBoolShouldRangeQuery($name, $values);
+                $boolMustFilterQuery->add($boolShouldTermQuery);
             } elseif ('quantity' == $name) {
-                //@todo: index new field with stock
+                $boolShouldTermQuery = $this->getBoolShouldTermQuery($name, $values);
+                $boolMustFilterQuery->add($boolShouldTermQuery);
             } elseif ('category' == $name) {
-                $fieldName = 'categories';
-                $boolShouldTermQuery = $this->getBoolShouldTermQuery($fieldName, $values);
-                $boolMustQuery->add($boolShouldTermQuery);
+                $boolShouldTermQuery = $this->getBoolShouldTermQuery($name, $values);
+                $boolMustFilterQuery->add($boolShouldTermQuery);
 
                 if (!empty($searchValues['categories'])) {
                     $includeCategoriesIntoQuery = false;
@@ -114,8 +109,8 @@ class FilterQueryBuilder extends AbstractQueryBuilder
             $boolMustCategoriesQuery->add($boolShouldCategoriesQuery);
         }
 
-        if (!empty($boolMustQuery->getQueries())) {
-            $searchQuery->addQuery($boolMustQuery);
+        if (!empty($boolMustFilterQuery->getQueries())) {
+            $searchQuery->addQuery($boolMustFilterQuery);
         }
 
         if (!$includeCategoriesIntoQuery) {
@@ -140,10 +135,8 @@ class FilterQueryBuilder extends AbstractQueryBuilder
 
         /** @var \Brad $brad */
         $brad = Module::getInstanceByName('brad');
-        /** @var \Core_Foundation_Database_EntityManager $em */
-        $em = $brad->getContainer()->get('em');
         /** @var CategoryRepository $categoryRepository */
-        $categoryRepository = $em->getRepository('BradCategory');
+        $categoryRepository = $brad->getContainer()->get('em')->getRepository('BradCategory');
 
         $category = new Category($idCategory);
 
@@ -166,13 +159,15 @@ class FilterQueryBuilder extends AbstractQueryBuilder
     /**
      * Get bool should query with terms query inside
      *
-     * @param string $fieldName
+     * @param string $filterName
      * @param array $values
      *
      * @return BoolQuery
      */
-    protected function getBoolShouldTermQuery($fieldName, array $values)
+    protected function getBoolShouldTermQuery($filterName, array $values)
     {
+        $fieldName = $this->getFieldName($filterName);
+
         $boolShouldQuery = new BoolQuery();
 
         foreach ($values as $value) {
@@ -186,13 +181,15 @@ class FilterQueryBuilder extends AbstractQueryBuilder
     /**
      * Get bool should query with ranges inside
      *
-     * @param string $fieldName
+     * @param string $filterName
      * @param array $values
      *
      * @return BoolQuery
      */
-    protected function getBoolShouldRangeQuery($fieldName, array $values)
+    protected function getBoolShouldRangeQuery($filterName, array $values)
     {
+        $fieldName = $this->getFieldName($filterName);
+
         $boolShouldQuery = new BoolQuery();
 
         foreach ($values as $value) {
@@ -206,5 +203,46 @@ class FilterQueryBuilder extends AbstractQueryBuilder
         }
 
         return $boolShouldQuery;
+    }
+
+    /**
+     * Get field name in elasticsearch by filter name
+     *
+     * @param string $filterName
+     *
+     * @return string
+     */
+    protected function getFieldName($filterName)
+    {
+        $context = Context::getContext();
+        $fieldName = '';
+
+        if ('quantity' == $filterName) {
+            $orderOutOfStock = (bool) Configuration::get('PS_ORDER_OUT_OF_STOCK');
+            switch ($orderOutOfStock) {
+                case true:
+                    $fieldName = 'in_stock_when_global_oos_allow_orders';
+                    break;
+                case false:
+                    $fieldName = 'in_stock_when_global_oos_deny_orders';
+                    break;
+            }
+        } elseif ('price' == $filterName) {
+            $idGroup    = $context->customer->id_default_group;
+            $idCurrency = $context->currency->id;
+            $idCountry  = $context->country->id;
+            $fieldName  = sprintf('price_group_%s_country_%s_currency_%s', $idGroup, $idCountry, $idCurrency);
+        } elseif ('manufacturer' == $filterName) {
+            $fieldName = 'id_manufacturer';
+        } elseif ('weight' == $filterName ||
+            0 === strpos($filterName, 'feature') ||
+            0 === strpos($filterName, 'attribute_group')
+        ) {
+            $fieldName = $filterName;
+        } elseif ('category' == $filterName) {
+            $fieldName = 'categories';
+        }
+
+        return $fieldName;
     }
 }

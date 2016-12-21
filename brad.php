@@ -67,7 +67,7 @@ class Brad extends Module
         $this->description = $this->l('Elasticsearch® module for PrestaShop that makes search and filter significantly faster.');
         $this->ps_versions_compliancy = ['min' => '1.6.1.0', 'max' => '1.6.2.0'];
 
-        $this->container = \Invertus\Brad\Container\Container::build($this);
+        $this->container = new \Invertus\Brad\Container\Container($this);
     }
 
     /**
@@ -86,16 +86,6 @@ class Brad extends Module
     public function getContainer()
     {
         return $this->container;
-    }
-
-    /**
-     * Get context
-     *
-     * @return Context
-     */
-    public function getContext()
-    {
-        return $this->context;
     }
 
     /**
@@ -169,10 +159,7 @@ class Brad extends Module
             return;
         }
 
-        /** @var Core_Business_ConfigurationInterface $configuration */
-        $configuration = $this->container->get('configuration');
-
-        $isFiltersEnalbed = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_FILTERS);
+        $isFiltersEnalbed = (bool) Configuration::get(\Invertus\Brad\Config\Setting::ENABLE_FILTERS);
 
         if ($isFiltersEnalbed && $this->isFilterAvailableInController()) {
             $jsUri = $this->container->get('brad_js_uri');
@@ -183,15 +170,15 @@ class Brad extends Module
 
             Media::addJsDef([
                 '$globalBradFilterUrl' => $bradFilterUrl,
-                '$globalBaseUrl' => $this->context->link->getCategoryLink(Tools::getValue('id_category')),
-                '$globalIdCategory' => (int) Tools::getValue('id_category'),
+                '$globalBaseUrl'       => $this->context->link->getCategoryLink(Tools::getValue('id_category')),
+                '$globalIdCategory'    => (int) Tools::getValue('id_category'),
             ]);
         }
 
-        $isSearchEnalbed = (bool) $configuration->get(\Invertus\Brad\Config\Setting::ENABLE_SEARCH);
+        $isSearchEnalbed = (bool) Configuration::get(\Invertus\Brad\Config\Setting::ENABLE_SEARCH);
         if ($isSearchEnalbed) {
-            $bradMinWordLength = (int) $configuration->get(\Invertus\Brad\Config\Setting::MINIMAL_SEARCH_WORD_LENGTH);
-            $bradInstantSearchResultsCount = (int) $configuration->get(\Invertus\Brad\Config\Setting::INSTANT_SEARCH_RESULTS_COUNT);
+            $bradMinWordLength = (int) Configuration::get(\Invertus\Brad\Config\Setting::MINIMAL_SEARCH_WORD_LENGTH);
+            $bradInstantSearchResultsCount = (int) Configuration::get(\Invertus\Brad\Config\Setting::INSTANT_SEARCH_RESULTS_COUNT);
             $bradSearchUrl = $this->context->link->getModuleLink($this->name, self::FRONT_BRAD_SEARCH_CONTROLLER);
 
             Media::addJsDef([
@@ -288,10 +275,8 @@ class Brad extends Module
 
         /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer $elasticsearchIndexer */
         $elasticsearchIndexer = $this->container->get('elasticsearch.indexer');
-        /** @var \Invertus\Brad\Util\Validator $validator */
-        $validator = $this->container->get('util.validator');
 
-        if (!$validator->isProductValidForIndexing($product)) {
+        if (!$product->active || $product->visibility == 'none') {
             return;
         }
 
@@ -321,14 +306,12 @@ class Brad extends Module
 
         /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer $elasticsearchIndexer */
         $elasticsearchIndexer = $this->container->get('elasticsearch.indexer');
-        /** @var \Invertus\Brad\Util\Validator $validator */
-        $validator = $this->container->get('util.validator');
 
         if (!$elasticsearchIndexer->createIndex($this->context->shop->id)) {
             return;
         }
 
-        if (!$validator->isProductValidForIndexing($product)) {
+        if (!$product->active || $product->visibility == 'none') {
             $elasticsearchIndexer->deleteProduct($product, $this->context->shop->id);
             return;
         }

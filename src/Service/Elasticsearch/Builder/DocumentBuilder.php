@@ -23,14 +23,12 @@ use Attribute;
 use BradProduct;
 use Category;
 use Configuration;
-use Core_Business_ConfigurationInterface;
+use Context;
 use Core_Foundation_Database_EntityManager;
 use Feature;
 use FeatureValue;
-use Link;
 use Manufacturer;
 use Product;
-use Shop;
 use StockAvailable;
 
 /**
@@ -56,39 +54,19 @@ class DocumentBuilder
     protected static $currenciesIds;
 
     /**
-     * @var Link
-     */
-    private $link;
-
-    /**
-     * @var Shop
-     */
-    private $shop;
-
-    /**
      * @var Core_Foundation_Database_EntityManager
      */
     private $em;
 
     /**
-     * @var Core_Business_ConfigurationInterface
-     */
-    private $configuration;
-
-    /**
      * DocumentBuilder constructor.
      *
-     * @param Link $link
-     * @param Shop $shop
      * @param Core_Foundation_Database_EntityManager $em
-     * @param Core_Business_ConfigurationInterface $configuration
      */
-    public function __construct(Link $link, Shop $shop, Core_Foundation_Database_EntityManager $em, Core_Business_ConfigurationInterface $configuration)
+    public function __construct(Core_Foundation_Database_EntityManager $em)
     {
-        $this->link = $link;
-        $this->shop = $shop;
+        $this->context = Context::getContext();
         $this->em = $em;
-        $this->configuration = $configuration;
 
         $this->initPricesData();
     }
@@ -139,7 +117,7 @@ class DocumentBuilder
             $body['description_lang_'.$idLang] = $product->description[$idLang];
             $body['short_description_lang_'.$idLang] = $product->description_short[$idLang];
             $body['link_rewrite_lang_'.$idLang] = $product->link_rewrite[$idLang];
-            $body['link_lang_'.$idLang] = $this->link->getProductLink($product, $product->link_rewrite[$idLang]);
+            $body['link_lang_'.$idLang] = $this->context->link->getProductLink($product, $product->link_rewrite[$idLang]);
             $body['default_category_name_lang_'.$idLang] = $defaultCategory->name[$idLang];
         }
 
@@ -186,7 +164,7 @@ class DocumentBuilder
      */
     public function buildProductPriceBody(Product $product, $idShop)
     {
-        $useTax = (bool) $this->configuration->get('PS_TAX');
+        $useTax = (bool) Configuration::get('PS_TAX');
 
         $body = [];
 
@@ -253,7 +231,7 @@ class DocumentBuilder
      */
     private function initPricesData()
     {
-        $idShop = (int) $this->shop->id;
+        $idShop = (int) $this->context->shop->id;
 
         self::$countriesIds  = $this->em->getRepository('BradCountry')->findAllIdsByShopId($idShop);
         self::$currenciesIds = $this->em->getRepository('BradCurrency')->findAllIdsByShopId($idShop);

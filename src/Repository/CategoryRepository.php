@@ -18,7 +18,9 @@
  */
 
 namespace Invertus\Brad\Repository;
+
 use Category;
+use Context;
 use Db;
 
 /**
@@ -31,7 +33,6 @@ class CategoryRepository extends \Core_Foundation_Database_EntityRepository
     /**
      * Find all categories ids by given shop id
      *
-     * @todo check if active
      * @param int $idShop
      *
      * @return array
@@ -41,7 +42,10 @@ class CategoryRepository extends \Core_Foundation_Database_EntityRepository
         $sql = '
             SELECT cs.`id_category`
             FROM `'.$this->getPrefix().'category_shop` cs
+            LEFT JOIN `'.$this->getPrefix().'category` c
+                ON c.`id_category` = cs.`id_category`
             WHERE cs.`id_shop` = '.(int)$idShop.'
+                AND c.`active` = 1
         ';
 
         $results = $this->db->select($sql);
@@ -61,60 +65,70 @@ class CategoryRepository extends \Core_Foundation_Database_EntityRepository
     /**
      * Find child categories
      *
-     * @todo join with category_group
      * @param Category $category
      * @param int $idLang
      * @param int $idShop
      *
      * @return array
      */
-    public function findChildCategories(Category $category, $idLang, $idShop)
+    public function findChildCategoriesNamesAndIds(Category $category, $idLang, $idShop)
     {
         static $categories;
 
-        if ($categories) {
-            return $categories;
+        $cacheKey = 'cache_'.(int)$category->id;
+
+        if (isset($categories[$cacheKey])) {
+            return $categories[$cacheKey];
         }
 
+        $context = Context::getContext();
+        $groups = $context->customer->getGroups();
+
         $sql = '
-            SELECT c.`id_category`, cl.`name`
+            SELECT DISTINCT c.`id_category`, cl.`name`
             FROM `'.$this->getPrefix().'category` c
             LEFT JOIN `'.$this->getPrefix().'category_lang` cl
                 ON cl.`id_category` = c.`id_category`
             LEFT JOIN `'.$this->getPrefix().'category_shop` cs
                 ON cs.`id_category` = c.`id_category`
+            LEFT JOIN `'.$this->getPrefix().'category_group` cg
+                ON cg.`id_category` = c.`id_category`
             WHERE cs.`id_shop` = '.(int)$idShop.'
                 AND cl.`id_lang` = '.(int)$idLang.'
                 AND c.`nleft` > '.(int)$category->nleft.'
                 AND c.`nright` < '.(int)$category->nright.'
                 AND c.`active` = 1
+                AND cg.`id_group` IN ('.implode(',', array_map('intval', $groups)).')
         ';
 
-        $categories = $this->db->select($sql);
+        $categories[$cacheKey] = $this->db->select($sql);
 
         if (!is_array($categories) || !$categories) {
             return [];
         }
 
-        return $categories;
+        return $categories[$cacheKey];
     }
 
     /**
      * Find all categories names
-     * @todo join with category_group
-     * @todo find only specific categories names
+     * @todo optimize to find only specific categories
+     *
      * @param int $idLang
      * @param int $idShop
      *
      * @return array
      */
-    public function findAllNames($idLang, $idShop)
+    public function findAllCategoryNamesAndIds($idLang, $idShop)
     {
         static $categories;
 
         if ($categories) {
             return $categories;
         }
+
+        $context = Context::getContext();
+        $groups = $context->customer->getGroups();
 
         $sql = '
             SELECT c.`id_category`, cl.`name`
@@ -123,8 +137,12 @@ class CategoryRepository extends \Core_Foundation_Database_EntityRepository
                 ON cl.`id_category` = c.`id_category`
             LEFT JOIN `'.$this->getPrefix().'category_shop` cs
                 ON cs.`id_category` = c.`id_category`
+            LEFT JOIN `'.$this->getPrefix().'category_group` cg
+                ON cg.`id_category` = cg.`id_category`
             WHERE cs.`id_shop` = '.(int)$idShop.'
                 AND cl.`id_lang` = '.(int)$idLang.'
+                AND c.`active` = 1
+                AND cg.`id_group` IN ('.implode(',', array_map('intval', $groups)).')
         ';
 
         $db = Db::getInstance();

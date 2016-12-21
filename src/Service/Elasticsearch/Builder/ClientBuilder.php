@@ -19,6 +19,7 @@
 
 namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
+use Configuration;
 use Invertus\Brad\Config\Setting;
 
 /**
@@ -29,28 +30,13 @@ use Invertus\Brad\Config\Setting;
 class ClientBuilder
 {
     /**
-     * @var \Core_Business_ConfigurationInterface
-     */
-    private $configuration;
-
-    /**
-     * ClientBuilder constructor.
-     *
-     * @param \Core_Business_ConfigurationInterface $configuration
-     */
-    public function __construct(\Core_Business_ConfigurationInterface $configuration)
-    {
-        $this->configuration = $configuration;
-    }
-
-    /**
      * Build elasticserach client
      *
      * @return \Elasticsearch\Client
      */
     public function buildClient()
     {
-        $elasticsearchHost1 = $this->configuration->get(Setting::ELASTICSEARCH_HOST_1);
+        $elasticsearchHost1 = Configuration::get(Setting::ELASTICSEARCH_HOST_1);
 
         if (false === strpos($elasticsearchHost1, 'http://') &&
             false === strpos($elasticsearchHost1, 'https://')

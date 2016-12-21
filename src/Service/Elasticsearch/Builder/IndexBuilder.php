@@ -19,7 +19,7 @@
 
 namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
-use Core_Business_ConfigurationInterface;
+use Configuration;
 use Core_Foundation_Database_EntityManager;
 use Invertus\Brad\Config\Setting;
 use Language;
@@ -32,11 +32,6 @@ use Language;
 class IndexBuilder
 {
     /**
-     * @var Core_Business_ConfigurationInterface
-     */
-    private $configuration;
-
-    /**
      * @var Core_Foundation_Database_EntityManager
      */
     private $em;
@@ -44,12 +39,10 @@ class IndexBuilder
     /**
      * IndexBuilder constructor.
      *
-     * @param Core_Business_ConfigurationInterface $configuration
      * @param Core_Foundation_Database_EntityManager $em
      */
-    public function __construct(Core_Business_ConfigurationInterface $configuration, Core_Foundation_Database_EntityManager $em)
+    public function __construct($em)
     {
-        $this->configuration = $configuration;
         $this->em = $em;
     }
 
@@ -62,9 +55,9 @@ class IndexBuilder
      */
     public function buildIndex($idShop)
     {
-        $numberOfShards = (int) $this->configuration->get(Setting::NUMBER_OF_SHARDS_ADVANCED);
-        $numberOfReplicas = (int) $this->configuration->get(Setting::NUMBER_OF_REPLICAS_ADVANCED);
-        $refreshInterval = (int) $this->configuration->get(Setting::REFRESH_INTERVAL_ADVANCED);
+        $numberOfShards   = (int) Configuration::get(Setting::NUMBER_OF_SHARDS_ADVANCED);
+        $numberOfReplicas = (int) Configuration::get(Setting::NUMBER_OF_REPLICAS_ADVANCED);
+        $refreshInterval  = (int) Configuration::get(Setting::REFRESH_INTERVAL_ADVANCED);
 
         $indexSettings = [
             'settings' => [
@@ -122,9 +115,9 @@ class IndexBuilder
     {
         $mapping = [];
 
-        $countriesIds = $this->em->getRepository('BradCountry')->findAllIdsByShopId($idShop);
+        $countriesIds  = $this->em->getRepository('BradCountry')->findAllIdsByShopId($idShop);
         $currenciesIds = $this->em->getRepository('BradCurrency')->findAllIdsByShopId($idShop);
-        $groupsIds = $this->em->getRepository('BradGroup')->findAllIdsByShopId($idShop);
+        $groupsIds     = $this->em->getRepository('BradGroup')->findAllIdsByShopId($idShop);
 
         foreach ($groupsIds as $idGroup) {
             foreach ($countriesIds as $idCountry) {

@@ -47,7 +47,6 @@ return [
 
     'elasticsearch.client' => [
         'class' => 'Invertus\Brad\Service\Elasticsearch\Builder\ClientBuilder',
-        'arguments' => ['configuration'],
         'call' => [
             'method' => 'buildClient',
             'factory' => true,
@@ -86,12 +85,12 @@ return [
 
     'elasticsearch.builder.document_builder' => [
         'class' => 'Invertus\Brad\Service\Elasticsearch\Builder\DocumentBuilder',
-        'arguments' => ['context.link', 'context.shop', 'em', 'configuration'],
+        'arguments' => ['em'],
     ],
 
     'elasticsearch.builder.index_builder' => [
         'class' => 'Invertus\Brad\Service\Elasticsearch\Builder\IndexBuilder',
-        'arguments' => ['configuration', 'em'],
+        'arguments' => ['em'],
     ],
 
     /*
@@ -105,7 +104,6 @@ return [
         'arguments' => [
             'elasticsearch.indexer',
             'em',
-            'configuration',
             'elasticsearch.builder.document_builder',
             'logger',
         ],

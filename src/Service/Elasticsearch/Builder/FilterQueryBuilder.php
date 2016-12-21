@@ -140,7 +140,7 @@ class FilterQueryBuilder extends AbstractQueryBuilder
 
         $category = new Category($idCategory);
 
-        $subCategories = $categoryRepository->findChildCategories($category, $idLang, $idShop);
+        $subCategories = $categoryRepository->findChildCategoriesNamesAndIds($category, $idLang, $idShop);
 
         if (empty($subCategories)) {
             return null;

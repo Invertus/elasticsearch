@@ -19,7 +19,7 @@
 
 namespace Invertus\Brad\Service;
 
-use Core_Business_ConfigurationInterface;
+use Configuration;
 use Core_Foundation_Database_EntityManager;
 use Invertus\Brad\Config\Setting;
 use Invertus\Brad\Logger\LoggerInterface;
@@ -29,7 +29,6 @@ use Invertus\Brad\Service\Elasticsearch\Builder\DocumentBuilder;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchIndexer;
 use Invertus\Brad\Util\Arrays;
 use Invertus\Brad\Util\MemoryStat;
-use Invertus\Brad\Util\Validator;
 use PrestaShopCollection;
 use Product;
 
@@ -63,19 +62,9 @@ class Indexer
     private $indexedProductsCount = 0;
 
     /**
-     * @var Core_Business_ConfigurationInterface
-     */
-    private $configuration;
-
-    /**
      * @var DocumentBuilder
      */
     private $documentBuilder;
-
-    /**
-     * @var Validator
-     */
-    private $validator;
 
     /**
      * @var LoggerInterface
@@ -87,17 +76,14 @@ class Indexer
      *
      * @param ElasticsearchIndexer $elasticserachIndexer
      * @param Core_Foundation_Database_EntityManager $em
-     * @param Core_Business_ConfigurationInterface $configuration
      * @param DocumentBuilder $documentBuilder
      * @param LoggerInterface $logger
      */
-    public function __construct(ElasticsearchIndexer $elasticserachIndexer, $em, $configuration, DocumentBuilder $documentBuilder, LoggerInterface $logger)
+    public function __construct(ElasticsearchIndexer $elasticserachIndexer, $em, DocumentBuilder $documentBuilder, LoggerInterface $logger)
     {
         $this->elasticsearchIndexer = $elasticserachIndexer;
         $this->em = $em;
-        $this->configuration = $configuration;
         $this->documentBuilder = $documentBuilder;
-        $this->validator = new Validator();
         $this->logger = $logger;
     }
 
@@ -170,8 +156,8 @@ class Indexer
             return true;
         }
 
-        $indexPrefix = $this->configuration->get(Setting::INDEX_PREFIX);
-        $bulkRequestSize = (int) $this->configuration->get(Setting::BULK_REQUEST_SIZE_ADVANCED);
+        $indexPrefix = Configuration::get(Setting::INDEX_PREFIX);
+        $bulkRequestSize = (int) Configuration::get(Setting::BULK_REQUEST_SIZE_ADVANCED);
 
         $lastProductsIdsKey = Arrays::getLastKey($productsIds);
 
@@ -240,7 +226,7 @@ class Indexer
                 }
             }
 
-            if (!$this->validator->isProductValidForIndexing($product)) {
+            if (!$product->active || $product->visibility == 'none') {
                 $this->elasticsearchIndexer->deleteProduct($product, $idShop);
                 continue;
             }
@@ -281,7 +267,7 @@ class Indexer
         /** @var Product $product */
         foreach ($products as $product) {
 
-            if (!$this->validator->isProductValidForIndexing($product)) {
+            if (!$product->active || $product->visibility == 'none') {
                 $this->elasticsearchIndexer->deleteProduct($product, $idShop);
                 continue;
             }
@@ -323,8 +309,8 @@ class Indexer
             return true;
         }
 
-        $indexPrefix = $this->configuration->get(Setting::INDEX_PREFIX);
-        $bulkRequestSize = (int) $this->configuration->get(Setting::BULK_REQUEST_SIZE_ADVANCED);
+        $indexPrefix = Configuration::get(Setting::INDEX_PREFIX);
+        $bulkRequestSize = (int) Configuration::get(Setting::BULK_REQUEST_SIZE_ADVANCED);
 
         $lastCategoryIdsKey = Arrays::getLastKey($categoriesIds);
         $bulkCategoriesIds = [];

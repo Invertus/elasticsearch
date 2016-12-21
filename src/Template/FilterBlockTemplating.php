@@ -424,7 +424,7 @@ class FilterBlockTemplating
 
         /** @var CategoryRepository $categoryRepository */
         $categoryRepository = $this->em->getRepository('BradCategory');
-        $childCategories = $categoryRepository->findChildCategories($category, $idLang, $idShop);
+        $childCategories = $categoryRepository->findChildCategoriesNamesAndIds($category, $idLang, $idShop);
 
         $filterData['criteria_name'] = 'name';
         $filterData['criteria_value'] = 'id_category';

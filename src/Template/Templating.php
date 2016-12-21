@@ -286,7 +286,7 @@ class Templating
             return $value ? $brad->l('In Stock', self::FILENAME) : $brad->l('Out of stock', self::FILENAME);
         } elseif ('category' == $key) {
             $categoryRep = $this->em->getRepository('BradCategory');
-            $categoriesNames = $categoryRep->findAllNames($idLang, $idShop);
+            $categoriesNames = $categoryRep->findAllCategoryNamesAndIds($idLang, $idShop);
             return $categoriesNames[$value];
         } elseif ('weight' == $key) {
             return sprintf('%s - %s', $value['min_value'], $value['max_value']);

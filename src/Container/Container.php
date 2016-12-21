@@ -58,20 +58,6 @@ class Container
     }
 
     /**
-     * Build container
-     * @todo remove me
-     * @param Brad $module
-     *
-     * @return Container
-     */
-    public static function build(Brad $module)
-    {
-        $container = new Container($module);
-
-        return $container;
-    }
-
-    /**
      * Get service by name
      *
      * @param string $serviceName
@@ -117,15 +103,7 @@ class Container
         };
 
         $this->container['context'] = function () {
-            return $this->module->getContext();
-        };
-
-        $this->container['context.link'] = function ($c) {
-            return $c['context']->link;
-        };
-
-        $this->container['context.shop'] = function ($c) {
-            return $c['context']->shop;
+            return \Context::getContext();
         };
 
         $this->initCustomDependencies();

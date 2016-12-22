@@ -31,11 +31,6 @@ class Templating
     private $bradTemplatesDir;
 
     /**
-     * @var FilterBlockTemplating
-     */
-    private $filterBlockTemplating;
-
-    /**
      * @var \Core_Foundation_Database_EntityManager
      */
     private $em;
@@ -44,14 +39,12 @@ class Templating
      * TemplateBuilder constructor.
      *
      * @param string $bradTemplates
-     * @param FilterBlockTemplating $filterBlockTemplating
      * @param $em
      */
-    public function __construct($bradTemplates, FilterBlockTemplating $filterBlockTemplating, $em)
+    public function __construct($bradTemplates, $em)
     {
         $this->context = Context::getContext();
         $this->bradTemplatesDir = $bradTemplates;
-        $this->filterBlockTemplating = $filterBlockTemplating;
         $this->em = $em;
     }
 
@@ -64,10 +57,8 @@ class Templating
      */
     public function renderFiltersBlockTemplate(FilterData $filterData)
     {
-        $this->filterBlockTemplating->build($filterData->getSelectedFilters(), $filterData->getIdCategory());
-
         $this->context->smarty->assign([
-            'filters'  => $this->filterBlockTemplating->getBuiltFilters(),
+            'filters'  => $filterData->getFilters(),
             'p'        => $filterData->getPage(),
             'n'        => $filterData->getSize(),
             'orderby'  => $filterData->getOrderBy(),

@@ -3,13 +3,14 @@
 namespace Invertus\Brad\Service\Elasticsearch\Builder;
 
 use Category;
-use Configuration;
 use Context;
 use Invertus\Brad\Converter\NameConverter;
 use Invertus\Brad\DataType\FilterData;
+use Invertus\Brad\DataType\FilterStruct;
 use Invertus\Brad\Repository\CategoryRepository;
 use Module;
 use ONGR\ElasticsearchDSL\Aggregation\Bucketing\FilterAggregation;
+use ONGR\ElasticsearchDSL\Aggregation\Bucketing\RangeAggregation;
 use ONGR\ElasticsearchDSL\Aggregation\Bucketing\TermsAggregation;
 use ONGR\ElasticsearchDSL\BuilderInterface;
 use ONGR\ElasticsearchDSL\Query\BoolQuery;
@@ -58,27 +59,85 @@ class FilterQueryBuilder extends AbstractQueryBuilder
      * Build aggregations query
      *
      * @param FilterData $filterData
-     * @param array $filters
      *
      * @return array
      */
-    public function buildAggregationsQuery(FilterData $filterData, array $filters)
+    public function buildAggregationsQuery(FilterData $filterData)
     {
-        $aggregationsQuery = new Search();
+        $searchQuery = new Search();
+        $filters = $filterData->getFilters(false);
 
+        /** @var FilterStruct $filter */
         foreach ($filters as $filter) {
 
-            $fieldName = NameConverter::getElasticsearchFieldName($filter['input_name']);
+            $fieldName = NameConverter::getElasticsearchFieldName($filter->getInputName());
 
-            $termsAggregation = new TermsAggregation('field', $fieldName);
-            $termFilter = new TermQuery('attribute_group_3', 8);
-            $filterAggregation = new FilterAggregation($fieldName, $termFilter);
-            $filterAggregation->addAggregation($termsAggregation);
+            // if not filters are selected then aggregate products by categories only
+            if (empty($filterData->getSelectedFilters())) {
+                $query = $this->getQueryFromCategories($filterData->getIdCategory());
+            } else {
+                $query = $this->getAggsQuery($filterData->getSelectedFilters(), $filter->getInputName());
+            }
 
-            $aggregationsQuery->addAggregation($filterAggregation);
+            $filterAggregation = new FilterAggregation($fieldName, $query);
+
+            // add ranges aggregation if product or weight
+            if (in_array($filter->inputName, ['price', 'weight'])) {
+                $ranges = [];
+
+                foreach ($filter->getCriterias() as $criteria) {
+                    list($from, $to) = explode(':', $criteria['value']);
+                    $ranges[] = [
+                        'key' => $criteria['value'],
+                        'from' => (float) $from,
+                        'to' => (float) $to,
+                    ];
+                }
+
+                $aggregation = new RangeAggregation($fieldName, $fieldName, $ranges, true);
+            } else {
+                $aggregation = new TermsAggregation($fieldName, $fieldName);
+            }
+
+            $filterAggregation->addAggregation($aggregation);
+            $searchQuery->addAggregation($filterAggregation);
         }
-        //d($aggregationsQuery->toArray());
-        return $aggregationsQuery->toArray();
+
+        return $searchQuery->toArray();
+    }
+
+    /**
+     * Get aggregation query
+     *
+     * @param array $selectedFilters
+     * @param string $aggregationInputName
+     *
+     * @return BuilderInterface
+     */
+    protected function getAggsQuery($selectedFilters, $aggregationInputName)
+    {
+        $boolQuery = new BoolQuery();
+
+        foreach ($selectedFilters as $name => $values) {
+            $type = BoolQuery::MUST;
+            if ($name == $aggregationInputName) {
+                $type = BoolQuery::SHOULD;
+            }
+
+            if (empty($values)) {
+                continue;
+            }
+
+            if (in_array($name, ['price', 'weight'])) {
+                $query = $this->getBoolShouldRangeQuery($name, $values);
+            } else {
+                $query = $this->getBoolShouldTermQuery($name, $values);
+            }
+
+            $boolQuery->add($query, $type);
+        }
+
+        return $boolQuery;
     }
 
     /**
@@ -170,8 +229,8 @@ class FilterQueryBuilder extends AbstractQueryBuilder
             return (int) $subCategory['id_category'];
         }, $subCategories);
 
-        $fieldName = 'categories';
-        $boolShouldTermQuery = $this->getBoolShouldTermQuery($fieldName, $values);
+        $inputName = 'category';
+        $boolShouldTermQuery = $this->getBoolShouldTermQuery($inputName, $values);
 
         return $boolShouldTermQuery;
     }
@@ -179,14 +238,14 @@ class FilterQueryBuilder extends AbstractQueryBuilder
     /**
      * Get bool should query with terms query inside
      *
-     * @param string $filterName
+     * @param string $filterIntputName
      * @param array $values
      *
      * @return BoolQuery
      */
-    protected function getBoolShouldTermQuery($filterName, array $values)
+    protected function getBoolShouldTermQuery($filterIntputName, array $values)
     {
-        $fieldName = NameConverter::getElasticsearchFieldName($filterName);
+        $fieldName = NameConverter::getElasticsearchFieldName($filterIntputName);
 
         $boolShouldQuery = new BoolQuery();
 
@@ -230,43 +289,24 @@ class FilterQueryBuilder extends AbstractQueryBuilder
     }
 
     /**
-     * Get field name in elasticsearch by filter name
+     * Get bool must term query
      *
-     * @param string $filterName
+     * @param string $filterIntputName
+     * @param array $values
      *
-     * @return string
+     * @return BoolQuery
      */
-    protected function getFieldName($filterName)
+    protected function getBoolMustTermQuery($filterIntputName, $values)
     {
-        $context = Context::getContext();
-        $fieldName = '';
+        $fieldName = NameConverter::getElasticsearchFieldName($filterIntputName);
 
-        if ('quantity' == $filterName) {
-            $orderOutOfStock = (bool) Configuration::get('PS_ORDER_OUT_OF_STOCK');
-            switch ($orderOutOfStock) {
-                case true:
-                    $fieldName = 'in_stock_when_global_oos_allow_orders';
-                    break;
-                case false:
-                    $fieldName = 'in_stock_when_global_oos_deny_orders';
-                    break;
-            }
-        } elseif ('price' == $filterName) {
-            $idGroup    = $context->customer->id_default_group;
-            $idCurrency = $context->currency->id;
-            $idCountry  = $context->country->id;
-            $fieldName  = sprintf('price_group_%s_country_%s_currency_%s', $idGroup, $idCountry, $idCurrency);
-        } elseif ('manufacturer' == $filterName) {
-            $fieldName = 'id_manufacturer';
-        } elseif ('weight' == $filterName ||
-            0 === strpos($filterName, 'feature') ||
-            0 === strpos($filterName, 'attribute_group')
-        ) {
-            $fieldName = $filterName;
-        } elseif ('category' == $filterName) {
-            $fieldName = 'categories';
+        $boolMustQuery = new BoolQuery();
+
+        foreach ($values as $value) {
+            $termQuery = new TermQuery($fieldName, $value);
+            $boolMustQuery->add($termQuery);
         }
 
-        return $fieldName;
+        return $boolMustQuery;
     }
 }

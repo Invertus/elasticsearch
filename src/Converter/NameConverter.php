@@ -15,7 +15,7 @@ use Invertus\Brad\DataType\FilterStruct;
 class NameConverter
 {
     /**
-     * Transform filter input name into elasticsearch field name
+     * Convert filter input name into elasticsearch field name
      *
      * @param string $filterIntputName
      *
@@ -79,6 +79,33 @@ class NameConverter
                 return 'weight';
             case BradFilter::FILTER_TYPE_CATEGORY:
                 return 'category';
+        }
+
+        return '';
+    }
+
+    /**
+     * Convert elasticsearch input name into filter input field name
+     *
+     * @param string $fieldName
+     *
+     * @return string
+     */
+    public static function getInputNameFromElasticsearchFieldName($fieldName)
+    {
+        if ('weight' == $fieldName ||
+            0 === strpos($fieldName, 'feature') ||
+            0 === strpos($fieldName, 'attribute_group')
+        ) {
+            return $fieldName;
+        } elseif ('id_manufacturer' == $fieldName) {
+            return 'id_manufacturer';
+        } elseif (0 === strpos($fieldName, 'price')) {
+            return 'price';
+        } elseif ('categories' == $fieldName) {
+            return 'category';
+        } elseif (0 === strpos($fieldName, 'in_stock')) {
+            return 'quantity';
         }
 
         return '';

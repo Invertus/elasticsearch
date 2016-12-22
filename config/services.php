@@ -154,11 +154,6 @@ return [
 
     'templating' => [
         'class' => 'Invertus\Brad\Template\Templating',
-        'arguments' => ['brad_templates_dir', 'filter_block_templating', 'em'],
-    ],
-
-    'filter_block_templating' => [
-        'class' => 'Invertus\Brad\Template\FilterBlockTemplating',
-        'arguments' => ['em', 'elasticsearch.helper'],
+        'arguments' => ['brad_templates_dir', 'em'],
     ],
 ];

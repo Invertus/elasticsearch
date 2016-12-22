@@ -59,10 +59,11 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
         $filterData->setOrderBy($orderBy);
         $filterData->setIdCategory($idCategory);
         $filterData->setSelectedFilters($selectedFilters);
+        $filterData->initFilters();
 
         $products             = $filterService->filterProducts($filterData);
         $productsCount        = $filterService->countProducts($filterData);
-        //$productsAggregations = $filterService->aggregateProducts($filterData);
+        $productsAggregations = $filterService->aggregateProducts($filterData);
 
         $products = $this->formatProducts($products);
         $this->addColorsToProductList($products);

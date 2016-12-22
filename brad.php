@@ -259,6 +259,7 @@ class Brad extends Module
         $filterData->setOrderBy($orderBy);
         $filterData->setIdCategory($idCategory);
         $filterData->setSelectedFilters($selectedFilters);
+        $filterData->initFilters();
 
         /** @var \Invertus\Brad\Template\Templating $templating */
         $templating = $this->container->get('templating');

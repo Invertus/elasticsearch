@@ -5,11 +5,10 @@ namespace Invertus\Brad\Service;
 use Configuration;
 use Context;
 use Invertus\Brad\Config\Setting;
+use Invertus\Brad\Converter\NameConverter;
 use Invertus\Brad\DataType\FilterData;
-use Invertus\Brad\Repository\FilterRepository;
 use Invertus\Brad\Service\Elasticsearch\Builder\FilterQueryBuilder;
 use Invertus\Brad\Service\Elasticsearch\ElasticsearchSearch;
-use Module;
 
 /**
  * Class Filter
@@ -94,20 +93,26 @@ class FilterService
             return [];
         }
 
-        /** @var \Brad $brad */
-        $brad = Module::getInstanceByName('brad');
-
-        /** @var FilterRepository $filtersRepository */
-        $filtersRepository = $brad->getContainer()->get('em')->getRepository('BradFilter');
-        $filters = $filtersRepository->findAllFilters($this->context->shop->id);
-
-        $aggregationsQuery = $this->filterQueryBuilder->buildAggregationsQuery($filterData, $filters);
+        $aggregationsQuery = $this->filterQueryBuilder->buildAggregationsQuery($filterData);
 
         $idShop = $this->context->shop->id;
         $aggregations = $this->elasticsearchSearch->searchProducts($aggregationsQuery, $idShop, true);
 
-        foreach ($aggregations as $aggregation) {
-            //@todo: put aggregations into array with key input_name_:value
+        $productsAggregations = [];
+        foreach ($aggregations as $fieldName => $aggregation) {
+            $inputName = NameConverter::getInputNameFromElasticsearchFieldName($fieldName);
+
+            if (empty($inputName)) {
+                continue;
+            }
+
+            foreach ($aggregation[$fieldName]['buckets'] as $bucket) {
+                $inputValue = $bucket['key'];
+
+                $productsAggregations[$inputName][$inputValue] = $bucket['doc_count'];
+            }
         }
+
+        return $productsAggregations;
     }
 }

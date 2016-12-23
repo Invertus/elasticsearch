@@ -72,6 +72,10 @@ class FilterQueryBuilder extends AbstractQueryBuilder
         $mustAddCategories  = !isset($selectedFilters['category']);
         $idCategory         = $filterData->getIdCategory();
 
+        if (empty($filters)) {
+            return [];
+        }
+
         /** @var FilterStruct $filter */
         foreach ($filters as $filter) {
             $fieldName = NameConverter::getElasticsearchFieldName($filter->getInputName());

@@ -95,6 +95,10 @@ class FilterService
 
         $aggregationsQuery = $this->filterQueryBuilder->buildAggregationsQuery($filterData);
 
+        if (empty($aggregationsQuery)) {
+            return [];
+        }
+
         $idShop = $this->context->shop->id;
         $aggregations = $this->elasticsearchSearch->searchProducts($aggregationsQuery, $idShop, true);
 

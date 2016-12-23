@@ -106,8 +106,8 @@ class FilterService
                 continue;
             }
 
-            foreach ($aggregation[$fieldName]['buckets'] as $bucket) {
-                $inputValue = $bucket['key'];
+            foreach ($aggregation[$fieldName]['buckets'] as $name => $bucket) {
+                $inputValue = isset($bucket['key']) ? $bucket['key'] : $name;
 
                 $productsAggregations[$inputName][$inputValue] = $bucket['doc_count'];
             }

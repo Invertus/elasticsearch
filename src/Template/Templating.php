@@ -6,6 +6,7 @@ use Configuration;
 use Context;
 use Image;
 use ImageType;
+use Invertus\Brad\Config\Setting;
 use Invertus\Brad\DataType\FilterData;
 use Manufacturer;
 use Module;
@@ -52,17 +53,24 @@ class Templating
      * Build filters html template
      *
      * @param FilterData $filterData
+     * @param array $aggregations
      *
      * @return string
      */
-    public function renderFiltersBlockTemplate(FilterData $filterData)
+    public function renderFiltersBlockTemplate(FilterData $filterData, array $aggregations)
     {
+        $isAggregationsOn = (bool) Configuration::get(Setting::DISPLAY_NUMBER_OF_MATCHING_PRODUCTS);
+        $hideZeroFilters  = (bool) Configuration::get(Setting::HIDE_FILTERS_WITH_NO_PRODUCTS);
+
         $this->context->smarty->assign([
-            'filters'  => $filterData->getFilters(),
-            'p'        => $filterData->getPage(),
-            'n'        => $filterData->getSize(),
-            'orderby'  => $filterData->getOrderBy(),
-            'orderway' => $filterData->getOrderWay(),
+            'filters'           => $filterData->getFilters(),
+            'aggregations'      => $aggregations,
+            'p'                 => $filterData->getPage(),
+            'n'                 => $filterData->getSize(),
+            'orderby'           => $filterData->getOrderBy(),
+            'orderway'          => $filterData->getOrderWay(),
+            'aggregations_on'   => $isAggregationsOn,
+            'hide_zero_filters' => $hideZeroFilters,
         ]);
 
         return $this->context->smarty->fetch($this->bradTemplatesDir.'front/filter-template.tpl');

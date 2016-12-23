@@ -73,7 +73,7 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
         $bottomPaginationTemplate = $templating->renderPaginationTemplate($productsCount, $p, $n);
         $topPaginationTemplate = preg_replace('/(_bottom)/i', '', $bottomPaginationTemplate);
 
-        $filtersBlockTemplate    = $templating->renderFiltersBlockTemplate($filterData);
+        $filtersBlockTemplate    = $templating->renderFiltersBlockTemplate($filterData, $productsAggregations);
         $selectedFiltersTemplate = $templating->renderSelectedFilters($selectedFilters);
         $productListTemplate     = $templating->renderProductsTemplate($products, $productsCount);
         $categoryCountTemplate   = $templating->renderCategoryCountTemplate($productsCount);

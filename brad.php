@@ -219,9 +219,9 @@ class Brad extends Module
         $bradSearchUrl = $this->context->link->getModuleLink($this->name, self::FRONT_BRAD_SEARCH_CONTROLLER);
 
         $this->context->smarty->assign([
-            'brad_search_url' => $bradSearchUrl,
+            'brad_search_url'         => $bradSearchUrl,
             'is_friendly_url_enabled' => $isFriendlyUrlEnabled,
-            'search_query' => Tools::getValue('search_query', ''),
+            'search_query'            => Tools::getValue('search_query', ''),
         ]);
 
         return $this->context->smarty->fetch($this->container->get('brad_templates_dir').'hook/displayTop.tpl');
@@ -261,9 +261,13 @@ class Brad extends Module
         $filterData->setSelectedFilters($selectedFilters);
         $filterData->initFilters();
 
+        /** @var \Invertus\Brad\Service\FilterService $filterService */
+        $filterService        = $this->getContainer()->get('filter_service');
+        $productsAggregations = $filterService->aggregateProducts($filterData);
+
         /** @var \Invertus\Brad\Template\Templating $templating */
-        $templating = $this->container->get('templating');
-        $filtersTemplate = $templating->renderFiltersBlockTemplate($filterData);
+        $templating      = $this->container->get('templating');
+        $filtersTemplate = $templating->renderFiltersBlockTemplate($filterData, $productsAggregations);
 
         return $filtersTemplate;
     }

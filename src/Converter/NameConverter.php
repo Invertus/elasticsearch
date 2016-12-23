@@ -99,7 +99,7 @@ class NameConverter
         ) {
             return $fieldName;
         } elseif ('id_manufacturer' == $fieldName) {
-            return 'id_manufacturer';
+            return 'manufacturer';
         } elseif (0 === strpos($fieldName, 'price')) {
             return 'price';
         } elseif ('categories' == $fieldName) {

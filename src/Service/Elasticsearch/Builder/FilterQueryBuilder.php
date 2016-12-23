@@ -8,6 +8,7 @@ use Invertus\Brad\Converter\NameConverter;
 use Invertus\Brad\DataType\FilterData;
 use Invertus\Brad\DataType\FilterStruct;
 use Invertus\Brad\Repository\CategoryRepository;
+use Invertus\Brad\Util\Arrays;
 use Module;
 use ONGR\ElasticsearchDSL\Aggregation\Bucketing\FilterAggregation;
 use ONGR\ElasticsearchDSL\Aggregation\Bucketing\RangeAggregation;
@@ -64,34 +65,38 @@ class FilterQueryBuilder extends AbstractQueryBuilder
      */
     public function buildAggregationsQuery(FilterData $filterData)
     {
-        $searchQuery = new Search();
-        $filters = $filterData->getFilters(false);
+        $searchQuery        = new Search();
+        $filters            = $filterData->getFilters(false);
+        $selectedFilters    = $filterData->getSelectedFilters();
+        $hasSelectedFilters = !empty($selectedFilters);
+        $mustAddCategories  = !isset($selectedFilters['category']);
+        $idCategory         = $filterData->getIdCategory();
 
         /** @var FilterStruct $filter */
         foreach ($filters as $filter) {
-
             $fieldName = NameConverter::getElasticsearchFieldName($filter->getInputName());
 
-            // if not filters are selected then aggregate products by categories only
-            if (empty($filterData->getSelectedFilters())) {
-                $query = $this->getQueryFromCategories($filterData->getIdCategory());
+            if (!$hasSelectedFilters) {
+                $query = $this->getQueryFromCategories($idCategory);
             } else {
                 $query = $this->getAggsQuery($filterData->getSelectedFilters(), $filter->getInputName());
+                if ($mustAddCategories) {
+                    $categoriesQuery = $this->getQueryFromCategories($idCategory);
+                    $query->add($categoriesQuery, BoolQuery::MUST);
+                }
             }
 
-            $filterAggregation = new FilterAggregation($fieldName, $query);
-
-            // add ranges aggregation if product or weight
             if (in_array($filter->inputName, ['price', 'weight'])) {
                 $ranges = [];
 
-                foreach ($filter->getCriterias() as $criteria) {
+                $criterias = $filter->getCriterias();
+                $lastKey = Arrays::getLastKey($criterias);
+
+                foreach ($criterias as $key => $criteria) {
+                    // Simple hack to make last value inclusive
+                    $extraAmount = ($lastKey == $key) ? 0.01 : 0;
                     list($from, $to) = explode(':', $criteria['value']);
-                    $ranges[] = [
-                        'key' => $criteria['value'],
-                        'from' => (float) $from,
-                        'to' => (float) $to,
-                    ];
+                    $ranges[] = ['key' => $criteria['value'], 'from' => (float) $from, 'to' => (float) $to + $extraAmount];
                 }
 
                 $aggregation = new RangeAggregation($fieldName, $fieldName, $ranges, true);
@@ -99,6 +104,7 @@ class FilterQueryBuilder extends AbstractQueryBuilder
                 $aggregation = new TermsAggregation($fieldName, $fieldName);
             }
 
+            $filterAggregation = new FilterAggregation($fieldName, $query);
             $filterAggregation->addAggregation($aggregation);
             $searchQuery->addAggregation($filterAggregation);
         }
@@ -112,19 +118,18 @@ class FilterQueryBuilder extends AbstractQueryBuilder
      * @param array $selectedFilters
      * @param string $aggregationInputName
      *
-     * @return BuilderInterface
+     * @return BoolQuery
      */
     protected function getAggsQuery($selectedFilters, $aggregationInputName)
     {
         $boolQuery = new BoolQuery();
 
         foreach ($selectedFilters as $name => $values) {
-            $type = BoolQuery::MUST;
-            if ($name == $aggregationInputName) {
-                $type = BoolQuery::SHOULD;
+            if (empty($values)) {
+                continue;
             }
 
-            if (empty($values)) {
+            if ($name == $aggregationInputName) {
                 continue;
             }
 
@@ -134,7 +139,7 @@ class FilterQueryBuilder extends AbstractQueryBuilder
                 $query = $this->getBoolShouldTermQuery($name, $values);
             }
 
-            $boolQuery->add($query, $type);
+            $boolQuery->add($query);
         }
 
         return $boolQuery;
@@ -150,7 +155,7 @@ class FilterQueryBuilder extends AbstractQueryBuilder
      */
     protected function getProductQueryBySelectedFilters(array $selectedFilters, $idCategory)
     {
-        $searchQuery   = new Search();
+        $searchQuery = new Search();
         $boolMustFilterQuery = new BoolQuery();
 
         $includeCategoriesIntoQuery = true;
@@ -277,8 +282,8 @@ class FilterQueryBuilder extends AbstractQueryBuilder
             }
 
             $params = [
-                'gt'  => $value['min_value'],
-                'lte' => $value['max_value'],
+                'gt'   => (float) $value['min_value'],
+                'lte'  => (float) $value['max_value'],
             ];
 
             $rangeQuery = new RangeQuery($fieldName, $params);

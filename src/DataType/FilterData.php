@@ -391,8 +391,8 @@ class FilterData extends SearchData
         }
 
         foreach ($ranges as $range) {
-            $min = $range['min_range'];
-            $max = $range['max_range'];
+            $min = $range['min_value'];
+            $max = $range['max_value'];
 
             $weightCriterias[] = [
                 'name'  => sprintf('%s - %s', $min, $max),

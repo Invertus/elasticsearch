@@ -18,6 +18,6 @@
 
 <div class="product_list clear">
     <p class="alert alert-warning">
-        {l s='There are no products.' mod='elasticsearch'}
+        {l s='There are no products.' mod='brad'}
     </p>
 </div>

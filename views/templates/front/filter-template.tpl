@@ -33,6 +33,7 @@
                                     <div class="checkbox">
                                         <label>
                                             {if isset($criteria.color) && !empty($criteria.color)}
+                                                {*@todo move to .css file*}
                                                 <span style="
                                                     width: 15px;
                                                     height: 15px;
@@ -103,6 +104,7 @@
                                     <input class="brad-slider-input brad-slider-filter-input"
                                            type="text"
                                            readonly
+                                           {*@todo search in all files! move to .css file*}
                                            style="border:0; color:#777; font-weight:bold;"
                                            name="{$filter.inputName|escape:'htmlall':'UTF-8'}"
                                     >

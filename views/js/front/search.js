@@ -18,6 +18,12 @@
 
 $(document).ready(function() {
 
+    /**
+     * Center column div id
+     * @type {string}
+     */
+    var CENTER_COLUMN_ID = '#center_column';
+
     var $bradSearchBox = $('#bradSearchBox');
 
     /**
@@ -28,9 +34,7 @@ $(document).ready(function() {
     /**
      * Clear instant search results when search input loses focus
      */
-    $bradSearchBox.on('focusout', '#bradSearchQuery', function() {
-        setTimeout(clearInstantSearchResults, 100);
-    });
+    $(document).on('click', clearInstantSearchResults);
 
     /**
      * Scroll to center column after search page load
@@ -85,7 +89,7 @@ $(document).ready(function() {
             // Clear dynamic search results but dont show original center column
             clearDynamicSearchResults(false);
 
-            var $centerColumnDiv = $('#center_column');
+            var $centerColumnDiv = $(CENTER_COLUMN_ID);
             $centerColumnDiv.hide();
 
             // Copy center column classes
@@ -126,7 +130,7 @@ $(document).ready(function() {
         }
 
         if ($displayCenterBlock) {
-            var $centerColumnDiv = $('#center_column');
+            var $centerColumnDiv = $(CENTER_COLUMN_ID);
             $centerColumnDiv.show();
         }
     }
@@ -140,8 +144,8 @@ $(document).ready(function() {
             return;
         }
 
-        $('body').animate({
-            scrollTop: $("#center_column").offset().top
+        $(body).animate({
+            scrollTop: $(CENTER_COLUMN_ID).offset().top
         }, 0);
     }
 });

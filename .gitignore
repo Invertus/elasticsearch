@@ -1,3 +1,4 @@
 *.xml
 logs/*
 !logs/.gitkeep
+tests

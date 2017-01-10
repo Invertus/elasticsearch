@@ -124,10 +124,16 @@ class ElasticsearchManager
      */
     public function isConnectionAvailable()
     {
+        static $status;
+
+        if (isset($status)) {
+            return $status;
+        }
+
         try {
             $status = $this->client->ping();
         } catch (Exception $e) {
-            return false;
+            $status = false;
         }
 
         return $status;

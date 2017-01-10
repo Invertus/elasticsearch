@@ -53,7 +53,7 @@ class FilterData extends SearchData
     /**
      * @var array|FilterStruct[]
      */
-    private $filters;
+    private $filters = [];
 
     /**
      * @var Context

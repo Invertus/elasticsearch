@@ -157,7 +157,7 @@ class Brad extends Module
      */
     public function hookDisplayHeader()
     {
-        if (!$this->isElasticsearchConnectionAvailable()) {
+        if (!$this->isElasticsearchConnectionAvailable(true)) {
             return;
         }
 
@@ -234,7 +234,7 @@ class Brad extends Module
      */
     public function hookDisplayLeftColumn()
     {
-        if (!$this->isElasticsearchConnectionAvailable()) {
+        if (!$this->isElasticsearchConnectionAvailable(true)) {
             return '';
         }
 
@@ -369,14 +369,33 @@ class Brad extends Module
     /**
      * Check if elsticseach connection is available
      *
+     * @param bool $checkIndex Check if index is created
+     *
      * @return bool
      */
-    public function isElasticsearchConnectionAvailable()
+    public function isElasticsearchConnectionAvailable($checkIndex = false)
     {
+        static $indexStatus;
+
         /** @var \Invertus\Brad\Service\Elasticsearch\ElasticsearchManager $manager */
         $manager = $this->container->get('elasticsearch.manager');
-        if (!$manager->isConnectionAvailable()) {
+
+        $isConnAvailable = $manager->isConnectionAvailable();
+        if (!$isConnAvailable) {
             return false;
+        }
+
+        if ($checkIndex) {
+            if (isset($indexStatus)) {
+                $isIndexCreated = $indexStatus;
+            } else {
+                $isIndexCreated = $manager->isIndexCreated($this->context->shop->id);
+                $indexStatus = $isIndexCreated;
+            }
+
+            if (!$isIndexCreated) {
+                return false;
+            }
         }
 
         return true;

@@ -3,17 +3,14 @@ $(document).ready(function() {
     var $xhr;
     var $sendingRequest = false;
     var $scrollToList = false;
+    var $pageLoad = true;
+    var $bradLoader = $('#bradFilterLoader');
 
     var $centerColumn = $('#center_column');
     var $originalProductList = $centerColumn.find('.product_list');
     var $originalTopPagination = $centerColumn.find('.top-pagination-content');
     var $originalBottomPagination = $centerColumn.find('.bottom-pagination-content');
     var $originalHeadingCounter = $centerColumn.find('.heading-counter');
-
-    $originalProductList.empty();
-    $originalTopPagination.empty();
-    $originalTopPagination.empty();
-    $originalBottomPagination.empty();
 
     // Dont scroll on page load
     performFiltering($scrollToList);
@@ -37,7 +34,25 @@ $(document).ready(function() {
 
         $xhr = $.ajax($globalBradFilterUrl, {
             data: $selectedFilters,
+            beforeSend: function() {
+                $originalProductList.css('opacity', '0.6');
+                $originalProductList.prepend($bradLoader.clone().show());
+            },
+            complete: function() {
+                $originalProductList.css('opacity', '1');
+                $originalProductList.find('#bradFilterLoader').remove();
+            },
             success: function ($response) {
+                if ($pageLoad) {
+                    $originalProductList.empty();
+                    $originalTopPagination.empty();
+                    $originalTopPagination.empty();
+                    $originalBottomPagination.empty();
+
+                    $pageLoad = false;
+                }
+
+
                 handleFilteringResponse($response);
 
                 if ($scrollToList) {

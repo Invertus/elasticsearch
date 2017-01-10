@@ -8,11 +8,11 @@
             <div class="filter_block">
                 {foreach $filters as $filter}
 
-                    {assign var='is_checkbox_input' value=BradFilter::FILTER_STYLE_CHECKBOX == $filter.filterStyle ||BradFilter::FILTER_STYLE_LIST_OF_VALUES == $filter.filterStyle}
+                    {assign var='is_checkbox_input' value=BradFilter::FILTER_STYLE_CHECKBOX == $filter.filterStyle || BradFilter::FILTER_STYLE_LIST_OF_VALUES == $filter.filterStyle}
 
                     {* If aggregations & hide 0 filters is on and filter style is checkbox then hide filters with 0 products *}
                     {if $aggregations_on && $hide_zero_filters && $is_checkbox_input}
-                        {if !isset($aggregations[$filter.inputName])}
+                        {if !isset($aggregations[$filter.inputName]) || $aggregations[$filter.inputName] == 0}
                             {continue}
                         {/if}
                     {/if}
@@ -33,12 +33,8 @@
                                     <div class="checkbox">
                                         <label>
                                             {if isset($criteria.color) && !empty($criteria.color)}
-                                                {*@todo move to .css file*}
-                                                <span style="
-                                                    width: 15px;
-                                                    height: 15px;
+                                                <span class="brad-cirteria-color" style="
                                                     background-color: {$criteria.color|escape:'htmlall':'UTF-8'};
-                                                    display: inline-block;
                                                 "></span>
                                             {/if}
                                             <input name="{$filter.inputName|escape:'htmlall':'UTF-8'}"
@@ -102,10 +98,9 @@
                                 <div>
                                     <label>{l s='Range:' mod="brad"} <span class="brad-selected-range"></span></label>
                                     <input class="brad-slider-input brad-slider-filter-input"
+                                           title="{l s='range' mod='brad'}"
                                            type="text"
                                            readonly
-                                           {*@todo search in all files! move to .css file*}
-                                           style="border:0; color:#777; font-weight:bold;"
                                            name="{$filter.inputName|escape:'htmlall':'UTF-8'}"
                                     >
                                     <div data-min-value="{$default_min_value|escape:'htmlall':'UTF-8'}"

@@ -155,3 +155,15 @@ form#bradSearchBox {
     border: 1px solid transparent;
     display: block;
 }
+
+.brad-cirteria-color {
+    width: 15px;
+    height: 15px;
+    display: inline-block;
+}
+
+.brad-slider-input {
+    border:0;
+    color:#777;
+    font-weight:bold;
+}

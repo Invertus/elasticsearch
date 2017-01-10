@@ -110,9 +110,13 @@ class FilterService
                 continue;
             }
 
+            if (empty($aggregation[$fieldName]['buckets'])) {
+                $productsAggregations[$inputName] = 0;
+                continue;
+            }
+
             foreach ($aggregation[$fieldName]['buckets'] as $name => $bucket) {
                 $inputValue = isset($bucket['key']) ? $bucket['key'] : $name;
-
                 $productsAggregations[$inputName][$inputValue] = $bucket['doc_count'];
             }
         }

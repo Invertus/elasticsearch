@@ -189,12 +189,14 @@ class Brad extends Module
                 '$globalBradSearchUrl' => $bradSearchUrl,
             ]);
 
-            $this->context->controller->addCSS([
-                $this->container->get('brad_css_uri').'front/global.css',
-            ]);
-
             $this->context->controller->addJS([
                 $this->container->get('brad_js_uri').'front/search.js',
+            ]);
+        }
+
+        if ($isFiltersEnalbed || $isSearchEnalbed) {
+            $this->context->controller->addCSS([
+                $this->container->get('brad_css_uri').'front/global.css',
             ]);
         }
     }
@@ -269,7 +271,9 @@ class Brad extends Module
         $templating      = $this->container->get('templating');
         $filtersTemplate = $templating->renderFiltersBlockTemplate($filterData, $productsAggregations);
 
-        return $filtersTemplate;
+        $loader = $this->context->smarty->fetch($this->getLocalPath().'views/templates/front/loader.tpl');
+
+        return $filtersTemplate.$loader;
     }
 
     /**

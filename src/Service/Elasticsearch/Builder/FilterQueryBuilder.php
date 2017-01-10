@@ -286,8 +286,9 @@ class FilterQueryBuilder extends AbstractQueryBuilder
             }
 
             $params = [
-                'gt'   => (float) $value['min_value'],
-                'lte'  => (float) $value['max_value'],
+                'gte'   => (float) $value['min_value'],
+                // Simple hack to include last value
+                'lt'  => (float) $value['max_value'] + 0.01,
             ];
 
             $rangeQuery = new RangeQuery($fieldName, $params);

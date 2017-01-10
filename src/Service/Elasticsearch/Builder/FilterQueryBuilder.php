@@ -297,7 +297,7 @@ class FilterQueryBuilder extends AbstractQueryBuilder
      */
     protected function getBoolShouldRangeQuery($filterName, array $values)
     {
-        $fieldName = $fieldName = NameConverter::getElasticsearchFieldName($filterName);
+        $fieldName = NameConverter::getElasticsearchFieldName($filterName);
 
         $boolShouldQuery = new BoolQuery();
 

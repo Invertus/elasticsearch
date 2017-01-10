@@ -114,8 +114,6 @@ $(document).ready(function () {
         switch ($selectedFilterType) {
             case FILTER_TYPE_PRICE:
             case FILTER_TYPE_WEIGHT:
-            case FILTER_TYPE_ATTRIBUTE_GROUP:
-            case FILTER_TYPE_FEATURE:
                 $filterStyleCheckboxOption.show();
                 $filterStyleListOfValuesOption.show();
                 $filterStyleInputOption.show();
@@ -124,12 +122,20 @@ $(document).ready(function () {
             case FILTER_TYPE_MANUFACTURER:
             case FILTER_TYPE_QUANTITY:
             case FILTER_TYPE_CATEGORY:
+            case FILTER_TYPE_ATTRIBUTE_GROUP:
+            case FILTER_TYPE_FEATURE:
                 $filterStyleCheckboxOption.show().attr('selected','selected');
                 $filterStyleListOfValuesOption.hide();
                 $filterStyleInputOption.hide();
                 $filterStyleSliderOption.hide();
                 toggleFilterForm(FILTER_STYLE_CHECKBOX);
                 break;
+        }
+
+        if (-1 != $.inArray($selectedFilterType, [FILTER_TYPE_FEATURE, FILTER_TYPE_ATTRIBUTE_GROUP, FILTER_TYPE_WEIGHT])) {
+            $criteriaSuffixFormGroup.show();
+        } else {
+            $criteriaSuffixFormGroup.hide();
         }
 
         if (-1 != $.inArray($selectedFilterType, [FILTER_TYPE_FEATURE, FILTER_TYPE_ATTRIBUTE_GROUP])) {
@@ -153,20 +159,17 @@ $(document).ready(function () {
                 $criteriaOrderByFormGroup.show();
                 $criteriaOrderWayFormGroup.show();
                 $customRangesFormGroup.hide();
-                $criteriaSuffixFormGroup.hide();
                 break;
             case FILTER_STYLE_LIST_OF_VALUES:
                 $criteriaOrderByFormGroup.show();
                 $criteriaOrderWayFormGroup.show();
                 $customRangesFormGroup.show();
-                $criteriaSuffixFormGroup.show();
                 break;
             case FILTER_STYLE_INPUT:
             case FILTER_STYLE_SLIDER:
                 $criteriaOrderByFormGroup.hide();
                 $criteriaOrderWayFormGroup.hide();
                 $customRangesFormGroup.hide();
-                $criteriaSuffixFormGroup.hide();
                 break;
         }
     }

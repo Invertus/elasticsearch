@@ -12,7 +12,7 @@
 
                     {* If aggregations & hide 0 filters is on and filter style is checkbox then hide filters with 0 products *}
                     {if $aggregations_on && $hide_zero_filters && $is_checkbox_input}
-                        {if !isset($aggregations[$filter.inputName]) || $aggregations[$filter.inputName] == 0}
+                        {if !isset($aggregations[$filter.inputName].total_count) || $aggregations[$filter.inputName].total_count == 0}
                             {continue}
                         {/if}
                     {/if}
@@ -21,7 +21,7 @@
                             <strong>{$filter.name|escape:'htmlall':'UTF-8'}</strong>
                         </div>
 
-                        <div>
+                        <div {if isset($filter.customHeight) && $filter.customHeight}style="max-height: {$filter.customHeight|intval}px; overflow-y: scroll;" {/if}>
                             {assign 'criteria_name_key' $filter.criteriaNameKey}
                             {assign 'criteria_value_key' $filter.criteriaValueKey}
 
@@ -33,9 +33,7 @@
                                     <div class="checkbox">
                                         <label>
                                             {if isset($criteria.color) && !empty($criteria.color)}
-                                                <span class="brad-cirteria-color" style="
-                                                    background-color: {$criteria.color|escape:'htmlall':'UTF-8'};
-                                                "></span>
+                                                <span class="brad-cirteria-color" style="background-color: {$criteria.color|escape:'htmlall':'UTF-8'};"></span>
                                             {/if}
                                             <input name="{$filter.inputName|escape:'htmlall':'UTF-8'}"
                                                    value="{$criteria[$criteria_value_key]|escape:'htmlall':'UTF-8'}"

@@ -53,12 +53,12 @@ class BradFilter extends ObjectModel
     /**
      * @var int
      */
-    public $criteria_order_by;
+    public $criteria_order_by = 0;
 
     /**
      * @var int
      */
-    public $criteria_order_way;
+    public $criteria_order_way = 0;
 
     /**
      * @var string

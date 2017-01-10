@@ -168,6 +168,7 @@ class AdminBradFilterController extends AbstractAdminBradModuleController
             'input' => [
                 [
                     'label' => $this->l('Filter name'),
+                    'hint' => $this->l('Only displayed in Back Office'),
                     'type' => 'text',
                     'name' => 'name',
                     'class' => 'fixed-width-xxl',
@@ -197,6 +198,7 @@ class AdminBradFilterController extends AbstractAdminBradModuleController
                 ],
                 [
                     'label' => $this->l('Custom height'),
+                    'hint' => $this->l('Custom height in pixels. Leave empty to use default.'),
                     'type' => 'text',
                     'name' => 'custom_height',
                     'suffix' => $this->l('px'),
@@ -221,55 +223,10 @@ class AdminBradFilterController extends AbstractAdminBradModuleController
                 ],
                 [
                     'label' => $this->l('Custom ranges suffix'),
+                    'hint' => $this->l('E.g.: kg, g, mm, cm & etc.'),
                     'type' => 'text',
                     'name' => 'criteria_suffix',
                     'class' => 'fixed-width-lg',
-                ],
-                [
-                    'label' => $this->l('Order by'),
-                    'type' => 'select',
-                    'name' => 'criteria_order_by',
-                    'options' => [
-                        'query' => [
-                            [
-                                'id' => BradFilter::ORDER_BY_NONE,
-                                'name' => $this->l('None'),
-                            ],
-                            [
-                                'id' => BradFilter::ORDER_BY_NUMBER_OF_PRODUCTS,
-                                'name' => $this->l('Number of products'),
-                            ],
-                            [
-                                'id' => BradFilter::ORDER_BY_NATURAL,
-                                'name' => $this->l('Natural'),
-                            ],
-                            [
-                                'id' => BradFilter::ORDER_BY_ALPHA_NUM,
-                                'name' => $this->l('Alpha / Numeric'),
-                            ],
-                        ],
-                        'id' => 'id',
-                        'name' => 'name',
-                    ],
-                ],
-                [
-                    'label' => $this->l('Order way'),
-                    'type' => 'select',
-                    'name' => 'criteria_order_way',
-                    'options' => [
-                        'query' => [
-                            [
-                                'id' => Sort::WAY_DESC,
-                                'name' => $this->l('Descending'),
-                            ],
-                            [
-                                'id' => Sort::WAY_ASC,
-                                'name' => $this->l('Ascending'),
-                            ],
-                        ],
-                        'id' => 'id',
-                        'name' => 'name',
-                    ],
                 ],
             ],
             'submit' => [

@@ -49,9 +49,6 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
         $orderWay        = $urlParser->getOrderWay();
         $orderBy         = $urlParser->getOrderBy();
 
-        /** @var \Invertus\Brad\Service\FilterService $filterService */
-        $filterService = $this->get('filter_service');
-
         $filterData = new FilterData();
         $filterData->setSize($n);
         $filterData->setPage($p);
@@ -60,6 +57,9 @@ class BradFilterModuleFrontController extends AbstractBradModuleFrontController
         $filterData->setIdCategory($idCategory);
         $filterData->setSelectedFilters($selectedFilters);
         $filterData->initFilters();
+
+        /** @var \Invertus\Brad\Service\FilterService $filterService */
+        $filterService = $this->get('filter_service');
 
         $products             = $filterService->filterProducts($filterData);
         $productsCount        = $filterService->countProducts($filterData);

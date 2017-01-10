@@ -83,8 +83,8 @@ class FilterQueryBuilder extends AbstractQueryBuilder
             if (!$hasSelectedFilters) {
                 $query = $this->getQueryFromCategories($idCategory);
             } else {
-                $query = $this->getAggsQuery($filterData->getSelectedFilters(), $filter->getInputName());
-                if ($mustAddCategories) {
+                $query = $this->getAggsQuery($selectedFilters, $filter->getInputName());
+                if ($mustAddCategories || (!$mustAddCategories && count($selectedFilters) == 1)) {
                     $categoriesQuery = $this->getQueryFromCategories($idCategory);
                     $query->add($categoriesQuery, BoolQuery::MUST);
                 }
@@ -259,6 +259,10 @@ class FilterQueryBuilder extends AbstractQueryBuilder
         $boolShouldQuery = new BoolQuery();
 
         foreach ($values as $value) {
+            if ('category' == $filterIntputName) {
+                $value = (int) $value;
+            }
+
             $termQuery = new TermQuery($fieldName, $value);
             $boolShouldQuery->add($termQuery, BoolQuery::SHOULD);
         }

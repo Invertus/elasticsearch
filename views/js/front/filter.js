@@ -86,7 +86,7 @@ $(document).ready(function() {
         $originalProductList.html('<div id="bradProductList">' + $response.products_list_template + '</div>');
         $originalTopPagination.html('<div class="' + $topPaginationStyles + '" id="bradTopPagination">' + $response.top_pagination_template + '</div>');
         $originalBottomPagination.html('<div id="bradBottomPagination">' + $response.bottom_pagination_template + '</div>');
-        $originalTopPagination.before('<div id="bradSelectedFilters">' + $response.selected_filters_template + '</div>');
+        $originalTopPagination.before($response.selected_filters_template);
         $originalHeadingCounter.html($response.category_count_template);
 
         addEventListeners();

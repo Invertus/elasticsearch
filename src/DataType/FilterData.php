@@ -132,6 +132,7 @@ class FilterData extends SearchData
         $selectedFilters = $this->getSelectedFilters();
         $selectedFiltersInputNames = array_keys($selectedFilters);
 
+        /** @var FilterStruct $filter */
         foreach ($filters as &$filter) {
             switch ($filter->getFilterType()) {
                 case BradFilter::FILTER_TYPE_ATTRIBUTE_GROUP:
@@ -390,12 +391,14 @@ class FilterData extends SearchData
             $ranges = RangeParser::splitIntoRanges($minWeight, $maxWeight, $n);
         }
 
+        $customSuffix = $filter->getCriteriaSuffix() ? $filter->getCriteriaSuffix() : '';
+
         foreach ($ranges as $range) {
             $min = $range['min_value'];
             $max = $range['max_value'];
 
             $weightCriterias[] = [
-                'name'  => sprintf('%s - %s', $min, $max),
+                'name'  => sprintf('%s %s - %s %s', $min, $customSuffix, $max, $customSuffix),
                 'value' => sprintf('%s:%s', $min, $max),
             ];
         }

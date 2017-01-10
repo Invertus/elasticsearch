@@ -55,6 +55,16 @@ class FilterStruct
     public $criteriaValueKey;
 
     /**
+     * @var string
+     */
+    public $criteriaSuffix = '';
+
+    /**
+     * @var int
+     */
+    public $customHeight;
+
+    /**
      * @return array
      */
     public function getCriterias()
@@ -198,4 +208,27 @@ class FilterStruct
         $this->idFilter = $idFilter;
     }
 
+    /**
+     * @param string $criteriaSuffix
+     */
+    public function setCriteriaSuffix($criteriaSuffix)
+    {
+        $this->criteriaSuffix = $criteriaSuffix;
+    }
+
+    /**
+     * @param int $customHeight
+     */
+    public function setCustomHeight($customHeight)
+    {
+        $this->customHeight = $customHeight;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCriteriaSuffix()
+    {
+        return $this->criteriaSuffix;
+    }
 }

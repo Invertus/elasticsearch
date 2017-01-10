@@ -167,3 +167,14 @@ form#bradSearchBox {
     color:#777;
     font-weight:bold;
 }
+
+.brad-selected-filter:hover {
+    text-decoration: line-through;
+}
+
+#bradSelectedFilters {
+    background-color: #f6f6f6;
+    padding: 5px;
+    border: 1px solid rgba(0, 0, 0, .1);
+    margin-top: 10px;
+}

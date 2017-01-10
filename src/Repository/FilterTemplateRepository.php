@@ -96,8 +96,8 @@ class FilterTemplateRepository extends \Core_Foundation_Database_EntityRepositor
                 ON ft.`id_brad_filter_template` = ftc.`id_brad_filter_template`
                     AND ftc.`id_category` = '.(int)$idCategory.'
             LEFT JOIN `'.$this->getPrefix().'brad_filter_template_filter` ftf
-                ON ftf.`id_brad_filter_template` = ft.`id_brad_filter_template`
-            LEFT JOIN `'.$this->getPrefix().'brad_filter` f   
+                ON ftf.`id_brad_filter_template` = ftc.`id_brad_filter_template`
+            INNER JOIN `'.$this->getPrefix().'brad_filter` f   
                 ON f.`id_brad_filter` = ftf.`id_brad_filter`
             ORDER BY ftf.`position` ASC
         ';
@@ -116,6 +116,8 @@ class FilterTemplateRepository extends \Core_Foundation_Database_EntityRepositor
             $filterStruct->setFilterStyle($result['filter_style']);
             $filterStruct->setIdKey($result['id_key']);
             $filterStruct->setIdFilter($result['id_brad_filter']);
+            $filterStruct->setCriteriaSuffix($result['criteria_suffix']);
+            $filterStruct->setCustomHeight($result['custom_height']);
 
             $inputName = NameConverter::getInputFieldName($filterStruct);
             $filterStruct->setInputName($inputName);

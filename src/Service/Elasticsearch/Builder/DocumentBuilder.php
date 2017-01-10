@@ -103,7 +103,7 @@ class DocumentBuilder
         $body['on_sale']                = $product->on_sale;
         $body['id_image']               = Product::getCover($product->id)['id_image'];
         $body['id_combination_default'] = $product->getDefaultIdProductAttribute();
-        $body['categories']             = $product->getCategories();
+        $body['categories']             = array_map('intval', $product->getCategories());
 
         $totalQuantity = StockAvailable::getQuantityAvailableByProduct($product->id);
 

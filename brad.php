@@ -17,8 +17,6 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-use Invertus\Brad\DataType\FilterData;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -254,7 +252,7 @@ class Brad extends Module
         $n          = $urlParser->getSize();
         $idCategory = $urlParser->getIdCategory();
 
-        $filterData = new FilterData();
+        $filterData = new \Invertus\Brad\DataType\FilterData();
         $filterData->setSize($n);
         $filterData->setPage($page);
         $filterData->setOrderWay($orderWay);

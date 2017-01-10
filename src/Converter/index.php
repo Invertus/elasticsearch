@@ -16,40 +16,13 @@
  * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-namespace Invertus\Brad\Util;
-
-/**
- * Class RangeParser
- *
- * @package Invertus\Brad\Util
- */
-class RangeParser
-{
-    /**
-     * Split value into ranges
-     *
-     * @param float $minValue
-     * @param float $maxValue
-     * @param int $n Number of ranges
-     *
-     * @return array
-     */
-    public static function splitIntoRanges($minValue, $maxValue, $n)
-    {
-        $ranges = [];
-        $delta = ($maxValue - $minValue) / $n;
-
-        for ($i = 0; $i < $n; $i++) {
-            $min = $minValue + $i * $delta;
-            $max = $minValue + ($i + 1) * $delta;
-
-            $ranges[] = [
-                'min_value' => $min,
-                'max_value' => $max,
-            ];
-        }
-
-        return $ranges;
-    }
-}
+				    	
+header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT");
+						
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+						
+header("Location: ../");
+exit;

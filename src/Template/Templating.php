@@ -304,13 +304,13 @@ class Templating
             return sprintf('%s - %s', $value['min_value'], $value['max_value']);
         } elseif (0 === strpos($key, 'feature')) {
             $featuresRep = $this->em->getRepository('BradFeature');
-            $featuresValues = $featuresRep->findFeaturesValues($idLang);
             $idFeature = explode('_', $key)[1];
+            $featuresValues = $featuresRep->findFeaturesValues($idFeature, $idLang);
             return $featuresValues[$idFeature][$value]['name'];
         } elseif (0 === strpos($key, 'attribute_group')) {
             $attributeGroupRep = $this->em->getRepository('BradAttributeGroup');
-            $attribtueGroupsValuesNames = $attributeGroupRep->findAttributesGroupsValues($idLang, $idShop);
             $idAttributeGroup = explode('_', $key)[2];
+            $attribtueGroupsValuesNames = $attributeGroupRep->findAttributesGroupsValues($idAttributeGroup, $idLang, $idShop);
             return $attribtueGroupsValuesNames[$idAttributeGroup][$value]['name'];
         }
 

@@ -107,17 +107,19 @@ class AttributeGroupRepository extends \Core_Foundation_Database_EntityRepositor
     /**
      * Find all attributes groups values
      *
+     * @param int $idAttributeGroup
      * @param int $idLang
      * @param int $idShop
      *
      * @return array
      */
-    public function findAttributesGroupsValues($idLang, $idShop)
+    public function findAttributesGroupsValues($idAttributeGroup, $idLang, $idShop)
     {
         static $attributeGroupsValues;
 
-        if ($attributeGroupsValues) {
-            return $attributeGroupsValues;
+        $cachekey = 'ag_values_'.(int)$idAttributeGroup;
+        if ($attributeGroupsValues[$cachekey]) {
+            return $attributeGroupsValues[$cachekey];
         }
 
         $sql = '
@@ -129,6 +131,7 @@ class AttributeGroupRepository extends \Core_Foundation_Database_EntityRepositor
                 ON ashop.`id_attribute` = a.`id_attribute`
             WHERE al.`id_lang` = '.(int)$idLang.'
                 AND ashop.`id_shop` = '.(int)$idShop.'
+                AND a.`id_attribute_group` = '.(int)$idAttributeGroup.'
         ';
 
         $results = $this->db->select($sql);
@@ -137,14 +140,17 @@ class AttributeGroupRepository extends \Core_Foundation_Database_EntityRepositor
             return [];
         }
 
+        $values = [];
         foreach ($results as $result) {
-            $attributeGroupsValues[$result['id_attribute_group']][$result['id_attribute']] = [
+            $values[$result['id_attribute_group']][$result['id_attribute']] = [
                 'id_attribute' => $result['id_attribute'],
                 'name' => $result['name'],
                 'color' => $result['color'],
             ];
         }
 
-        return $attributeGroupsValues;
+        $attributeGroupsValues[$cachekey] = $values;
+
+        return $values;
     }
 }

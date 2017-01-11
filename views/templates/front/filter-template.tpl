@@ -48,6 +48,15 @@
                             {* ===================================== *}
                             {if $is_checkbox_input }
                                 {foreach $filter.criterias as $criteria}
+                                    {if isset($aggregations[$filter.inputName][$criteria[$criteria_value_key]])}
+                                        {assign 'products_count' $aggregations[$filter.inputName][$criteria[$criteria_value_key]]}
+                                    {else}
+                                        {assign 'products_count' 0}
+                                    {/if}
+
+                                    {if $aggregations_on && $hide_zero_filters && $products_count == 0}
+                                        {continue}
+                                    {/if}
                                     <div class="checkbox">
                                         <label>
                                             {if isset($criteria.color) && !empty($criteria.color)}
@@ -61,8 +70,8 @@
                                             >
                                             {$criteria[$criteria_name_key]|escape:'htmlall':'UTF-8'}
                                             {if isset($aggregations[$filter.inputName])}
-                                                {if isset($aggregations[$filter.inputName][$criteria[$criteria_value_key]])}
-                                                    ({$aggregations[$filter.inputName][$criteria[$criteria_value_key]]})
+                                                {if $products_count > 0}
+                                                    ({$products_count|intval})
                                                 {else}
                                                     (0)
                                                 {/if}
@@ -75,7 +84,6 @@
                             {* Display input fields *}
                             {* ===================================== *}
                             {elseif BradFilter::FILTER_STYLE_INPUT == $filter.filterStyle}
-
                                 {assign var='default_prices' value=':'|explode:$filter.criterias.0.$criteria_value_key}
                                 {assign var='default_min_value' value=$default_prices.0}
                                 {assign var='default_max_value' value=$default_prices.1}

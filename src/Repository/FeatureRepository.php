@@ -107,18 +107,18 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
 
     /**
      * Find all feature values
-     * @todo select only specific features
      *
+     * @param int $idFeature
      * @param int $idLang
      *
      * @return array
      */
-    public function findFeaturesValues($idLang)
+    public function findFeaturesValues($idFeature, $idLang)
     {
         static $featureValues;
 
-        if ($featureValues) {
-            return $featureValues;
+        if ($featureValues['features_'.(int)$idFeature]) {
+            return $featureValues['features_'.(int)$idFeature];
         }
 
         $sql = '
@@ -126,7 +126,7 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
             FROM `'.$this->getPrefix().'feature_value_lang` fvl
             LEFT JOIN `'.$this->getPrefix().'feature_value` fv
                 ON fv.`id_feature_value` = fvl.`id_feature_value`
-            WHERE fvl.`id_lang` = '.(int)$idLang.'
+            WHERE fvl.`id_lang` = '.(int)$idLang.' AND fv.`id_feature` = '.(int)$idFeature.'
         ';
 
         $results = $this->db->select($sql);
@@ -135,13 +135,16 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
             return [];
         }
 
+        $values = [];
         foreach ($results as $result) {
-            $featureValues[$result['id_feature']][$result['id_feature_value']] = [
+            $values[$result['id_feature']][$result['id_feature_value']] = [
                 'name' => $result['value'],
                 'id_feature_value' => $result['id_feature_value'],
             ];
         }
 
-        return $featureValues;
+        $featureValues['features_'.(int)$idFeature] = $values;
+
+        return $values;
     }
 }

@@ -15,7 +15,7 @@ class FilterQueryBuilderTest extends PrestaShopPHPUnit
     public function testBuildFilterQueryReturnsCorrectElasticsearchQuery($selectedFilters, $expectedQuery)
     {
         $filterData = new FilterData();
-        $filterData->setIdCategory(2);
+        $filterData->setIdCategory(3);
         $filterData->setOrderBy(Sort::BY_NAME);
         $filterData->setOrderWay(Sort::WAY_DESC);
         $filterData->setPage(1);
@@ -25,13 +25,10 @@ class FilterQueryBuilderTest extends PrestaShopPHPUnit
 
         $filterQueryBuilder = new FilterQueryBuilder();
         $filtersQuery = $filterQueryBuilder->buildFilterQuery($filterData, true);
-
+        
         $this->assertEquals($expectedQuery, $filtersQuery);
     }
 
-    /**
-     * @return array
-     */
     public function getSelectedFiltersAndQueries()
     {
         return [
@@ -43,136 +40,83 @@ class FilterQueryBuilderTest extends PrestaShopPHPUnit
                 [
                     'query' => [
                         'bool' => [
-                            'must' =>
+                            'must' => [
                                 [
-                                    [
-                                        'bool' =>
+                                    'bool' => [
+                                        'must' => [
                                             [
-                                                'should' =>
-                                                    [
+                                                'bool' => [
+                                                    'should' => [
                                                         [
-                                                            'term' =>
-                                                                [
-                                                                    'attribute_group_3' => 11,
-                                                                ],
+                                                            'term' => [
+                                                                'attribute_group_3' => 11,
+                                                            ],
                                                         ],
                                                     ],
+                                                ],
                                             ],
-                                    ],
-                                    [
-                                        'bool' =>
                                             [
-                                                'should' =>
-                                                    [
+                                                'bool' => [
+                                                    'should' => [
                                                         [
-                                                            'term' =>
-                                                                [
-                                                                    'categories' => 3,
-                                                                ],
+                                                            'term' => [
+                                                                'categories' => 3,
+                                                            ],
+
                                                         ],
                                                         [
-                                                            'term' =>
-                                                                [
-                                                                    'categories' => 4,
-                                                                ],
+                                                            'term' => [
+                                                                'categories' => 4,
+                                                            ],
                                                         ],
-                                                    ],
-                                            ],
-                                    ],
-                                ],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                [
-                    'manufacturer' => ['1'],
-                    'attribute_group_3' => ['7'],
-                    'quantity' => ['1'],
-                    'weight' => [
-                        [
-                            'min_value' => '0',
-                            'max_value' => '4.5',
-                        ],
-                    ],
-                    'feature_5' => ['3'],
-                    'category' => ['10'],
-                ],
-                [
-                    'query' => [
-                        'bool' => [
-                            'must' =>
-                                [
-                                    ['bool' =>
-                                        [
-                                            'should' => [
-                                                [
-                                                    'term' => [
-                                                        'id_manufacturer' => 1,
-                                                    ],
-                                                ],
-                                            ],
-                                        ],
-                                    ],
-                                    ['bool' =>
-                                        [
-                                            'should' => [
-                                                [
-                                                    'term' => [
-                                                        'attribute_group_3' => 7,
-                                                    ],
-                                                ],
-                                            ],
-                                        ],
-                                    ],
-                                    ['bool' =>
-                                        [
-                                            'should' => [
-                                                [
-                                                    'term' => [
-                                                        'in_stock_when_global_oos_deny_orders' => 1,
-                                                    ],
-                                                ],
-                                            ],
-                                        ],
-                                    ],
-                                    ['bool' =>
-                                        [
-                                            'should' => [
-                                                [
-                                                    'range' => [
-                                                        'weight' => [
-                                                            'gte' => 0,
-                                                            'lt' => 4.51,
-                                                        ],
-                                                    ],
-                                                ],
-                                            ],
-                                        ],
-                                    ],
-                                    ['bool' =>
-                                        [
-                                            'should' => [
-                                                [
-                                                    'term' => [
-                                                        'feature_5' => 3,
-                                                    ],
-                                                ],
-                                            ],
-                                        ],
-                                    ],
-                                    ['bool' =>
-                                        [
-                                            'should' => [
-                                                [
-                                                    'term' => [
-                                                        'categories' => 10,
                                                     ],
                                                 ],
                                             ],
                                         ],
                                     ],
                                 ],
+                                [
+                                    'bool' => [
+                                        'should' => [
+                                            [
+                                                'term' => [
+                                                    'categories' => 4,
+                                                ],
+                                            ],
+                                            [
+                                                'term' => [
+                                                    'categories' => 5,
+                                                ],
+                                            ],
+                                            [
+                                                'term' => [
+                                                    'categories' => 7,
+                                                ],
+                                            ],
+                                            [
+                                                'term' => [
+                                                    'categories' => 8
+                                                ],
+                                            ],
+                                            [
+                                                'term' => [
+                                                    'categories' => 9
+                                                ],
+                                            ],
+                                            [
+                                                'term' => [
+                                                    'categories' => 10
+                                                ],
+                                            ],
+                                            [
+                                                'term' => [
+                                                    'categories' => 11
+                                                ],
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
                         ],
                     ],
                 ],

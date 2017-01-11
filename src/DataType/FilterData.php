@@ -257,10 +257,9 @@ class FilterData extends SearchData
     {
         /** @var FeatureRepository $featureRepository */
         $featureRepository = $this->em->getRepository('BradFeature');
-
-        $featuresValues = $featureRepository->findFeaturesValues($this->context->language->id);
-
         $idFeature = $filter->getIdKey();
+
+        $featuresValues = $featureRepository->findFeaturesValues($idFeature, $this->context->language->id);
         $featureCriterias =  $featuresValues[$idFeature];
 
         return $featureCriterias;
@@ -282,7 +281,7 @@ class FilterData extends SearchData
         $idShop = $this->context->shop->id;
 
         $idAttributeGroup = (int) $filter->getIdKey();
-        $attributeGroupsValues = $attributeGroupRepository->findAttributesGroupsValues($idLang, $idShop);
+        $attributeGroupsValues = $attributeGroupRepository->findAttributesGroupsValues($idAttributeGroup, $idLang, $idShop);
 
         $attributeGroupCriterias = $attributeGroupsValues[$idAttributeGroup];
 

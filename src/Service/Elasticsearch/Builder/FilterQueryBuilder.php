@@ -179,7 +179,7 @@ class FilterQueryBuilder extends AbstractQueryBuilder
         $searchQuery = new Search();
         $boolMustFilterQuery = new BoolQuery();
 
-        $skipCategoriesQuery = true;
+        $skipCategoriesQuery = false;
 
         foreach ($selectedFilters as $name => $values) {
             if (0 === strpos($name, 'feature') || 0 === strpos($name, 'attribute_group')) {
@@ -202,7 +202,7 @@ class FilterQueryBuilder extends AbstractQueryBuilder
                 $boolMustFilterQuery->add($boolShouldTermQuery);
 
                 if (!empty($searchValues['categories'])) {
-                    $skipCategoriesQuery = false;
+                    $skipCategoriesQuery = true;
                 }
             }
         }

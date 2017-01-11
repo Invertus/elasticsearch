@@ -131,7 +131,7 @@ class CategoryRepository extends \Core_Foundation_Database_EntityRepository
         $groups = $context->customer->getGroups();
 
         $sql = '
-            SELECT c.`id_category`, cl.`name`
+            SELECT DISTINCT c.`id_category`, cl.`name`
             FROM `'.$this->getPrefix().'category` c
             LEFT JOIN `'.$this->getPrefix().'category_lang` cl
                 ON cl.`id_category` = c.`id_category`

@@ -23,5 +23,8 @@
         "elasticsearch/elasticsearch": "~2.0",
         "monolog/monolog": "^1.0",
         "ongr/elasticsearch-dsl": "^2.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "5.7.*"
     }
 }

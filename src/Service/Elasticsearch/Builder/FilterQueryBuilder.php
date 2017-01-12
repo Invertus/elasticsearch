@@ -86,7 +86,6 @@ class FilterQueryBuilder extends AbstractQueryBuilder
         $filters            = $filterData->getFilters(false);
         $selectedFilters    = $filterData->getSelectedFilters();
         $hasSelectedFilters = !empty($selectedFilters);
-        $mustAddCategories  = !isset($selectedFilters['category']);
         $idCategory         = $filterData->getIdCategory();
 
         if (empty($filters)) {
@@ -101,10 +100,8 @@ class FilterQueryBuilder extends AbstractQueryBuilder
                 $query = $this->getQueryFromCategories($idCategory);
             } else {
                 $query = $this->getAggsQuery($selectedFilters, $filter->getInputName());
-                if ($mustAddCategories || (!$mustAddCategories && count($selectedFilters) == 1)) {
-                    $categoriesQuery = $this->getQueryFromCategories($idCategory);
-                    $query->add($categoriesQuery, BoolQuery::MUST);
-                }
+                $categoriesQuery = $this->getQueryFromCategories($idCategory);
+                $query->add($categoriesQuery, BoolQuery::SHOULD);
             }
 
             if (in_array($filter->inputName, ['price', 'weight'])) {

@@ -3,8 +3,9 @@
 use Invertus\Brad\Config\Sort;
 use Invertus\Brad\DataType\FilterData;
 use Invertus\Brad\Service\Elasticsearch\Builder\FilterQueryBuilder;
+use PHPUnit\Framework\TestCase;
 
-class FilterQueryBuilderTest extends PrestaShopPHPUnit
+class FilterQueryBuilderTest extends TestCase
 {
     /**
      * @param array $selectedFilters

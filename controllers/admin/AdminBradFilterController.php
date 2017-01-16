@@ -37,6 +37,8 @@ class AdminBradFilterController extends AbstractAdminBradModuleController
         $this->identifier = BradFilter::$definition['primary'];
 
         parent::__construct();
+
+        $this->initList();
     }
 
     /**
@@ -125,6 +127,10 @@ class AdminBradFilterController extends AbstractAdminBradModuleController
      */
     protected function initList()
     {
+        if (!empty($this->fields_list)) {
+            return;
+        }
+
         $this->addRowAction('edit');
         $this->addRowAction('delete');
 
@@ -141,7 +147,7 @@ class AdminBradFilterController extends AbstractAdminBradModuleController
             'filter_type' => [
                 'title' => $this->l('Filter type'),
                 'type' => 'select',
-                'filter_key' => 'filter_type',
+                'filter_key' => 'a!filter_type',
                 'list' => [
                     BradFilter::FILTER_TYPE_PRICE => $this->l('Price'),
                     BradFilter::FILTER_TYPE_WEIGHT => $this->l('Weight'),
@@ -151,17 +157,19 @@ class AdminBradFilterController extends AbstractAdminBradModuleController
                     BradFilter::FILTER_TYPE_FEATURE => $this->l('Feature'),
                     BradFilter::FILTER_TYPE_ATTRIBUTE_GROUP => $this->l('Attribute group'),
                 ],
+                'havingFilter' => true,
             ],
             'filter_style' => [
                 'title' => $this->l('Filter style'),
                 'type' => 'select',
-                'filter_key' => 'filter_style',
+                'filter_key' => 'a!filter_style',
                 'list' => [
                     BradFilter::FILTER_STYLE_CHECKBOX => $this->l('Checkbox'),
                     BradFilter::FILTER_STYLE_LIST_OF_VALUES => $this->l('List of values'),
                     BradFilter::FILTER_STYLE_INPUT => $this->l('Input fields'),
                     BradFilter::FILTER_STYLE_SLIDER => $this->l('Slider'),
                 ],
+                'havingFilter' => true,
             ],
             'custom_height' => [
                 'title' => $this->l('Custom height'),

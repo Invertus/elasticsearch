@@ -39,6 +39,8 @@ class AdminBradFilterTemplateController extends AbstractAdminBradModuleControlle
         $this->identifier = BradFilterTemplate::$definition['primary'];
 
         parent::__construct();
+
+        $this->initList();
     }
 
     /**
@@ -57,6 +59,10 @@ class AdminBradFilterTemplateController extends AbstractAdminBradModuleControlle
      */
     protected function initList()
     {
+        if (!empty($this->fields_list)) {
+            return;
+        }
+
         $this->addRowAction('edit');
         $this->addRowAction('delete');
 

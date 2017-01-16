@@ -49,13 +49,26 @@
 * Enable / Disable dynamic search;
 * Set instant search results count;
 * Set minimum symbols count in search input from which search is started;
-* Set host of Elasticsearch® service.
+* Set host of Elasticsearch® service;
+* Enable / Disable filtering;
+* Hide filters with no matching products;
+* Display number of matching products.
     
 ##### Change advanced module settings:
 * Set bulk request size;
 * Set number of shards;
 * Set number of replicas;
 * Set refresh interval;
+
+##### Filters
+* Filter creation;
+* Choose filter type;
+* Choose filter style.
+ 
+##### Filter templates
+* Create filter templates;
+* Assign filters to templates;
+* Order filters in template
  
 ### Front office
 
@@ -64,6 +77,8 @@
 * Select product from search results list;
 * See search results in search page;
 * Manage view of search results (list / grid, pagination, sorting);
+* Filter category products by chosen criteria;
+* Select product from filter results list.
 
 ## Support
  

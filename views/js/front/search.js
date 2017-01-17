@@ -37,11 +37,6 @@ $(document).ready(function() {
     $(document).on('click', clearInstantSearchResults);
 
     /**
-     * Scroll to center column after search page load
-     */
-    scrollToCenterColumn();
-
-    /**
      * Perform search & handle response
      */
     function performSearch()
@@ -133,19 +128,5 @@ $(document).ready(function() {
             var $centerColumnDiv = $(CENTER_COLUMN_ID);
             $centerColumnDiv.show();
         }
-    }
-
-    /**
-     * Scroll to center column
-     */
-    function scrollToCenterColumn()
-    {
-        if (typeof $globalBradScrollCenterColumn == 'undefined') {
-            return;
-        }
-
-        $(body).animate({
-            scrollTop: $(CENTER_COLUMN_ID).offset().top
-        }, 0);
     }
 });

@@ -117,7 +117,7 @@ class FeatureRepository extends \Core_Foundation_Database_EntityRepository
     {
         static $featureValues;
 
-        if ($featureValues['features_'.(int)$idFeature]) {
+        if (isset($featureValues['features_'.(int)$idFeature])) {
             return $featureValues['features_'.(int)$idFeature];
         }
 

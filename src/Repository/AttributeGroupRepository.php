@@ -118,7 +118,7 @@ class AttributeGroupRepository extends \Core_Foundation_Database_EntityRepositor
         static $attributeGroupsValues;
 
         $cachekey = 'ag_values_'.(int)$idAttributeGroup;
-        if ($attributeGroupsValues[$cachekey]) {
+        if (isset($attributeGroupsValues[$cachekey])) {
             return $attributeGroupsValues[$cachekey];
         }
 

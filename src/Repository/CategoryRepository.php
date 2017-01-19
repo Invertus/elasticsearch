@@ -95,8 +95,7 @@ class CategoryRepository extends \Core_Foundation_Database_EntityRepository
                 ON cg.`id_category` = c.`id_category`
             WHERE cs.`id_shop` = '.(int)$idShop.'
                 AND cl.`id_lang` = '.(int)$idLang.'
-                AND c.`nleft` > '.(int)$category->nleft.'
-                AND c.`nright` < '.(int)$category->nright.'
+                AND c.`id_parent` > '.(int)$category->id.'
                 AND c.`active` = 1
                 AND cg.`id_group` IN ('.implode(',', array_map('intval', $groups)).')
         ';

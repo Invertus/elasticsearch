@@ -240,19 +240,19 @@ class FilterQueryBuilder extends AbstractQueryBuilder
         /** @var CategoryRepository $categoryRepository */
         $categoryRepository = $brad->getContainer()->get('em')->getRepository('BradCategory');
 
+        $inputName = 'category';
         $category = new Category($idCategory);
 
         $subCategories = $categoryRepository->findChildCategoriesNamesAndIds($category, $idLang, $idShop);
 
         if (empty($subCategories)) {
-            return null;
+            return $this->getBoolShouldRangeQuery($inputName, [$idCategory]);
         }
 
         $values = array_map(function($subCategory) {
             return (int) $subCategory['id_category'];
         }, $subCategories);
 
-        $inputName = 'category';
         $boolShouldTermQuery = $this->getBoolShouldTermQuery($inputName, $values);
 
         return $boolShouldTermQuery;

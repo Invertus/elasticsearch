@@ -188,10 +188,10 @@ class Indexer
             $numberOfProductToIndex = (int) (count($bulkParams['body']) / 2);
 
             if (0 < $numberOfProductToIndex) {
-                $success = $this->elasticsearchIndexer->indexBulk($bulkParams);
+                $count = $this->elasticsearchIndexer->indexBulk($bulkParams);
 
-                if ($success) {
-                    $this->indexedProductsCount += $numberOfProductToIndex;
+                if ($count) {
+                    $this->indexedProductsCount += (int) $count;
                 }
             }
 

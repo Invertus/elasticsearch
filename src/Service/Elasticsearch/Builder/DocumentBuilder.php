@@ -81,28 +81,28 @@ class DocumentBuilder
     public function buildProductBody(Product $product)
     {
         $body = [];
-        $body['id_product']             = $product->id;
-        $body['id_supplier']            = $product->id_supplier;
-        $body['id_manufacturer']        = $product->id_manufacturer;
-        $body['manufacturer_name']      = Manufacturer::getNameById($product->id_manufacturer);
-        $body['id_category_default']    = $product->id_category_default;
+        $body['id_product']             = (int) $product->id;
+        $body['id_supplier']            = (int) $product->id_supplier;
+        $body['id_manufacturer']        = (int) $product->id_manufacturer;
+        $body['manufacturer_name']      = (string) Manufacturer::getNameById($product->id_manufacturer);
+        $body['id_category_default']    = (int) $product->id_category_default;
         $body['on_sale']                = $product->on_sale;
-        $body['ean13']                  = $product->ean13;
-        $body['reference']              = $product->reference;
-        $body['upc']                    = $product->upc;
-        $body['price']                  = $product->price;
+        $body['ean13']                  = (string) $product->ean13;
+        $body['reference']              = (string) $product->reference;
+        $body['upc']                    = (string) $product->upc;
+        $body['price']                  = (float) $product->price;
         $body['show_price']             = $product->show_price;
         $body['quantity']               = $product->quantity;
         $body['customizable']           = $product->customizable;
         $body['minimal_quantity']       = $product->minimal_quantity;
         $body['available_for_order']    = $product->available_for_order;
-        $body['condition']              = $product->condition;
+        $body['condition']              = (string) $product->condition;
         $body['weight']                 = $product->weight;
         $body['out_of_stock']           = $product->out_of_stock;
         $body['is_virtual']             = $product->is_virtual;
         $body['on_sale']                = $product->on_sale;
-        $body['id_image']               = Product::getCover($product->id)['id_image'];
-        $body['id_combination_default'] = $product->getDefaultIdProductAttribute();
+        $body['id_image']               = (int) Product::getCover($product->id)['id_image'];
+        $body['id_combination_default'] = (int) $product->getDefaultIdProductAttribute();
         $body['categories']             = array_map('intval', $product->getCategories());
 
         $totalQuantity = StockAvailable::getQuantityAvailableByProduct($product->id);
@@ -113,12 +113,12 @@ class DocumentBuilder
         $defaultCategory = new Category($product->id_category_default);
 
         foreach ($product->name as $idLang => $name) {
-            $body['name_lang_'.$idLang] = $name;
-            $body['description_lang_'.$idLang] = $product->description[$idLang];
-            $body['short_description_lang_'.$idLang] = $product->description_short[$idLang];
-            $body['link_rewrite_lang_'.$idLang] = $product->link_rewrite[$idLang];
-            $body['link_lang_'.$idLang] = $this->context->link->getProductLink($product, $product->link_rewrite[$idLang]);
-            $body['default_category_name_lang_'.$idLang] = $defaultCategory->name[$idLang];
+            $body['name_lang_'.$idLang] = (string) $name;
+            $body['description_lang_'.$idLang] = (string) $product->description[$idLang];
+            $body['short_description_lang_'.$idLang] = (string) $product->description_short[$idLang];
+            $body['link_rewrite_lang_'.$idLang] = (string) $product->link_rewrite[$idLang];
+            $body['link_lang_'.$idLang] = (string) $this->context->link->getProductLink($product, $product->link_rewrite[$idLang]);
+            $body['default_category_name_lang_'.$idLang] = (string) $defaultCategory->name[$idLang];
         }
 
         $features   = $product->getFeatures();
@@ -131,9 +131,9 @@ class DocumentBuilder
 
                 $body['feature_'.$featureObj->id] = $featureValueObj->id;
                 foreach ($featureObj->name as $idLang => $name) {
-                    $body['feature_'.$featureObj->id.'_lang_'.$idLang] = $name;
-                    $body['feature_value_'.$featureValueObj->id.'_lang_'.$idLang] = $featureValueObj->value[$idLang];
-                    $body['feature_value_keywords_lang_'.$idLang][] = $featureValueObj->value[$idLang];
+                    $body['feature_'.$featureObj->id.'_lang_'.$idLang] = (string) $name;
+                    $body['feature_value_'.$featureValueObj->id.'_lang_'.$idLang] = (string) $featureValueObj->value[$idLang];
+                    $body['feature_value_keywords_lang_'.$idLang][] = (string) $featureValueObj->value[$idLang];
                 }
             }
         }
@@ -143,11 +143,11 @@ class DocumentBuilder
                 $attributeObj = new Attribute($attribute['id_attribute']);
 
                 foreach ($attributeObj->name as $idLang => $name) {
-                    $body['attribute_'.$attributeObj->id.'_lang_'.$idLang] = $name;
-                    $body['attribute_keywords_lang_'.$idLang][]            = $name;
+                    $body['attribute_'.$attributeObj->id.'_lang_'.$idLang] = (string) $name;
+                    $body['attribute_keywords_lang_'.$idLang][]            = (string) $name;
                 }
 
-                $body['attribute_group_' . $attribute['id_attribute_group']][] = $attributeObj->id;
+                $body['attribute_group_' . $attribute['id_attribute_group']][] = (int) $attributeObj->id;
             }
         }
 
@@ -172,7 +172,7 @@ class DocumentBuilder
             foreach (self::$countriesIds as $idCountry) {
                 foreach (self::$currenciesIds as $idCurrency) {
 
-                    $price = Product::priceCalculation(
+                    $price = (float) Product::priceCalculation(
                         $idShop,
                         $product->id,
                         null,

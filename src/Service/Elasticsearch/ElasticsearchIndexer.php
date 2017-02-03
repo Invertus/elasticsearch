@@ -229,7 +229,7 @@ class ElasticsearchIndexer
      *
      * @param array
      *
-     * @return bool
+     * @return int Number of indexed products
      */
     public function indexBulk(array $params)
     {
@@ -243,7 +243,20 @@ class ElasticsearchIndexer
             return false;
         }
 
-        return (bool) !$response['errors'];
+        if ($response['errors']) {
+            $indexedProductsCount = 0;
+
+            foreach ($response['items'] as $item) {
+                $itemStatus = $item['index']['status'];
+                if ($itemStatus >= 200 && $itemStatus < 300) {
+                    $indexedProductsCount++;
+                }
+            }
+
+            return $indexedProductsCount;
+        }
+
+        return count($response['items']);
     }
 
     /**

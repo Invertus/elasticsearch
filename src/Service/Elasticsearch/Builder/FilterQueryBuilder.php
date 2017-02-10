@@ -246,7 +246,7 @@ class FilterQueryBuilder extends AbstractQueryBuilder
         $subCategories = $categoryRepository->findChildCategoriesNamesAndIds($category, $idLang, $idShop);
 
         if (empty($subCategories)) {
-            return $this->getBoolShouldRangeQuery($inputName, [$idCategory]);
+            return $this->getBoolShouldTermQuery($inputName, [$idCategory]);
         }
 
         $values = array_map(function($subCategory) {

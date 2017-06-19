@@ -100,7 +100,6 @@ class DocumentBuilder
         $body['weight']                 = $product->weight;
         $body['out_of_stock']           = $product->out_of_stock;
         $body['is_virtual']             = $product->is_virtual;
-        $body['on_sale']                = $product->on_sale;
         $body['id_image']               = Product::getCover($product->id)['id_image'];
         $body['id_combination_default'] = $product->getDefaultIdProductAttribute();
         $body['categories']             = array_map('intval', $product->getCategories());

@@ -91,7 +91,7 @@ class SearchQueryBuilder extends AbstractQueryBuilder
                         ],
                         [
                             'match_phrase_prefix' => [
-                                'category_name' => [
+                                'default_category_name_lang_'.$idLang => [
                                     'query' => $searchQueryString,
                                 ],
                             ],
@@ -118,7 +118,7 @@ class SearchQueryBuilder extends AbstractQueryBuilder
         if ($isFuzzySeearchEnabled) {
             $searchQuery['query']['bool']['should'][] = [
                 'multi_match' => [
-                    'fields' => ['name_lang_'.$idLang, 'category_name'],
+                    'fields' => ['name_lang_'.$idLang, 'default_category_name_lang_'.$idLang],
                     'query' => $searchQueryString,
                     'fuzziness' => 'AUTO',
                     'prefix_length' => 2,

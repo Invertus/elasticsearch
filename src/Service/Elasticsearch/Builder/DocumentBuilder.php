@@ -98,11 +98,12 @@ class DocumentBuilder
         $body['available_for_order']    = $product->available_for_order;
         $body['condition']              = (string) $product->condition;
         $body['weight']                 = $product->weight;
-        $body['out_of_stock']           = $product->out_of_stock;
+        $body['out_of_stock']           = StockAvailable::outOfStock($product->id);
         $body['is_virtual']             = $product->is_virtual;
         $body['on_sale']                = $product->on_sale;
         $body['id_image']               = (int) Product::getCover($product->id)['id_image'];
         $body['id_combination_default'] = (int) $product->getDefaultIdProductAttribute();
+
         $body['categories']             = array_map('intval', $product->getCategories());
 
         $totalQuantity = StockAvailable::getQuantityAvailableByProduct($product->id);
